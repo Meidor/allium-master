@@ -7,7 +7,7 @@
 if [ -d "/build/tmp" ]
  then
   rm -rf "/build/tmp"
- fi
+fi
 
 cp -a "/erlang_app" "/build/tmp"
 cd "/build/tmp"

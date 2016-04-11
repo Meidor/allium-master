@@ -23,4 +23,4 @@ RUN chmod a+x /build/rebar3
 RUN chmod a+x /build/build_erlang.sh
 
 VOLUME /erlang_app
-ENTRYPOINT ["/build/build_erlang.sh"]
+ENTRYPOINT ["/bin/bash", "/build/build_erlang.sh"]
