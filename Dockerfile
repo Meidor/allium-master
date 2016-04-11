@@ -23,6 +23,4 @@ RUN chmod a+x /build/rebar3
 RUN chmod a+x /build/build_erlang.sh
 
 VOLUME /erlang_app
-
-CMD ["nouser"]
-ENTRYPOINT ["/build/build_erlang.sh","/erlang_app","/build"]
+ENTRYPOINT ["/build/build_erlang.sh"]
