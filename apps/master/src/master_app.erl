@@ -8,7 +8,7 @@
 -behaviour(application).
 
 %% Application callbacks
--export([start/2, stop/1]).
+-export([start/2, stop/1, start/1]).
 -include_lib("eunit/include/eunit.hrl").
 
 
@@ -28,7 +28,7 @@ stop(_State) ->
 %%====================================================================
 
 test_test() ->
-  start_server(31337),
+  start(1337),
   timer:sleep(1000000),
   Binary = hrp_pb:encode(
     [
@@ -38,37 +38,39 @@ test_test() ->
   ?debugFmt("~n~p~n", [iolist_to_binary(Binary)]),
   ?assert(true).
 
-start_server(Port) ->
-  Pid = spawn_link(fun() ->
-    {ok, Listen} = gen_tcp:listen(Port, [binary, {active, true}]),
-    spawn(fun() -> acceptor(Listen) end),
-    timer:sleep(infinity)
-                   end),
-  {ok, Pid}.
+start(Port) ->
+  spawn(fun() -> server(Port) end).
 
-acceptor(ListenSocket) ->
-  {ok, Socket} = gen_tcp:accept(ListenSocket),
-  spawn(fun() -> acceptor(ListenSocket) end),
-  handle(Socket).
+server(Port) ->
+  {ok, Socket} = gen_tcp:listen(Port,[{active, true}, {packet, raw}]),
+  listen(Socket).
 
-%% Echoing back whatever was obtained
-handle(Socket) ->
-  inet:setopts(Socket, [{active, once}]),
+listen(Socket) ->
+  {ok, Active_socket} = gen_tcp:accept(Socket),
+  Handler = spawn(fun() -> handle_messages(Active_socket) end),
+  ok = gen_tcp:controlling_process(Active_socket, Handler),
+  listen(Socket).
+
+handle_messages(Socket) ->
   receive
-    {tcp, Socket, <<"quit", _/binary>>} ->
-      gen_tcp:close(Socket);
-    {tcp, Socket, Msg} ->
-      Response = handle_message(Msg),
-      gen_tcp:send(Socket, Response),
-      handle(Socket)
+    {tcp, error, closed} ->
+      done;
+    {tcp, Socket, Data} ->
+      io:format("~p~n", [Data]),
+      Response = handle_message(Data),
+      gen_tcp:send(Socket, Response);
+    _ ->
+      unexpected
   end.
 
 handle_message(Msg) ->
-  Data = hrp_pb:delimited_decode_message(list_to_binary(Msg)),
-  MessageType = element(1, hd(Data)),
-  case MessageType of
-    message ->
-      hrp_pb:encode({message, "id", "text", "username"});
-    _ ->
-      ok
-  end.
+  Data = hrp_pb:delimited_decode_message(iolist_to_binary(Msg)),
+  io:format("~p~n", [Data]),
+  hrp_pb:encode({message, "12345", "werkt kei goe", "Raoul"}).
+%%   MessageType = element(1, hd(Data)),
+%%   case MessageType of
+%%     message ->
+%%       hrp_pb:encode({message, "id", "text", "username"});
+%%     _ ->
+%%       ok
+%%   end.
