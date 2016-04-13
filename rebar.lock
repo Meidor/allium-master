@@ -1,1 +1,8 @@
-[].
+[{<<"meck">>,
+  {git,"git://github.com/basho/meck.git",
+       {ref,"dde759050eff19a1a80fd854d7375174b191665d"}},
+  1},
+ {<<"protobuffs">>,
+  {git,"git://github.com/basho/erlang_protobuffs.git",
+       {ref,"a1eeee77aef639a33cc5a2dd7abed7e4f4b83f9b"}},
+  0}].

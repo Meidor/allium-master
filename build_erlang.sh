@@ -9,9 +9,15 @@ if [ -d "/build/tmp" ]
   rm -rf "/build/tmp"
 fi
 
+if [ -e "/erlang_app/jenkins_report.xml" ]
+ then
+  rm -f "/erlang_app/jenkins_report.xml"
+fi
+
 cp -a "/erlang_app" "/build/tmp"
 cd "/build/tmp"
 
+rebar3 clean
 rebar3 deps
 rebar3 as prod compile
 rebar3 as prod release tar
