@@ -9,6 +9,11 @@ if [ -d "/build/tmp" ]
   rm -rf "/build/tmp"
 fi
 
+if [ -e "/erlang_app/jenkins_report.xml" ]
+ then
+  rm "/erlang_app/jenkins_report.xml"
+fi
+
 cp -a "/erlang_app" "/build/tmp"
 cd "/build/tmp"
 
