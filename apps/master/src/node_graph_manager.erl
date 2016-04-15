@@ -2,4 +2,4 @@
 %% @doc graph public API
 %% @end
 %%%-------------------------------------------------------------------
--module(graph).
+-module(node_graph_manager).
