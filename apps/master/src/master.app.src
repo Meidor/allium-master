@@ -8,7 +8,7 @@
     stdlib
    ]},
   {env,[]},
-  {modules, []},
+  {modules, [node_graph_manager]},
 
   {maintainers, []},
   {licenses, []},
