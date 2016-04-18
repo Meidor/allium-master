@@ -10,12 +10,22 @@
 -author("Raoul").
 
 %% API
--export([get/1, set/2, remove/1]).
+-export([get/1, set/2, remove/1, get_matching_keys/1, get_list/1]).
 
 get(Key) ->
     {ok, Connection} = eredis:start_link(),
     {ok, Value} = eredis:q(Connection, ["GET", "onion_" ++ Key]),
     Value.
+
+get_matching_keys(Key) ->
+    {ok, Connection} = eredis:start_link(),
+    {ok, Keys} = eredis:q(Connection, ["KEYS", "onion_" ++ Key ++ "*"]),
+    Keys.
+
+get_list(List) ->
+    {ok, Connection} = eredis:start_link(),
+    {ok, KeyValue} = eredis:q(Connection, ["MGET" | List]),
+    KeyValue.
 
 set(Key, Value) ->
     {ok, Connection} = eredis:start_link(),
