@@ -28,7 +28,7 @@ end_per_testcase(_, Config) ->
 
 node_register_test_valid_node(Config) -> 
     {IPaddress, Port, PublicKey} = ?config(validnode, Config),
-    ok = node_service:node_register(IPaddress, Port, PublicKey).
+    node_service:node_register(IPaddress, Port, PublicKey).
 
 node_register_test_invalid_node(Config) ->
     {IPaddress, Port, PublicKey} = ?config(validnode, Config),
