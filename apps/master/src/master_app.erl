@@ -17,7 +17,11 @@
 %%====================================================================
 
 start(_StartType, _StartArgs) ->
-    master_sup:start_link().
+    Link = master_sup:start_link(),
+    start(1337),
+    io:format("Start listening on port 1337...~n"),
+    timer:sleep(100000000),
+    Link.
 
 %%--------------------------------------------------------------------
 stop(_State) ->
