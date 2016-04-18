@@ -4,7 +4,7 @@
 %%%-------------------------------------------------------------------
 
 -module(node_service).
--export([node_register/3, node_unregister/3, node_verify/2]).
+-export([node_register/3, node_unregister/1, node_unregister/2, node_verify/2]).
 
 %% @doc Register your node in the graph
 %% @end
@@ -14,9 +14,13 @@ node_register(IPaddress, Port, PublicKey) when is_list(IPaddress), is_integer(Po
 
 %% @doc Unregister your node in the graph
 %% @end
-node_unregister(IPaddress, Port, PublicKey) when is_list(IPaddress), is_integer(Port), Port > 0, Port < 65536, is_list(PublicKey) ->
-    node_graph_manager:remove_node(IPaddress, Port, PublicKey),
-    heartbeat_monitor:remove_node(IPaddress, Port, PublicKey).
+node_unregister(NodeId) when is_list(NodeId) ->
+    node_graph_manager:remove_node(NodeId).
+
+node_unregister(NodeId, SecretHash) when is_list(NodeId), is_list(SecretHash) ->
+    SecretHash = node_graph_manager:get_node_secret_hash(NodeId),
+    node_graph_manager:remove_node(NodeId),
+    heartbeat_monitor:remove_node(NodeId).
 
 %% @doc Verify the secrethash of a node
 %% @end

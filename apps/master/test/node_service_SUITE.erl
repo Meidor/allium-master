@@ -12,8 +12,8 @@ init_per_suite(Config) ->
     IPaddress = "192.168.4.4",
     Port = 1337,
     PublicKey = "MyPublicKey",
-    ValidNode = {"IPaddress", Port, PublicKey},
-    InvalidNode = {42, "Harry", 42},
+    ValidNode = {"IPaddress", Port, PublicKey, "ValideId"},
+    InvalidNode = {42, "Harry", 42, "InvalideId"},
     [
         {validnode,ValidNode},  
         {invalidnode, InvalidNode}, 
@@ -27,7 +27,12 @@ init_per_testcase(_, Config) ->
     %% Setup Graph Manager Mock
     meck:new(node_graph_manager, [non_strict]),
     meck:expect(node_graph_manager, add_node, fun(_,_,_) -> ok end),
-    meck:expect(node_graph_manager, remove_node, fun(_,_,_) -> ok end),
+    meck:expect(node_graph_manager, remove_node, fun(NodeId) -> 
+        case NodeId of
+            "ValideNode" -> ok;
+            _ -> error(nodenotfound)
+        end 
+    end),
     meck:expect(node_graph_manager, get_node_secret_hash, fun(NodeId) -> 
         case NodeId of 
             "ValideNode" ->  "Valide";
@@ -38,7 +43,12 @@ init_per_testcase(_, Config) ->
     %% Setup Heartbeat Monitor Mock
     meck:new(heartbeat_monitor, [non_strict]),
     meck:expect(heartbeat_monitor, add_node, fun(_,_,_) -> ok end),
-    meck:expect(heartbeat_monitor, remove_node, fun(_,_,_) -> ok end),
+    meck:expect(heartbeat_monitor, remove_node, fun(NodeId) ->
+        case NodeId of 
+            "ValideNode" -> ok;
+            _ -> error(nodenotfound) 
+        end 
+    end),
     Config.
 
 end_per_testcase(_, Config) ->
@@ -47,12 +57,12 @@ end_per_testcase(_, Config) ->
     Config.
 
 node_register_test_valid_node(Config) -> 
-    {IPaddress, Port, PublicKey} = ?config(validnode, Config),
+    {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
     node_service:node_register(IPaddress, Port, PublicKey).
 
 node_register_test_invalid_node(Config) ->
-    {IPaddress, Port, PublicKey} = ?config(validnode, Config),
-    {InvIPaddress, InvPort, InvPublicKey} = ?config(invalidnode, Config),
+    {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
+    {InvIPaddress, InvPort, InvPublicKey, _} = ?config(invalidnode, Config),
     test_helpers:assert_fail(fun node_service:node_register/3, [InvIPaddress, Port, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, InvPort,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, -1,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
@@ -60,17 +70,18 @@ node_register_test_invalid_node(Config) ->
     test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, Port, InvPublicKey], error, function_clause, failed_to_catch_invalid_argument).
 
 node_unregister_test_valid_node(Config) ->
-    {IPaddress, Port, PublicKey} = ?config(validnode, Config),
-    node_service:node_unregister(IPaddress, Port, PublicKey).
+    {NodeId, SecretHash} = ?config(validnodeverify, Config),
+    node_service:node_unregister(NodeId, SecretHash),
+    node_service:node_unregister(NodeId).
 
 node_unregister_test_invalid_node(Config) ->
-    {IPaddress, Port, PublicKey} = ?config(validnode, Config),
-    {InvIPaddress, InvPort, InvPublicKey} = ?config(invalidnode, Config),
-    test_helpers:assert_fail(fun node_service:node_unregister/3, [InvIPaddress, Port,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
-    test_helpers:assert_fail(fun node_service:node_unregister/3, [IPaddress, InvPort, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
-    test_helpers:assert_fail(fun node_service:node_unregister/3, [IPaddress, -1, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
-    test_helpers:assert_fail(fun node_service:node_unregister/3, [IPaddress, 65537, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
-    test_helpers:assert_fail(fun node_service:node_unregister/3, [IPaddress, Port, InvPublicKey], error, function_clause, failed_to_catch_invalid_argument).
+    {NodeId, SecretHash} = ?config(invalidnodeverify1, Config),
+    {NodeId2, SecretHash2} = ?config(invalidnodeverify2, Config),
+    {NodeId3, SecretHash3} = ?config(invalidnodeverify3, Config),
+    test_helpers:assert_fail(fun node_service:node_unregister/2, [NodeId, SecretHash], error, {badmatch, "Testing123#"}, failed_to_catch_invalid_hash),
+    test_helpers:assert_fail(fun node_service:node_unregister/2, [NodeId2, SecretHash2], error, function_clause, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_unregister/2, [NodeId3, SecretHash3], error, nodenotfound, failed_to_catch_invalid_nodeid),
+    test_helpers:assert_fail(fun node_service:node_unregister/1, [NodeId2], error, function_clause, failed_to_catch_invalid_argument).
 
 node_verify_test_valid_node(Config) ->
     {NodeId, SecretHash} = ?config(validnodeverify, Config),
