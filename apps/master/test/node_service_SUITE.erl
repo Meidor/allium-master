@@ -35,6 +35,8 @@ node_register_test_invalid_node(Config) ->
     {InvIPaddress, InvPort, InvPublicKey} = ?config(invalidnode, Config),
     test_helpers:assert_fail(fun node_service:node_register/3, [InvIPaddress, Port, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, InvPort,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, -1,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, 65537,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, Port, InvPublicKey], error, function_clause, failed_to_catch_invalid_argument).
 
 node_unregister_test_valid_node(Config) ->
@@ -46,4 +48,6 @@ node_unregister_test_invalid_node(Config) ->
     {InvIPaddress, InvPort, InvPublicKey} = ?config(invalidnode, Config),
     test_helpers:assert_fail(fun node_service:node_unregister/3, [InvIPaddress, Port,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_unregister/3, [IPaddress, InvPort, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_unregister/3, [IPaddress, -1, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_unregister/3, [IPaddress, 65537, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_unregister/3, [IPaddress, Port, InvPublicKey], error, function_clause, failed_to_catch_invalid_argument).
