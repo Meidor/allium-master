@@ -79,7 +79,10 @@ node_register_test_invalid_node(Config) ->
 node_unregister_test_valid_node(Config) ->
     {NodeId, SecretHash} = ?config(validnodeverify, Config),
     node_service:node_unregister(NodeId, SecretHash),
-    node_service:node_unregister(NodeId).
+    node_service:node_unregister(NodeId),
+    true = test_helpers:check_function_called(node_graph_manager, get_node_secret_hash, [NodeId]),
+    true = test_helpers:check_function_called(node_graph_manager, remove_node, [NodeId]),
+    true = test_helpers:check_function_called(heartbeat_monitor, remove_node, [NodeId]).
 
 node_unregister_test_invalid_node(Config) ->
     {NodeId, SecretHash} = ?config(invalidnodeverify1, Config),
@@ -92,7 +95,8 @@ node_unregister_test_invalid_node(Config) ->
 
 node_verify_test_valid_node(Config) ->
     {NodeId, SecretHash} = ?config(validnodeverify, Config),
-    node_service:node_verify(NodeId, SecretHash).
+    node_service:node_verify(NodeId, SecretHash),
+    true = test_helpers:check_function_called(node_graph_manager, get_node_secret_hash, [NodeId]).
 
 node_verify_test_invalid_node(Config) ->
     {NodeId, SecretHash} = ?config(invalidnodeverify1, Config),
@@ -105,7 +109,9 @@ node_verify_test_invalid_node(Config) ->
 node_update_test_valid_node(Config) ->
     {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
     {NodeId, SecretHash} = ?config(validnodeverify, Config),
-    node_service:node_update(NodeId, SecretHash, IPaddress, Port, PublicKey).
+    node_service:node_update(NodeId, SecretHash, IPaddress, Port, PublicKey),
+    true = test_helpers:check_function_called(node_graph_manager, get_node_secret_hash, [NodeId]),
+    true = test_helpers:check_function_called(node_graph_manager, update_node, [NodeId, IPaddress, Port, PublicKey]).
 
 node_update_test_invalid_node(Config) ->
     {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
