@@ -16,6 +16,7 @@ node_register(IPaddress, Port, PublicKey)
     ->
     {NodeId, SecretHash} = node_graph_manager:add_node(IPaddress, Port, PublicKey),
     heartbeat_monitor:add_node(NodeId),
+    %% Real Response when the graph_manager is implemented
     {NodeId, SecretHash}.
 
 %% @doc Unregister your node in the graph

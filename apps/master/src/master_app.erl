@@ -81,15 +81,17 @@ handle_message(Msg) ->
                 )
             );
         'NODEREGISTERREQUEST' ->
-            Request = hrp_pb:decode_noderegisterrequest(Data),
+            {noderegisterrequest, IPaddress, Port, PublicKey} = hrp_pb:decode_noderegisterrequest(Data),
+            {NodeId, SecretHash} = node_service:node_register(IPaddress, Port, PublicKey),
             get_wrapped_message(
                 'NODEREGISTERRESPONSE',
                 hrp_pb:encode(
-                    {noderegisterresponse, 'SUCCES', "1337", "HASH123"}
+                    {noderegisterresponse, 'SUCCES', NodeId, SecretHash}
                 )
             );
         'NODEUPDATEREQUEST' ->
-            Request = hrp_pb:decode_nodeupdaterequest(Data),
+            {NodeId, SecretHash, IPaddress, Port, PublicKey} = hrp_pb:decode_nodeupdaterequest(Data),
+            node_service:node_update(NodeId, SecretHash, IPaddress, Port, PublicKey),
             get_wrapped_message(
                 'NODEUPDATERESPONSE',
                 hrp_pb:encode(
@@ -97,7 +99,8 @@ handle_message(Msg) ->
                 )
             );
         'NODEDELETEREQUEST' ->
-            Request = hrp_pb:decode_nodedeleterequest(Data),
+            {NodeId, SecretHash} = hrp_pb:decode_nodedeleterequest(Data),
+            node_service:node_unregister(NodeId, SecretHash),
             get_wrapped_message(
                 'NODEDELETERESPONSE',
                 hrp_pb:encode(
