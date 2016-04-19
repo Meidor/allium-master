@@ -1,7 +1,7 @@
 master
 =====
 
-An OTP application
+An OTP application.
 
 Build
 -----
