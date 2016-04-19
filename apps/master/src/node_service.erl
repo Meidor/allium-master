@@ -37,7 +37,12 @@ node_verify(NodeId, SecretHash) when is_list(NodeId), is_list(SecretHash) ->
 %% @doc Update a node
 %% @end
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey) 
-    when is_list(NodeId), is_list(SecretHash), is_list(IPaddress), is_integer(Port), Port > 0, Port < 65536, is_list(PublicKey)
+    when 
+        is_list(NodeId)
+        andalso is_list(SecretHash)
+        andalso (undefined == IPaddress orelse is_list(IPaddress))
+        andalso (undefined == Port orelse (is_integer(Port) andalso Port > 0 andalso Port < 65536))
+        andalso (is_list(PublicKey) orelse undefined == PublicKey)
     ->
     node_verify(NodeId, SecretHash),
     node_graph_manager:update_node(NodeId, IPaddress, Port, PublicKey).

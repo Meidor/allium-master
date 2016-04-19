@@ -82,31 +82,69 @@ handle_message(Msg) ->
             );
         'NODEREGISTERREQUEST' ->
             {noderegisterrequest, IPaddress, Port, PublicKey} = hrp_pb:decode_noderegisterrequest(Data),
-            {NodeId, SecretHash} = node_service:node_register(IPaddress, Port, PublicKey),
-            get_wrapped_message(
-                'NODEREGISTERRESPONSE',
-                hrp_pb:encode(
-                    {noderegisterresponse, 'SUCCES', NodeId, SecretHash}
+            try
+                node_service:node_register(IPaddress, Port, PublicKey)
+            of {NodeId, SecretHash} ->
+                get_wrapped_message(
+                    'NODEREGISTERRESPONSE',
+                    hrp_pb:encode(
+                        {noderegisterresponse, 'SUCCES', NodeId, SecretHash}
+                    )
                 )
-            );
+            catch 
+                error:alreadyexists ->
+                    get_wrapped_message(
+                        'NODEREGISTERRESPONSE',
+                        hrp_pb:encode(
+                            {noderegisterresponse, 'ALREADY_EXISTS', undefined, undefined}
+                        )
+                    );
+                _:_ ->
+                    get_wrapped_message(
+                        'NODEREGISTERRESPONSE',
+                        hrp_pb:encode(
+                            {noderegisterresponse, 'FAILED', undefined, undefined}
+                        )
+                    ) 
+            end;
         'NODEUPDATEREQUEST' ->
-            {NodeId, SecretHash, IPaddress, Port, PublicKey} = hrp_pb:decode_nodeupdaterequest(Data),
-            node_service:node_update(NodeId, SecretHash, IPaddress, Port, PublicKey),
-            get_wrapped_message(
+            {nodeupdaterequest, NodeId, SecretHash, IPaddress, Port, PublicKey} = hrp_pb:decode_nodeupdaterequest(Data),
+            try
+                node_service:node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
+            of _ ->
+              get_wrapped_message(
                 'NODEUPDATERESPONSE',
                 hrp_pb:encode(
                     {nodeupdateresponse, 'SUCCES'}
                 )
-            );
-        'NODEDELETEREQUEST' ->
-            {NodeId, SecretHash} = hrp_pb:decode_nodedeleterequest(Data),
-            node_service:node_unregister(NodeId, SecretHash),
-            get_wrapped_message(
-                'NODEDELETERESPONSE',
-                hrp_pb:encode(
-                    {nodedeleteresponse, 'SUCCES'}
+            )
+            catch _:_ ->    
+                get_wrapped_message(
+                    'NODEUPDATERESPONSE',
+                    hrp_pb:encode(
+                        {nodeupdateresponse, 'FAILED'}
+                    )
                 )
-            );
+            end;
+        'NODEDELETEREQUEST' ->
+            {nodedeleterequest, NodeId, SecretHash} = hrp_pb:decode_nodedeleterequest(Data),
+            try
+                node_service:node_unregister(NodeId, SecretHash)
+            of _ ->
+                get_wrapped_message(
+                    'NODEDELETERESPONSE',
+                    hrp_pb:encode(
+                        {nodedeleteresponse, 'SUCCES'}
+                    )
+                )
+            catch _:_ ->
+                get_wrapped_message(
+                    'NODEDELETERESPONSE',
+                    hrp_pb:encode(
+                        {nodedeleteresponse, 'FAILED'}
+                    )
+                )
+            end;
         'CLIENTREQUEST' ->
             Request = hrp_pb:decode_clientrequest(Data),
             get_wrapped_message(
