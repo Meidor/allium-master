@@ -1,7 +1,7 @@
 master
 =====
 
-An OTP application
+An OTP application that is the Master application for the Uienrouter
 
 Build
 -----
