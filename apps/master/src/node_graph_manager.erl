@@ -4,7 +4,7 @@
 %%%-------------------------------------------------------------------
 -module(node_graph_manager).
 
--export([get_graph_updates/1, rebuild_graph/0, rebuild_graph_at_interval/1, fill_data/0]).
+-export([get_graph_updates/1, rebuild_graph/0, rebuild_graph_at_interval/1, fill_data/0, get_data/0, get_full_graph_data/0, build_graph/1]).
 
 get_graph_updates(Version) when is_integer(Version) ->
     RequestedVersion = max(Version, get_min_version()),
@@ -53,15 +53,13 @@ rebuild_graph() ->
 build_graph(NewMinVersion) ->
     GraphUpdates = lists:takewhile(
         fun({graphupdate, VersionNumber, _, _, _, _}) -> VersionNumber =< NewMinVersion end,
-        protobuf_list_to_tuple_list(get_graph_updates(NewMinVersion))
+        protobuf_list_to_tuple_list(get_graph_updates(get_min_version()))
     ),
-    io:format("UPDATES: ~p~n", [GraphUpdates]),
     NewGraph = lists:foldl(
         fun(Update, Graph) -> merge_update_with_graph(Update, Graph) end,
         get_current_full_graph(),
         GraphUpdates
     ),
-    io:format("NEW GRAPH:~p~n", [NewGraph]),
     {graphupdate, _, FullGraph, Added, Edited, Deleted} = NewGraph,
     {graphupdate, NewMinVersion, FullGraph, Added, Edited, Deleted}.
 
@@ -73,19 +71,20 @@ get_current_full_graph() ->
     ).
 
 merge_update_with_graph(Update, Graph) ->
-    {_, _, ResultingAdditions, _,  _} = Graph,
-    {_, _, Additions, _, Deletes} = Update,
+    {_, _, _, ResultingAdditions, _,  _} = Graph,
+    {_, _, _, Additions, _, Deletes} = Update,
     NewAdditions = ResultingAdditions ++ Additions,
-    lists:foldl(
-        fun({DeletedNodeId, _, _, _, _}, TotalAdditions) ->
+    TotalDeletionsAdditions = lists:foldl(
+        fun({_, DeletedNodeId, _, _, _, _}, TotalAdditions) ->
             lists:filter(
-                fun({NodeId, _, _, _, _}) -> NodeId =/= DeletedNodeId end,
+                fun({_, NodeId, _, _, _, _}) -> NodeId =/= DeletedNodeId end,
                 TotalAdditions
             )
         end,
         NewAdditions,
         Deletes
-    ).
+    ),
+    {graphupdate, 0, true, TotalDeletionsAdditions, [], []}.
 
 update_min_version(NewMinVersion) ->
     ok. %redis:set("min_version", NewMinVersion).
@@ -110,7 +109,7 @@ protobuf_list_to_tuple_list(List) ->
     ).
 
 protobufs_to_tuple(Data) ->
-    io:format("~p~n", [Data]),
+%%     io:format("~p~n", [Data]),
     hrp_pb:decode_graphupdate(Data).
 
 
@@ -124,28 +123,36 @@ rebuild_graph_at_interval(Interval) ->
 
 fill_data() ->
     redis:set("version_10", hrp_pb:encode(
-        {graphupdate, 12345, false,
+        {graphupdate, 10, false,
             [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}],
             [],
             []
         }
     )),
     redis:set("version_11", hrp_pb:encode(
-        {graphupdate, 12345, false,
+        {graphupdate, 11, false,
             [{node, "5", "192.168.0.3", 80, "abc123", []}],
             [],
             []
         }
     )),
     redis:set("version_12", hrp_pb:encode(
-        {graphupdate, 12345, false,
-            [{node, "3", "192.168.0.5", 80, "abcde,fbasfvgassf123456", [{edge, "1", 5.0}]}],
+        {graphupdate, 12, false,
+            [{node, "3", "192.168.0.3", 80, "abc123", []}],
             [],
             []
         }
     )).
 
+get_data() ->
+    io:format("~p~n~p~n~p~n", [redis:get("version_10"), redis:get("version_11"), redis:get("version_12")]).
 
-
-
+get_full_graph_data() ->
+    io:format("~p~n", [iolist_to_binary(hrp_pb:encode(
+        {graphupdate, 12345, false,
+            [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}, {node, "5", "192.168.0.3", 80, "abc123", []}, {node, "5", "192.168.0.3", 80, "abc123", []}],
+            [],
+            []
+        }
+    ))]).
 
