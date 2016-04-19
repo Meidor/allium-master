@@ -9,8 +9,8 @@ assert_fail(Fun, Args, ExceptionType, ExceptionValue, Reason) ->
   end.
 
 check_function_called(Module, Function, Params) ->
-  FunctionsCalled = [{CalledModule, CalledFunction, CalledParams} || {_, {CalledModule, CalledFunction, CalledParams}, Result}
-    <- meck:history(Module), CalledFunction =:= Function, CalledModule =:= Module, CalledParams =:= Params, Result =:= ok],
+  FunctionsCalled = [{CalledModule, CalledFunction, CalledParams} || {_, {CalledModule, CalledFunction, CalledParams}, _}
+    <- meck:history(Module), CalledFunction =:= Function, CalledModule =:= Module, CalledParams =:= Params],
   case FunctionsCalled of
      [] ->
       false;
