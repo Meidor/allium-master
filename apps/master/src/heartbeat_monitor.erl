@@ -10,14 +10,13 @@
 -author("Koen & Niels").
 
 %% API
--export([receive_heartbeat/2, remove_inactive_nodes/1, add_node/1]).
+-export([receive_heartbeat/2, remove_inactive_nodes/1, add_node/1, remove_node/1, get_current_time/0]).
 
 receive_heartbeat(NodeId, SecretHash) ->
   Node_verified = node_service:verify_node(NodeId, SecretHash),
   case Node_verified of
     ok ->
-      {_,CurrentTime,_} = erlang:timestamp(),
-      redis:set("heartbeat_node_" ++ NodeId, CurrentTime),
+      redis:set("heartbeat_node_" ++ NodeId, ?MODULE:get_current_time()),
       ok;
     _ ->
       {error, "Node id and secret hash do not match"}
@@ -26,17 +25,22 @@ receive_heartbeat(NodeId, SecretHash) ->
 remove_inactive_nodes(TimeBetweenHeartbeats) ->
   AllKeys = [binary_to_list(Key) || Key <- redis:get_matching_keys("heartbeat_node_")],
   AllValues = [binary_to_integer(Value) || Value <- redis:get_list(AllKeys)],
-  {_,CurrentTime,_} = erlang:timestamp(),
-  AllNodes = [Key || {Key, Value} <- lists:zip(AllKeys, AllValues), Value < (CurrentTime - TimeBetweenHeartbeats)],
+  AllNodes = [Key || {Key, Value} <- lists:zip(AllKeys, AllValues), Value < (?MODULE:get_current_time()- TimeBetweenHeartbeats)],
   RemovedNodes = [string:substr(Key, 22)  || Key <- AllNodes],
-  lists:foreach(fun(Node) -> node_service:node_unregister(Node) end, RemovedNodes),
+  lists:foreach(fun(Node) -> node_service:node_unregister(Node), remove_node(Node) end, RemovedNodes),
   RemovedNodes.
 
 add_node(NodeId) ->
-  {_,CurrentTime,_} = erlang:timestamp(),
-  redis:set("heartbeat_node_" ++ NodeId, CurrentTime),
+  redis:set("heartbeat_node_" ++ NodeId, ?MODULE:get_current_time()),
   ok.
 
+remove_node(NodeId) ->
+  redis:remove("heartbeat_node_" ++ NodeId),
+  ok.
+
+get_current_time() ->
+  {_,CurrentTime,_} = erlang:timestamp(),
+  CurrentTime.
 
 
 
