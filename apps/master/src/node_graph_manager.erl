@@ -60,8 +60,8 @@ build_graph(NewMinVersion) ->
         get_current_full_graph(),
         GraphUpdates
     ),
-    {graphupdate, _, FullGraph, Added, Edited, Deleted} = NewGraph,
-    {graphupdate, NewMinVersion, FullGraph, Added, Edited, Deleted}.
+    {graphupdate, _, _, Added, Edited, Deleted} = NewGraph,
+    {graphupdate, NewMinVersion, true, Added, Edited, Deleted}.
 
 get_current_full_graph() ->
     protobufs_to_tuple(
@@ -131,14 +131,14 @@ fill_data() ->
     )),
     redis:set("version_11", hrp_pb:encode(
         {graphupdate, 11, false,
-            [{node, "5", "192.168.0.3", 80, "abc123", []}],
             [],
-            []
+            [],
+            [{node, "2", "192.168.0.3", 80, "abc123", []}]
         }
     )),
     redis:set("version_12", hrp_pb:encode(
         {graphupdate, 12, false,
-            [{node, "3", "192.168.0.3", 80, "abc123", []}],
+            [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}],
             [],
             []
         }
