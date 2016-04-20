@@ -7,7 +7,7 @@
 -export([get_graph_updates/1, rebuild_graph/0, rebuild_graph_at_interval/1, fill_data/0, get_data/0, get_full_graph_data/0, build_graph/1]).
 
 get_graph_updates(Version) when is_integer(Version) ->
-    RequestedVersion = max(Version, get_min_version()),
+    RequestedVersion = max(Version, get_min_version() - 1),
     GetMaxVersion = get_max_version(),
     case RequestedVersion of
         GetMaxVersion ->
