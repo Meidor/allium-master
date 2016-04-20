@@ -195,9 +195,9 @@ add_node_test(_) ->
             "max_version" ->
                 <<"12">>;
             "node_hash_YWJjZGVmZ2hpamtsbW4=" ->
-                undefined;
+                "etsbhdbas";
             "node_hash_YWJjZGVmZ2hpamtsbW5vcA==" ->
-                "value"
+                undefined
         end
     end),
 

@@ -125,8 +125,6 @@ add_node(IPaddress, Port, PublicKey) ->
     NodeId = base64:encode_to_string(list_to_binary(PublicKey)),
     case redis:get("node_hash_" ++ NodeId) of
         undefined ->
-            error(alreadyexists);
-        _ ->
             Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
             redis:set("node_hash_" ++ NodeId, Hash),
             Version = get_max_version() + 1,
@@ -137,7 +135,9 @@ add_node(IPaddress, Port, PublicKey) ->
                     {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], [], []}
                 )
             ),
-            {NodeId, Hash}
+            {NodeId, Hash};
+        _ ->
+            error(alreadyexists)
     end.
 
 remove_node(NodeId) ->
