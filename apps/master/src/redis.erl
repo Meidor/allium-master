@@ -24,10 +24,10 @@ get_matching_keys(Key) ->
 
 get_list([])->
     [];
-get_list(List) ->
+get_list(ListOfKeys) ->
     {ok, Connection} = eredis:start_link(),
-    {ok, KeyValue} = eredis:q(Connection, ["MGET" | List]),
-    KeyValue.
+    {ok, ListOfKeyValues} = eredis:q(Connection, ["MGET" | ListOfKeys]),
+    ListOfKeyValues.
 
 set(Key, Value) ->
     {ok, Connection} = eredis:start_link(),
