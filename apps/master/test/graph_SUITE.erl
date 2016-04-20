@@ -14,20 +14,19 @@
 
 %% API
 -export([all/0, init_per_testcase/2, end_per_testcase/2]).
--export([node_graph_manager_test/1, rebuild_graph_test/1]).
+-export([node_graph_manager_test/1, build_graph_test/1, merge_update_with_graph_test/1]).
 
-all() -> [node_graph_manager_test, rebuild_graph_test].
+all() -> [node_graph_manager_test, build_graph_test, merge_update_with_graph_test].
 
 %%initial for datastructure graph, not right yet
 init_per_testcase(_, Config) ->
+    meck:new(redis, [non_strict]),
     Config.
 
 end_per_testcase(_, Config) ->
     Config.
 
-%%test will fail, no logical test
-node_graph_manager_test(Config) ->
-    meck:new(redis, [non_strict]),
+node_graph_manager_test(_) ->
     VERSION10 = <<8, 185, 96, 16, 0, 26, 42, 10, 1, 50, 18, 11, 49, 57, 50, 46, 49, 54, 56, 46, 48, 46, 49, 24, 80, 34,
         12, 97, 98, 99, 100, 101, 102, 49, 50, 51, 52, 53, 54, 42, 8, 10, 1, 49, 21, 0, 0, 160, 64>>,
     VERSION11 = <<8, 185, 96, 16, 0, 26, 26, 10, 1, 53, 18, 11, 49, 57, 50, 46, 49, 54, 56, 46, 48, 46, 51, 24, 80, 34,
@@ -56,8 +55,7 @@ node_graph_manager_test(Config) ->
     [VERSION10, VERSION11, VERSION12] = node_graph_manager:get_graph_updates(9),
     [] = node_graph_manager:get_graph_updates(12).
 
-rebuild_graph_test(Config) ->
-    meck:new(redis, [non_strict]),
+build_graph_test(_) ->
     ADD2 = <<8, 10, 16, 0, 26, 42, 10, 1, 50, 18, 11, 49, 57, 50, 46, 49, 54, 56, 46, 48, 46, 49, 24, 80, 34, 12,
         97, 98, 99, 100, 101, 102, 49, 50, 51, 52, 53, 54, 42, 8, 10, 1, 49, 21, 0, 0, 160, 64>>,
     REMOVE2 = <<8, 11, 16, 0, 42, 26, 10, 1, 50, 18, 11, 49, 57, 50, 46, 49, 54, 56, 46, 48, 46, 51, 24, 80, 34, 6, 97,
@@ -147,6 +145,47 @@ rebuild_graph_test(Config) ->
         []
     } = node_graph_manager:build_graph(12).
 
+merge_update_with_graph_test(_) ->
+    {graphupdate, _, true, [], [], []} =
+        node_graph_manager:merge_update_with_graph(
+            {graphupdate, 12, false, [], [], []},
+            {graphupdate, 11, true, [], [], []}
+        ),
+    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []} =
+        node_graph_manager:merge_update_with_graph(
+            {graphupdate, 12, false, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []},
+            {graphupdate, 11, true, [], [], []}
+        ),
+    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []} =
+        node_graph_manager:merge_update_with_graph(
+            {graphupdate, 12, false, [], [], []},
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []}
+        ),
+    {graphupdate, _, true, [], [], []} =
+        node_graph_manager:merge_update_with_graph(
+            {graphupdate, 12, false, [], [], [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}]},
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []}
+        ),
+    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []} =
+        node_graph_manager:merge_update_with_graph(
+            {graphupdate, 12, false, [], [], [{node, "3", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}]},
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []}
+        ),
+    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}, {node, "5", "192.168.0.5", 80, "abcdef1234567", [{edge, "1", 7.0}]}], [], []} =
+        node_graph_manager:merge_update_with_graph(
+            {graphupdate, 12, false, [{node, "5", "192.168.0.5", 80, "abcdef1234567", [{edge, "1", 7.0}]}], [], []},
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []}
+        ),
+    {graphupdate, _, true, [{node, "5", "192.168.0.5", 80, "abcdef1234567", [{edge, "1", 7.0}]}], [], []} =
+        node_graph_manager:merge_update_with_graph(
+            {graphupdate, 12, false, [], [], [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}]},
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}, {node, "5", "192.168.0.5", 80, "abcdef1234567", [{edge, "1", 7.0}]}], [], []}
+        ),
+    {graphupdate, _, true, [{node, "5", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []} =
+        node_graph_manager:merge_update_with_graph(
+            {graphupdate, 12, false, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}]},
+            {graphupdate, 11, true, [{node, "5", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [], []}
+        ).
 
 
 

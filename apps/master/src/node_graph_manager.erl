@@ -4,7 +4,7 @@
 %%%-------------------------------------------------------------------
 -module(node_graph_manager).
 
--export([get_graph_updates/1, rebuild_graph/0, rebuild_graph_at_interval/1, fill_data/0, get_data/0, get_full_graph_data/0, build_graph/1]).
+-export([get_graph_updates/1, rebuild_graph/0, rebuild_graph_at_interval/1, fill_data/0, get_data/0, get_full_graph_data/0, build_graph/1, merge_update_with_graph/2]).
 
 get_graph_updates(Version) when is_integer(Version) ->
     RequestedVersion = max(Version, get_min_version() - 1),
@@ -87,7 +87,7 @@ merge_update_with_graph(Update, Graph) ->
     {graphupdate, 0, true, TotalDeletionsAdditions, [], []}.
 
 update_min_version(NewMinVersion) ->
-    ok. %redis:set("min_version", NewMinVersion).
+    redis:set("min_version", NewMinVersion).
 
 get_new_min_version() ->
     round((get_min_version() + get_max_version()) / 2),
@@ -109,7 +109,6 @@ protobuf_list_to_tuple_list(List) ->
     ).
 
 protobufs_to_tuple(Data) ->
-%%     io:format("~p~n", [Data]),
     hrp_pb:decode_graphupdate(Data).
 
 
