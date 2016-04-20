@@ -21,11 +21,11 @@ init_per_testcase(_, Config) ->
       _ -> {error, "Node id and secret hash do not match"} end
                                          end),
   meck:expect(node_service, node_unregister, fun(_) -> ok end),
+  meck:expect(redis, set, fun(_, _) -> ok end),
+  meck:expect(redis, remove, fun(_) -> ok end),
   SecretHash = "NODE12345SECRETHASHDONTTELLANYONE",
   TimeBetweenHeartbeats = 5000,
   CurrentTime = 100000,
-  meck:expect(redis, set, fun(_, _) -> ok end),
-  meck:expect(redis, remove, fun(_) -> ok end),
   [{secrethash, SecretHash}, {time, CurrentTime}, {timebetweenheartbeats, TimeBetweenHeartbeats}] ++ Config.
 
 end_per_testcase(_, Config) ->

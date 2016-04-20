@@ -31,7 +31,11 @@ remove_inactive_nodes(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbea
   AllValues = [binary_to_integer(Value) || Value <- redis:get_list(AllKeys)],
   ExpiredNodes = [Key || {Key, Value} <- lists:zip(AllKeys, AllValues), Value < (?MODULE:get_current_time()- TimeBetweenHeartbeats)],
   RemovedNodes = [string:substr(Key, 22)  || Key <- ExpiredNodes],
-  lists:foreach(fun(Node) -> node_service:node_unregister(Node), remove_node(Node) end, RemovedNodes),
+  lists:foreach(fun(Node) ->
+    node_service:node_unregister(Node),
+    remove_node(Node)
+                end,
+    RemovedNodes),
   RemovedNodes.
 
 add_node(NodeId) when is_list(NodeId) ->

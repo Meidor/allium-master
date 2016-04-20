@@ -22,6 +22,8 @@ get_matching_keys(Key) ->
     {ok, Keys} = eredis:q(Connection, ["KEYS", "onion_" ++ Key ++ "*"]),
     Keys.
 
+get_list([])->
+    [];
 get_list(List) ->
     {ok, Connection} = eredis:start_link(),
     {ok, KeyValue} = eredis:q(Connection, ["MGET" | List]),
