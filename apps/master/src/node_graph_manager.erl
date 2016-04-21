@@ -4,7 +4,7 @@
 %%%-------------------------------------------------------------------
 -module(node_graph_manager).
 
--export([get_graph_updates/1, rebuild_graph/0, rebuild_graph_at_interval/1, build_graph/1, merge_update_with_graph/2, add_node/3, remove_node/1, get_node_secret_hash/1, update_node/4]).
+-export([get_graph_updates/1, rebuild_graph/0, build_graph/1, merge_update_with_graph/2, add_node/3, remove_node/1, get_node_secret_hash/1, update_node/4]).
 
 -spec get_graph_updates(integer()) -> list().
 get_graph_updates(Version) when is_integer(Version) ->
@@ -159,7 +159,7 @@ get_node_secret_hash(NodeId) ->
     redis:get("node_hash_" ++ NodeId).
 
 -spec update_node(list(), list(), integer(), list()) -> atom().
-update_node(NodeId, IPaddress, Port, PublicKey) when IPaddress =/= undefined and Port =/= undefined and PublicKey =/= undefined ->
+update_node(NodeId, IPaddress, Port, PublicKey) ->
     DeleteVersion = get_max_version() + 1,
     AddVersion = DeleteVersion + 1,
     set_max_version(AddVersion),
