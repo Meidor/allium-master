@@ -1,5 +1,4 @@
 %%%-------------------------------------------------------------------
-%%% @author Koen & Eef
 %%% @copyright (C) 2016, <COMPANY>
 %%% @doc
 %%%
@@ -7,16 +6,15 @@
 %%% Created : 15. Apr 2016 13:36
 %%%-------------------------------------------------------------------
 -module(graph_SUITE).
--author("Koen & Eef").
 
 %%Commontest lib
 -include_lib("common_test/include/ct.hrl").
 
 %% API
 -export([all/0, init_per_testcase/2, end_per_testcase/2]).
--export([node_graph_manager_test/1, build_graph_test/1, merge_update_with_graph_test/1, add_node_test/1, remove_node_test/1, get_node_secret_hash_test/1]).
+-export([node_graph_manager_test/1, build_graph_test/1, merge_update_with_graph_test/1, add_node_test/1, remove_node_test/1, get_node_secret_hash_test/1, update_node_test/1]).
 
-all() -> [node_graph_manager_test, build_graph_test, merge_update_with_graph_test, add_node_test, remove_node_test, get_node_secret_hash_test].
+all() -> [node_graph_manager_test, build_graph_test, merge_update_with_graph_test, add_node_test, remove_node_test, get_node_secret_hash_test, update_node_test].
 
 %%initial for datastructure graph, not right yet
 init_per_testcase(_, Config) ->
@@ -194,29 +192,24 @@ add_node_test(_) ->
                 <<"10">>;
             "max_version" ->
                 <<"12">>;
-            "node_hash_YWJjZGVmZ2hpamtsbW4=" ->
-                "etsbhdbas";
-            "node_hash_YWJjZGVmZ2hpamtsbW5vcA==" ->
+            _ ->
                 undefined
         end
     end),
 
     meck:expect(redis, set, fun(Key, Value) ->
         case Key of
-            "node_hash_YWJjZGVmZ2hpamtsbW5vcA==" ->
-                ok;
-            "node_hash_YWJjZGVmZ2hpamtsbW4=" ->
-                ok;
             "version_13" ->
-                {graphupdate, 13, false, [{node, "YWJjZGVmZ2hpamtsbW5vcA==", "123.0.0.1", 1234, "abcdefghijklmnop", []}], [], []}
+                {graphupdate, 13, false, [{node, _, "123.0.0.1", 1234, "abcdefghijklmnop", []}], [], []}
                     = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
             "max_version" ->
-                13 = Value
+                13 = Value;
+            _ ->
+                ok
         end
     end),
 
-    {"YWJjZGVmZ2hpamtsbW5vcA==", _} = node_graph_manager:add_node("123.0.0.1", 1234, "abcdefghijklmnop").
-%%     error = node_graph_manager:add_node("123.0.0.1", 1234, "abcdefghijklmn").
+    {_, _} = node_graph_manager:add_node("123.0.0.1", 1234, "abcdefghijklmnop").
 
 remove_node_test(_) ->
     meck:expect(redis, get, fun(Key) ->
@@ -257,3 +250,35 @@ get_node_secret_hash_test(_) ->
         end
     end),
     <<"dspjihg8732ftv8ybnsd78vt7324tn">> = node_graph_manager:get_node_secret_hash("YWJjZGVmZ2hpamtsbW4=").
+
+update_node_test(_) ->
+    meck:expect(redis, get, fun(Key) ->
+        case Key of
+            "min_version" ->
+                <<"10">>;
+            "max_version" ->
+                <<"12">>
+        end
+    end),
+
+    meck:expect(redis, set, fun(Key, Value) ->
+        case Key of
+            "node_hash_YWJjZGVmZ2hpamtsbW5vcA==" ->
+                ok;
+            "node_hash_YWJjZGVmZ2hpamtsbW4=" ->
+                ok;
+            "version_13" ->
+                {graphupdate, 13, false, [], [], [{node, "YWJjZGVmZ2hpamtsbW5vcA==", _, _, _, _}]}
+                    = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
+            "version_14" ->
+                {graphupdate, 14, false, [{node, "YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz", []}], [], []}
+                    = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
+            "max_version" ->
+                true = lists:any(
+                    fun(X) -> X =:= Value end,
+                    [13, 14]
+                )
+        end
+    end),
+
+    ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz").

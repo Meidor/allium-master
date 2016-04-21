@@ -4,8 +4,9 @@
 %%%-------------------------------------------------------------------
 -module(node_graph_manager).
 
--export([get_graph_updates/1, rebuild_graph/0, rebuild_graph_at_interval/1, build_graph/1, merge_update_with_graph/2, add_node/3, remove_node/1, get_node_secret_hash/1]).
+-export([get_graph_updates/1, rebuild_graph/0, rebuild_graph_at_interval/1, build_graph/1, merge_update_with_graph/2, add_node/3, remove_node/1, get_node_secret_hash/1, update_node/4]).
 
+-spec get_graph_updates(integer()) -> list().
 get_graph_updates(Version) when is_integer(Version) ->
     RequestedVersion = max(Version, get_min_version() - 1),
     GetMaxVersion = get_max_version(),
@@ -39,17 +40,16 @@ get_graph_updates_for_version(Version) ->
     redis:get("version_" ++ integer_to_list(Version)).
 
 
-
-
-
-
+-spec rebuild_graph() -> atom().
 rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
     Graph = build_graph(NewMinVersion),
     save_graph(Graph, NewMinVersion),
     remove_old_versions(NewMinVersion),
-    update_min_version(NewMinVersion).
+    update_min_version(NewMinVersion),
+    ok.
 
+-spec build_graph(integer()) -> tuple().
 build_graph(NewMinVersion) ->
     GraphUpdates = lists:takewhile(
         fun({graphupdate, VersionNumber, _, _, _, _}) -> VersionNumber =< NewMinVersion end,
@@ -70,6 +70,7 @@ get_current_full_graph() ->
         )
     ).
 
+-spec merge_update_with_graph(tuple(), tuple()) -> tuple().
 merge_update_with_graph(Update, Graph) ->
     {_, _, _, ResultingAdditions, _,  _} = Graph,
     {_, _, _, Additions, _, Deletes} = Update,
@@ -112,49 +113,66 @@ protobufs_to_tuple(Data) ->
     hrp_pb:decode_graphupdate(Data).
 
 
-
-
-%% Periodically rebuild the graph.
-rebuild_graph_at_interval(Interval) ->
-    timer:sleep(Interval),
-    rebuild_graph(),
-    rebuild_graph_at_interval(Interval).
-
-
+-spec add_node(list(), integer(), list()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
-    NodeId = base64:encode_to_string(list_to_binary(PublicKey)),
+    NodeId = get_unique_node_id(),
+    Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
+    redis:set("node_hash_" ++ NodeId, Hash),
+    Version = get_max_version() + 1,
+    set_max_version(Version),
+    redis:set(
+        "version_" ++ integer_to_list(Version),
+        hrp_pb:encode(
+            {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], [], []}
+        )
+    ),
+    {NodeId, Hash}.
+
+get_unique_node_id() ->
+    NodeId = base64:encode_to_string(crypto:strong_rand_bytes(20)),
     case redis:get("node_hash_" ++ NodeId) of
         undefined ->
-            Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
-            redis:set("node_hash_" ++ NodeId, Hash),
-            Version = get_max_version() + 1,
-            set_max_version(Version),
-            redis:set(
-                "version_" ++ integer_to_list(Version),
-                hrp_pb:encode(
-                    {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], [], []}
-                )
-            ),
-            {NodeId, Hash};
+            NodeId;
         _ ->
-            error(alreadyexists)
+            get_unique_node_id()
     end.
 
+
+-spec remove_node(list()) -> atom().
 remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
-    Update = hrp_pb:encode(
-        {graphupdate, Version, false, [], [], [{node, NodeId, "", 0, "", []}]}
+    redis:set(
+        "version_" ++ integer_to_list(Version),
+        hrp_pb:encode(
+            {graphupdate, Version, false, [], [], [{node, NodeId, "", 0, "", []}]}
+        )
     ),
-    redis:set("version_" ++ integer_to_list(Version), Update),
     ok.
 
 set_max_version(Version) ->
     redis:set("max_version", Version).
 
+-spec get_node_secret_hash(list()) -> list().
 get_node_secret_hash(NodeId) ->
     redis:get("node_hash_" ++ NodeId).
 
-update_node(NodeId, IPaddress, Port, PublicKey) ->
+-spec update_node(list(), list(), integer(), list()) -> atom().
+update_node(NodeId, IPaddress, Port, PublicKey) when IPaddress =/= undefined and Port =/= undefined and PublicKey =/= undefined ->
+    DeleteVersion = get_max_version() + 1,
+    AddVersion = DeleteVersion + 1,
+    set_max_version(AddVersion),
+    redis:set(
+        "version_" ++ integer_to_list(DeleteVersion),
+        hrp_pb:encode(
+            {graphupdate, DeleteVersion, false, [], [], [{node, NodeId, "", 0, "", []}]}
+        )
+    ),
+    redis:set(
+        "version_" ++ integer_to_list(AddVersion),
+        hrp_pb:encode(
+            {graphupdate, AddVersion, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], [], []}
+        )
+    ),
     ok.
