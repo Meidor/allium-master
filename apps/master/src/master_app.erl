@@ -126,13 +126,8 @@ handle_message(Msg) ->
                 )
             );
         'NODEHEARTBEAT' ->
-            Request = hrp_pb:decode_nodeheartbeat(Data),
-            get_wrapped_message(
-                'CLIENTRESPONSE',
-                hrp_pb:encode(
-                    {clientresponse,[{"USER", "KEY123", []}]}
-                )
-            );
+            {nodeheartbeat, Id, SecretHash} = hrp_pb:decode_nodeheartbeat(Data),
+            heartbeat_monitor:receive_heartbeat(Id, SecretHash);
         'CLIENTREGISTERREQUEST' ->
             Request = hrp_pb:decode_clientregisterrequest(Data),
             get_wrapped_message(
