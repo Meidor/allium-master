@@ -25,10 +25,18 @@ get_version_numbers_since(Version) ->
     lists:seq(Version + 1, get_max_version()).
 
 get_min_version() ->
-    binary_to_integer(redis:get("min_version")).
+    try
+        binary_to_integer(redis:get("min_version"))
+    catch _:_ ->
+        1
+    end.
 
 get_max_version() ->
-    binary_to_integer(redis:get("max_version")).
+    try
+        binary_to_integer(redis:get("max_version"))
+    catch _:_ ->
+        1
+    end.
 
 get_graph_updates_for_versions(Versions) ->
     lists:map(
@@ -43,7 +51,12 @@ get_graph_updates_for_version(Version) ->
 -spec rebuild_graph() -> atom().
 rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
-    Graph = build_graph(NewMinVersion),
+    case NewMinVersion of
+        1 ->
+            Graph = {graphupdate, 1, true, [], [], []};
+        _ ->
+            Graph = build_graph(NewMinVersion)
+    end,
     save_graph(Graph, NewMinVersion),
     remove_old_versions(NewMinVersion),
     update_min_version(NewMinVersion),
@@ -91,11 +104,10 @@ update_min_version(NewMinVersion) ->
     redis:set("min_version", NewMinVersion).
 
 get_new_min_version() ->
-    round((get_min_version() + get_max_version()) / 2),
-    12.
+    round((get_min_version() + get_max_version()) / 2).
 
 save_graph(Graph, NewMinVersion) ->
-    redis:set("version_" ++ integer_to_list(NewMinVersion), Graph).
+    redis:set("version_" ++ integer_to_list(NewMinVersion), hrp_pb:encode(Graph)).
 
 remove_old_versions(NewMinVersion) ->
     lists:map(
@@ -111,7 +123,6 @@ protobuf_list_to_tuple_list(List) ->
 
 protobufs_to_tuple(Data) ->
     hrp_pb:decode_graphupdate(Data).
-
 
 -spec add_node(list(), integer(), list()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
