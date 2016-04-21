@@ -7,7 +7,6 @@
 %%% Created : 18. Apr 2016 7:49 PM
 %%%-------------------------------------------------------------------
 -module(heartbeat_monitor_app).
--author("Niels & Koen").
 -behaviour(gen_server).
 
 -define(INTERVAL, 5000).
@@ -28,14 +27,14 @@ handle_info(check, OldTimer) ->
   Timer = erlang:send_after(?INTERVAL, self(), check),
   {noreply, Timer}.
 
-handle_call(Request, From, State) ->
+handle_call(_Request, _From, State) ->
   State.
 
-handle_cast(Request, State) ->
+handle_cast(_Request, State) ->
   State.
 
-terminate(Reason, State) ->
+terminate(_Reason, State) ->
   State.
 
-code_change(OldVsn, State, Extra) ->
+code_change(_OldVsn, State, _Extra) ->
   State.

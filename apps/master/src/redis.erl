@@ -7,7 +7,6 @@
 %%% Created : 18. Apr 2016 10:25
 %%%-------------------------------------------------------------------
 -module(redis).
--author("Raoul").
 
 %% API
 -export([get/1, set/2, remove/1, get_matching_keys/1, get_list/1]).
@@ -26,8 +25,8 @@ get_list([])->
     [];
 get_list(ListOfKeys) ->
     {ok, Connection} = eredis:start_link(),
-    {ok, ListOfKeyValues} = eredis:q(Connection, ["MGET" | ListOfKeys]),
-    ListOfKeyValues.
+    {ok, ListOfValues} = eredis:q(Connection, ["MGET" | ListOfKeys]),
+    ListOfValues.
 
 set(Key, Value) ->
     {ok, Connection} = eredis:start_link(),

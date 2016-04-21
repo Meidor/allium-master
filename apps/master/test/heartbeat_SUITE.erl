@@ -1,5 +1,4 @@
 -module(heartbeat_SUITE).
--author("Koen & Niels").
 
 -include_lib("common_test/include/ct.hrl").
 
@@ -66,7 +65,7 @@ remove_nodes_with_inactive_heartbeats_test(Config) ->
     list_to_binary(Label ++ ActiveNodeIdTwo), list_to_binary(Label ++ InactiveNodeIdTwo)],
   MonitoredTimes = [integer_to_binary(Time-TimeBetweenHeartbeats), integer_to_binary(Time-TimeBetweenHeartbeats-1),
     integer_to_binary(Time), integer_to_binary(Time-TimeBetweenHeartbeats*2)],
-  meck:expect(redis, get_matching_keys, fun(HeartbeatNodeLabel) -> MonitoredNodes end),
+  meck:expect(redis, get_matching_keys, fun(_HeartbeatNodeLabel) -> MonitoredNodes end),
   meck:expect(redis, get_list, fun(_) -> MonitoredTimes end),
 
   [InactiveNodeIdOne, InactiveNodeIdTwo] = heartbeat_monitor:remove_inactive_nodes(TimeBetweenHeartbeats),
