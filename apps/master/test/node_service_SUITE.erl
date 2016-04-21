@@ -78,8 +78,8 @@ node_register_test_invalid_node(Config) ->
 
 node_unregister_test_valid_node(Config) ->
     {NodeId, SecretHash} = ?config(validnodeverify, Config),
-    node_service:node_unregister(NodeId, SecretHash),
-    node_service:node_unregister(NodeId),
+    ok = node_service:node_unregister(NodeId, SecretHash),
+    ok = node_service:node_unregister(NodeId),
     true = test_helpers:check_function_called(node_graph_manager, get_node_secret_hash, [NodeId]),
     true = test_helpers:check_function_called(node_graph_manager, remove_node, [NodeId]),
     true = test_helpers:check_function_called(heartbeat_monitor, remove_node, [NodeId]).
@@ -95,7 +95,7 @@ node_unregister_test_invalid_node(Config) ->
 
 node_verify_test_valid_node(Config) ->
     {NodeId, SecretHash} = ?config(validnodeverify, Config),
-    node_service:node_verify(NodeId, SecretHash),
+    SecretHash = node_service:node_verify(NodeId, SecretHash),
     true = test_helpers:check_function_called(node_graph_manager, get_node_secret_hash, [NodeId]).
 
 node_verify_test_invalid_node(Config) ->
