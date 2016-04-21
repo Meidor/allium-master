@@ -8,10 +8,10 @@
 
 -spec get_graph_updates(integer()) -> list().
 get_graph_updates(Version) when is_integer(Version) ->
-    RequestedVersion = max(Version, get_min_version() - 1),
-    GetMaxVersion = get_max_version(),
+    MaxVersion = get_max_version(),
+    RequestedVersion = min(max(Version, get_min_version() - 1), MaxVersion),
     case RequestedVersion of
-        GetMaxVersion ->
+        MaxVersion ->
             [];
         _ ->
             get_graph_updates_for_versions(
