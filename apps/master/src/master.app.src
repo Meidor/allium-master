@@ -8,8 +8,7 @@
     stdlib
    ]},
   {env,[]},
-  {modules, []},
-
+  {modules, [node_service]},
   {maintainers, []},
   {licenses, []},
   {links, []}
