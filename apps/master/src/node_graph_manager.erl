@@ -63,7 +63,8 @@ rebuild_graph() ->
     ok.
 
 -spec build_graph(integer()) -> tuple().
-build_graph(NewMinVersion) ->
+build_graph(RequestedMinVersion) ->
+    NewMinVersion = min(max(get_min_version(), RequestedMinVersion), get_max_version()),
     GraphUpdates = lists:takewhile(
         fun({graphupdate, VersionNumber, _, _, _, _}) -> VersionNumber =< NewMinVersion end,
         protobuf_list_to_tuple_list(get_graph_updates(get_min_version()))

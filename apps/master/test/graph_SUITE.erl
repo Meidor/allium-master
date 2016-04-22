@@ -105,7 +105,7 @@ build_graph_without_existing_graph_test(_) ->
         end
     end),
 
-    {graphupdate, 0, true,
+    {graphupdate, 1, true,
         [],
         [],
         []
@@ -115,7 +115,7 @@ build_graph_without_existing_graph_test(_) ->
         [],
         []
     } = node_graph_manager:build_graph(1),
-    {graphupdate, 2, true,
+    {graphupdate, 1, true,
     [],
     [],
     []
@@ -159,7 +159,7 @@ build_graph_test(_) ->
         end
     end),
 
-    {graphupdate, 9, true,
+    {graphupdate, 10, true,
         [
             {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}
         ],
@@ -182,7 +182,7 @@ build_graph_test(_) ->
         [],
         []
     } = node_graph_manager:build_graph(12),
-    {graphupdate, 13, true,
+    {graphupdate, 12, true,
         [
             {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]},
             {node, "5", "192.168.0.3", 80, "abc123", []},
@@ -262,15 +262,7 @@ build_graph_test_impossible_actions(_) ->
             "version_11" ->
                 ADDDIFFERENT2
         end
-                            end),
-    {graphupdate, 11, true,
-        [
-            {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]},
-            {node, "2", "123.0.0.0", 80, "abcdef123456", [{edge, "1", 5.0}]}
-        ],
-        [],
-        []
-    } = node_graph_manager:build_graph(11),
+    end),
 
     meck:expect(redis, get, fun(Key) ->
         case Key of
@@ -415,7 +407,8 @@ merge_update_with_graph_test(_) ->
 add_node_test(_) ->
     NewNodeIP = "123.0.0.1",
     NewNodePort = 1234,
-    NewNodeSecretHash = "abcdefghijklmnop",
+    NewPublicKey = "abcdefghijklmnop",
+    NewMaxVersion = "13",
     meck:expect(redis, get, fun(Key) ->
         case Key of
             "min_version" ->
@@ -430,19 +423,20 @@ add_node_test(_) ->
 
     meck:expect(redis, set, fun(Key, Value) ->
         case Key of
-            "version_13" ->
-                {graphupdate, 13, false, [{node, _, NewNodeIP, NewNodePort, NewNodeSecretHash, []}], [], []}
-                    = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
-            "max_version" ->
-                13 = Value;
             _ ->
                 ok
-        end
-    end),
+            end
+        end),
 
-    {_, _} = node_graph_manager:add_node(NewNodeIP, NewNodePort, NewNodeSecretHash).
+    {NodeId, SecretHash} = node_graph_manager:add_node(NewNodeIP, NewNodePort, NewPublicKey),
+    true = test_helpers:check_function_called(redis, set, ["max_version", list_to_integer(NewMaxVersion)]),
+    true = test_helpers:check_function_called(redis, set, ["node_hash_" ++ NodeId, SecretHash]),
+    HashedNewGraphUpdate = (["version_" ++ NewMaxVersion, hrp_pb:encode({graphupdate, list_to_integer(NewMaxVersion), false, [{node, NodeId, NewNodeIP, NewNodePort, NewPublicKey, []}], [], []})]),
+    true = test_helpers:check_function_called(redis, set, HashedNewGraphUpdate).
 
 remove_node_test(_) ->
+    RemovableNodeId = "YWJjZGVmZ2hpamtsbW4=",
+    NewMaxVersion = "13",
     meck:expect(redis, get, fun(Key) ->
         case Key of
             "min_version" ->
@@ -455,7 +449,7 @@ remove_node_test(_) ->
     meck:expect(redis, set, fun(Key, Value) ->
         case Key of
             "version_13" ->
-                {graphupdate, 13, false, [], [], [{node, "YWJjZGVmZ2hpamtsbW4=", _, _, _, []}]}
+                {graphupdate, 13, false, [], [], [{node, RemovableNodeId, _, _, _, []}]}
                     = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
             "max_version" ->
                 13 = Value
@@ -464,13 +458,15 @@ remove_node_test(_) ->
 
     meck:expect(redis, remove, fun(Key) ->
         case Key of
-            "node_hash_YWJjZGVmZ2hpamtsbW4=" ->
-                ok;
-            "node_hash_YWJjZGVmZ2hpamtsbW5vcA==" ->
-                "value"
+            "node_hash_" ++ RemovableNodeId ->
+                ok
         end
     end),
-    ok = node_graph_manager:remove_node("YWJjZGVmZ2hpamtsbW4=").
+    ok = node_graph_manager:remove_node(RemovableNodeId),
+    true = test_helpers:check_function_called(redis, set, ["max_version", list_to_integer(NewMaxVersion)]),
+    HashedNewGraphUpdate = hrp_pb:encode({graphupdate, list_to_integer(NewMaxVersion), false, [], [], [{node, RemovableNodeId, "", 0, "", []}]}),
+    true = test_helpers:check_function_called(redis, set, ["version_" ++ NewMaxVersion, HashedNewGraphUpdate]),
+    true = test_helpers:check_function_called(redis, remove, ["node_hash_" ++ RemovableNodeId]).
 
 
 get_node_secret_hash_test(_) ->
