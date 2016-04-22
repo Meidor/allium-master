@@ -69,8 +69,9 @@ handle_messages(Socket) ->
     end.
 
 handle_message(Msg) ->
-    DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg)),
-    {encryptedwrapper, Type, Key, Data} = DecodedMsg,
+    DecodedMsg = hrp_pb:decode_encryptedwrapper(iolist_to_binary(Msg)),
+    io:format("MSG: ~p~nDECODED: ~p~n", [Msg, DecodedMsg]),
+    {[{encryptedwrapper, Type, Key, Data} | _], _} = DecodedMsg,
     case Type of
         'GRAPHUPDATEREQUEST' ->
             Request = hrp_pb:decode_graphupdaterequest(Data),
