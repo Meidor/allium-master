@@ -70,7 +70,7 @@ handle_messages(Socket) ->
 
 handle_message(Msg) ->
     DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg)),
-    {[{encryptedwrapper, Type, Key, Data} | _], _} = DecodedMsg,
+    {encryptedwrapper, Type, Key, Data} = DecodedMsg,
     case Type of
         'GRAPHUPDATEREQUEST' ->
             Request = hrp_pb:decode_graphupdaterequest(Data),
