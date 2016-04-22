@@ -18,8 +18,12 @@ message GraphUpdateRequest {
 	required int32 currentVersion = 1;
 }
 
-// Response to the GraphUpdateRequest, gives updates on the Graph or returns the whole Graph if the currentVersion is too old.
+// Response to the GraphUpdateRequest, gives updates on the Graph or returns the whole Graph plus updates if the currentVersion is too old.
 message GraphUpdateResponse {
+    repeated bytes graphUpdates = 1; // List of GraphUpdate items, already encoded
+}
+
+message GraphUpdate {
 	required int32 newVersion = 1; // Version of the new Graph, can be equal to the currentVersion of the GraphUpdateRequest
 	required bool isFullGraph = 2;
 	repeated Node addedNodes = 3;
