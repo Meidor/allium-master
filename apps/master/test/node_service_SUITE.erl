@@ -65,7 +65,11 @@ end_per_testcase(_, Config) ->
 
 node_register_test_valid_node(Config) -> 
     {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
-    {"ValideNode", "Valide"} = node_service:node_register(IPaddress, Port, PublicKey).
+    ValidNodeId = "ValideNode",
+    ValidNodeSecretHash = "Valide",
+    {ValidNodeId, ValidNodeSecretHash} = node_service:node_register(IPaddress, Port, PublicKey),
+    true = test_helpers:check_function_called(node_graph_manager, add_node, [IPaddress, Port, PublicKey]),
+    true = test_helpers:check_function_called(heartbeat_monitor, add_node, [ValidNodeId]).
 
 node_register_test_invalid_node(Config) ->
     {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
@@ -121,7 +125,8 @@ node_update_test_invalid_node(Config) ->
     {NodeId2, SecretHash2} = ?config(invalidnodeverify2, Config),
     {NodeId3, SecretHash3} = ?config(invalidnodeverify3, Config),
     %% Verify the secret hash part of the function
-    test_helpers:assert_fail(fun node_service:node_update/5, [NodeId, SecretHash, IPaddress, Port, PublicKey], error, {badmatch, "Testing123#"}, failed_to_catch_invalid_hash),
+    ExpectedBadMatch = {badmatch, "Testing123#"},
+    test_helpers:assert_fail(fun node_service:node_update/5, [NodeId, SecretHash, IPaddress, Port, PublicKey], error, ExpectedBadMatch, failed_to_catch_invalid_hash),
     test_helpers:assert_fail(fun node_service:node_update/5, [NodeId2, SecretHash2, IPaddress, Port, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_update/5, [NodeId3, SecretHash3, IPaddress, Port, PublicKey], error, nodenotfound, failed_to_catch_invalid_nodeid),
     %% Verify the ip, port ,publickey part of the function
