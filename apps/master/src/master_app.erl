@@ -17,7 +17,11 @@
 %%====================================================================
 
 start(_StartType, _StartArgs) ->
-    master_sup:start_link().
+    Link = master_sup:start_link(),
+    start(1337),
+    io:format("Start listening on port 1337...~n"),
+    timer:sleep(100000000),
+    Link.
 
 %%--------------------------------------------------------------------
 stop(_State) ->
@@ -163,13 +167,8 @@ handle_message(Msg) ->
                 )
             );
         'NODEHEARTBEAT' ->
-            Request = hrp_pb:decode_nodeheartbeat(Data),
-            get_wrapped_message(
-                'CLIENTRESPONSE',
-                hrp_pb:encode(
-                    {clientresponse,[{"USER", "KEY123", []}]}
-                )
-            );
+            {nodeheartbeat, Id, SecretHash} = hrp_pb:decode_nodeheartbeat(Data),
+            heartbeat_monitor:receive_heartbeat(Id, SecretHash);
         'CLIENTREGISTERREQUEST' ->
             Request = hrp_pb:decode_clientregisterrequest(Data),
             get_wrapped_message(
