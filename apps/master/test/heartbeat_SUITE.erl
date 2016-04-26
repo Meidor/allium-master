@@ -34,6 +34,9 @@ init_per_testcase(_, Config) ->
     [{secrethash, SecretHash}, {time, CurrentTime}, {timebetweenheartbeats, TimeBetweenHeartbeats}, {labels, Labels}] ++ Config.
 
 end_per_testcase(_, Config) ->
+    meck:unload(redis),
+    meck:unload(heartbeat_monitor),
+    meck:unload(node_service),
     Config.
 
 receive_heartbeat_valid_node_test(Config) ->

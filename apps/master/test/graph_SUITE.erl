@@ -24,6 +24,7 @@ init_per_testcase(_, Config) ->
     Config.
 
 end_per_testcase(_, Config) ->
+    meck:unload(redis),
     Config.
 
 get_graph_updates_without_existing_graph_test(_) ->
