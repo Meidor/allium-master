@@ -1,4 +1,6 @@
-[{<<"eredis">>,
+[{<<"cowboy">>,{pkg,<<"cowboy">>,<<"1.0.4">>},0},
+ {<<"cowlib">>,{pkg,<<"cowlib">>,<<"1.0.2">>},1},
+ {<<"eredis">>,
   {git,"git://github.com/wooga/eredis.git",
        {ref,"bf12ecb30253c84a2331f4f0d93fd68856fcb9f4"}},
   0},
@@ -9,4 +11,5 @@
  {<<"protobuffs">>,
   {git,"git://github.com/basho/erlang_protobuffs.git",
        {ref,"a1eeee77aef639a33cc5a2dd7abed7e4f4b83f9b"}},
-  0}].
+  0},
+ {<<"ranch">>,{pkg,<<"ranch">>,<<"1.2.1">>},1}].
