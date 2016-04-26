@@ -74,15 +74,11 @@ handle_message(Msg) ->
     {[{encryptedwrapper, Type, Key, Data} | _], _} = DecodedMsg,
     case Type of
         'GRAPHUPDATEREQUEST' ->
-            Request = hrp_pb:decode_graphupdaterequest(Data),
+            {graphupdaterequest, Version} = hrp_pb:decode_graphupdaterequest(Data),
             get_wrapped_message(
                 'GRAPHUPDATERESPONSE',
                 hrp_pb:encode(
-                    {graphupdateresponse, 12345, false,
-                        [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}],
-                        [{node, "1", "192.168.0.2", 80, "zyx123", [{edge, "2", 2.0}]}],
-                        [{node, "3", "192.168.0.3", 80, "abc123",[]}]
-                    }
+                    {graphupdateresponse, node_graph_manager:get_graph_updates(Version)}
                 )
             );
         'NODEREGISTERREQUEST' ->
