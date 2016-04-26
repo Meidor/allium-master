@@ -52,10 +52,26 @@
         }
     </style>
 
+    <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/vis.js"></script>
+    <script type="text/javascript" src="js/long.js"></script>
+    <script type="text/javascript" src="js/bytebuffer.js"></script>
+    <script type="text/javascript" src="js/protobuf.js"></script>
+
     <link href="css/vis.css" rel="stylesheet" type="text/css"/>
 
     <script type="text/javascript">
+
+        if (typeof dcodeIO === 'undefined' || !dcodeIO.ProtoBuf) {
+            throw(new Error("ProtoBuf.js is not present."));
+        }
+        // Initialize ProtoBuf.js
+        var ProtoBuf = dcodeIO.ProtoBuf;
+        var Client = ProtoBuf.loadProtoFile("js/hrp.proto").build("Client");
+        var firstClient = new Client();
+        firstClient.setUsername("test");
+        firstClient.setPublicKey("key123");
+
         var nodes, edges, network;
 
         // convenience method to stringify a JSON object
