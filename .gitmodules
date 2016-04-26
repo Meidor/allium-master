@@ -1,0 +1,3 @@
+[submodule "apps/master/protocol"]
+	path = apps/master/protocol
+	url = http://git.icaprojecten.nl/stash/scm/asdn/protocol.git
