@@ -19,5 +19,5 @@ start_link() ->
 %% supervisor.
 
 init([]) ->
-	Procs = [],
-	{ok, {{one_for_one, 10, 10}, Procs}}.
+	Procs = [{websocket_app, {websocket_app, start, []}, permanent, brutal_kill, worker, [websocket_app]}],
+    {ok, {{one_for_one, 0, 1}, Procs}}.
