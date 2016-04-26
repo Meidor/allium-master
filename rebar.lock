@@ -2,7 +2,7 @@
  {<<"cowlib">>,{pkg,<<"cowlib">>,<<"1.0.2">>},1},
  {<<"eredis">>,
   {git,"git://github.com/wooga/eredis.git",
-       {ref,"bf12ecb30253c84a2331f4f0d93fd68856fcb9f4"}},
+       {ref,"cbc013f516e464706493c01662e5e9dd82d1db01"}},
   0},
  {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.7">>},1},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.0.2">>},0},

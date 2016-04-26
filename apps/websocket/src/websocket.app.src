@@ -4,9 +4,7 @@
   {registered, []},
   {mod, { websocket_app, []}},
   {applications,
-   [kernel,
-    stdlib
-   ]},
+   [kernel, stdlib, crypto, ranch, cowlib, cowboy]},
   {env,[]},
   {modules, []},
 
