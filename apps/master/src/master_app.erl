@@ -67,7 +67,7 @@ handle_messages(Socket) ->
 handle_message(Msg) ->
     DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg)),
     io:format("MSG: ~p~nDECODED: ~p~n", [Msg, DecodedMsg]),
-    {[{encryptedwrapper, Type, Key, Data} | _], _} = DecodedMsg,
+    {[{encryptedwrapper, Type, Data} | _], _} = DecodedMsg,
     case Type of
         'GRAPHUPDATEREQUEST' ->
             {graphupdaterequest, Version} = hrp_pb:decode_graphupdaterequest(Data),
@@ -172,6 +172,7 @@ handle_message(Msg) ->
             heartbeat_monitor:receive_heartbeat(Id, SecretHash);
         'CLIENTREGISTERREQUEST' ->
             Request = hrp_pb:decode_clientregisterrequest(Data),
+            io:format("REGISTER REQUEST: ~p~n", [Request]),
             get_wrapped_message(
                 'CLIENTREGISTERRESPONSE',
                 hrp_pb:encode(
@@ -198,4 +199,4 @@ handle_message(Msg) ->
 
 -spec get_wrapped_message(list(), list()) -> list().
 get_wrapped_message(Type, Msg) ->
-    hrp_pb:encode({encryptedwrapper, Type, "123456789", Msg}).
+    hrp_pb:encode({encryptedwrapper, Type, Msg}).
