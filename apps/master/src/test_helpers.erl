@@ -13,6 +13,3 @@ assert_fail(Fun, Args, ExceptionType, ExceptionValue, Reason) ->
 -spec check_function_called(atom(), list(), list()) -> boolean().
 check_function_called(Module, Function, Params) ->
     lists:keymember({Module, Function, Params}, 2, meck:history(Module)).
-
-
-

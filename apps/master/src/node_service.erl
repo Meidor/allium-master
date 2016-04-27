@@ -4,9 +4,9 @@
 %%%===================================================================
 -module(node_service).
 -export([node_register/3,
-     node_unregister/1, node_unregister/2,
-     node_verify/2,
-     node_update/5]).
+    node_unregister/1, node_unregister/2,
+    node_verify/2,
+    node_update/5]).
 
 %% @doc Register your node in the graph
 %% @end

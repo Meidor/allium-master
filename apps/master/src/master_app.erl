@@ -78,8 +78,8 @@ handle_message(Msg) ->
                 )
             );
         'NODEREGISTERREQUEST' ->
-            {noderegisterrequest, IPaddress, Port, PublicKey} =
-                hrp_pb:decode_noderegisterrequest(Data),
+            {noderegisterrequest, IPaddress, Port, PublicKey}
+                = hrp_pb:decode_noderegisterrequest(Data),
             try
                 node_service:node_register(IPaddress, Port, PublicKey)
             of {NodeId, SecretHash} ->
@@ -106,8 +106,8 @@ handle_message(Msg) ->
                     )
             end;
         'NODEUPDATEREQUEST' ->
-            {nodeupdaterequest, NodeId, SecretHash, IPaddress, Port, PublicKey} =
-                hrp_pb:decode_nodeupdaterequest(Data),
+            {nodeupdaterequest, NodeId, SecretHash, IPaddress, Port, PublicKey}
+                = hrp_pb:decode_nodeupdaterequest(Data),
             try
                 node_service:node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
             of _ ->
