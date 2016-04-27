@@ -25,39 +25,32 @@ init() ->
 
 -spec insert_client(list(), list(), list(), list()) -> atom().
 insert_client(Username, SecretHash, PublicKey, Password) ->
-    Fun = fun() ->
+    mnesia:transaction(fun() ->
         mnesia:write(
             #client{username = Username,
                 secrethash = SecretHash,
                 publickey = PublicKey,
                 password = Password} )
-          end,
-    mnesia:transaction(Fun),
+        end),
     ok.
 
 -spec select_client(list()) -> any().
 select_client(Username) ->
-    Fun =
-        fun() ->
-            mnesia:read({client, Username})
-        end,
-    mnesia:transaction(Fun),
-    {_, Result} = mnesia:transaction(Fun),
+    {_, Result} = mnesia:transaction(fun() ->
+        mnesia:read({client, Username})
+             end),
     case Result of
         [] ->
             undefined;
-        _ ->
-            [{_, Username, SecretHash, PublicKey, Password}] = Result,
+        [{_, Username, SecretHash, PublicKey, Password}] ->
             {Username, SecretHash, PublicKey, Password}
     end.
 
 -spec select_clients_by_hash(list()) -> list().
 select_clients_by_hash(SecretHash) ->
-    Fun =
-        fun() ->
-            mnesia:match_object({client, '_', SecretHash, '_', '_'} )
-        end,
-    {atomic, Result} = mnesia:transaction( Fun),
+    {_, Result} = mnesia:transaction(fun() ->
+        mnesia:match_object({client, '_', SecretHash, '_', '_'})
+             end),
     case Result of
         [] ->
             [];
@@ -68,12 +61,9 @@ select_clients_by_hash(SecretHash) ->
 
 -spec select_all_clients() -> list().
 select_all_clients() ->
-    {_, Result} = mnesia:transaction(
-        fun() ->
-            qlc:eval( qlc:q(
-                [ X || X <- mnesia:table(client) ]
-            ))
-        end ),
+    {_, Result} = mnesia:transaction(fun() ->
+        qlc:eval(qlc:q([ X || X <- mnesia:table(client) ]))
+            end),
     case Result of
         [] ->
             [];
@@ -84,11 +74,9 @@ select_all_clients() ->
 
 -spec delete_client(list()) -> atom().
 delete_client(Username) ->
-    Fun =
-        fun() ->
-            mnesia:delete({client, Username})
-        end,
-    mnesia:transaction(Fun),
+    mnesia:transaction(fun() ->
+        mnesia:delete({client, Username})
+             end),
     ok.
 
 -spec delete_all_clients() -> atom().
