@@ -1,7 +1,7 @@
-%%%-------------------------------------------------------------------
+%%%===================================================================
 %% @doc master top level supervisor.
 %% @end
-%%%-------------------------------------------------------------------
+%%%===================================================================
 
 -module(graph_monitor_sup).
 
@@ -29,9 +29,15 @@ start_link() ->
 
 -spec init(list()) -> tuple().
 init([]) ->
-    {ok, { {one_for_one, 0, 1},
-        [{graph_monitor_app, {graph_monitor_app, start_link, []}, permanent, brutal_kill, worker, [graph_monitor_app]}]}}.
-
-%%====================================================================
-%% Internal functions
-%%====================================================================
+    {ok, {
+            {one_for_one, 0, 1},
+            [{
+                graph_monitor_app,
+                {graph_monitor_app, start_link, []},
+                permanent,
+                brutal_kill,
+                worker,
+                [graph_monitor_app]
+            }]
+        }
+    }.
