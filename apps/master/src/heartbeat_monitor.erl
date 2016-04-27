@@ -10,7 +10,7 @@
 -spec receive_heartbeat(list(), list()) -> any().
 receive_heartbeat(NodeId, SecretHash) when is_list(NodeId), is_list(SecretHash) ->
     try
-        node_service:verify_node(NodeId, SecretHash)
+        node_service:node_verify(NodeId, SecretHash)
     of _ ->
         redis:set("heartbeat_node_" ++ NodeId, ?MODULE:get_current_time()),
         ok
