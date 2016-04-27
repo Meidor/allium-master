@@ -1,13 +1,12 @@
-%%%-------------------------------------------------------------------
+%%%===================================================================
 %% @doc master public API
 %% @end
-%%%-------------------------------------------------------------------
+%%%===================================================================
 -module(node_service).
--export([node_register/3, 
-         node_unregister/1, node_unregister/2, 
-         node_verify/2,
-         node_update/5
-]).
+-export([node_register/3,
+     node_unregister/1, node_unregister/2,
+     node_verify/2,
+     node_update/5]).
 
 %% @doc Register your node in the graph
 %% @end
@@ -51,7 +50,7 @@ node_verify(NodeId, SecretHash)
 %% @end
 -spec node_update(list(), list(), list(), integer(), list()) -> any().
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
-    when 
+    when
         is_list(NodeId)
         andalso is_list(SecretHash)
         andalso (undefined == IPaddress orelse is_list(IPaddress))

@@ -1,10 +1,17 @@
-%%%-------------------------------------------------------------------
+%%%===================================================================
 %% @doc graph public API
 %% @end
-%%%-------------------------------------------------------------------
+%%%===================================================================
 -module(node_graph_manager).
 
--export([get_graph_updates/1, rebuild_graph/0, build_graph/1, merge_update_with_graph/2, add_node/3, remove_node/1, get_node_secret_hash/1, update_node/4]).
+-export([get_graph_updates/1,
+    rebuild_graph/0,
+    build_graph/1,
+    merge_update_with_graph/2,
+    add_node/3,
+    remove_node/1,
+    get_node_secret_hash/1,
+    update_node/4]).
 
 -spec get_graph_updates(integer()) -> list().
 get_graph_updates(Version) when is_integer(Version) ->
@@ -21,9 +28,11 @@ get_graph_updates(Version) when is_integer(Version) ->
             )
     end.
 
+-spec get_version_numbers_since(integer()) -> list().
 get_version_numbers_since(Version) ->
     lists:seq(Version + 1, get_max_version()).
 
+-spec get_min_version() -> integer().
 get_min_version() ->
     try
         binary_to_integer(redis:get("min_version"))
@@ -31,6 +40,7 @@ get_min_version() ->
         1
     end.
 
+-spec get_max_version() -> integer().
 get_max_version() ->
     try
         binary_to_integer(redis:get("max_version"))
@@ -38,12 +48,14 @@ get_max_version() ->
         1
     end.
 
+-spec get_graph_updates_for_versions(list()) -> list().
 get_graph_updates_for_versions(Versions) ->
     lists:map(
         fun(Version) -> get_graph_updates_for_version(Version) end,
         Versions
     ).
 
+-spec get_graph_updates_for_version(integer()) -> binary().
 get_graph_updates_for_version(Version) ->
     redis:get("version_" ++ integer_to_list(Version)).
 
@@ -77,10 +89,11 @@ build_graph(RequestedMinVersion) ->
     {graphupdate, _, _, Added, Edited, Deleted} = NewGraph,
     {graphupdate, NewMinVersion, true, Added, Edited, Deleted}.
 
+-spec get_current_full_graph() -> tuple().
 get_current_full_graph() ->
     protobufs_to_tuple(
         get_graph_updates_for_version(
-          get_min_version()
+            get_min_version()
         )
     ).
 
@@ -101,27 +114,33 @@ merge_update_with_graph(Update, Graph) ->
     ),
     {graphupdate, 0, true, TotalDeletionsAdditions, [], []}.
 
+-spec update_min_version(integer()) -> any().
 update_min_version(NewMinVersion) ->
     redis:set("min_version", NewMinVersion).
 
+-spec get_new_min_version() -> integer().
 get_new_min_version() ->
     round((get_min_version() + get_max_version()) / 2).
 
+-spec save_graph(tuple(), integer()) -> any().
 save_graph(Graph, NewMinVersion) ->
     redis:set("version_" ++ integer_to_list(NewMinVersion), hrp_pb:encode(Graph)).
 
+-spec remove_old_versions(integer()) -> any().
 remove_old_versions(NewMinVersion) ->
     lists:map(
         fun(Version) -> redis:remove("version_" ++ integer_to_list(Version)) end,
         lists:seq(get_min_version(), NewMinVersion - 1)
     ).
 
+-spec protobuf_list_to_tuple_list(list()) -> list().
 protobuf_list_to_tuple_list(List) ->
     lists:map(
         fun(Item) -> protobufs_to_tuple(Item) end,
         List
     ).
 
+-spec protobufs_to_tuple(list()) -> tuple().
 protobufs_to_tuple(Data) ->
     hrp_pb:decode_graphupdate(Data).
 
@@ -140,6 +159,7 @@ add_node(IPaddress, Port, PublicKey) ->
     ),
     {NodeId, Hash}.
 
+-spec get_unique_node_id() -> list().
 get_unique_node_id() ->
     NodeId = base64:encode_to_string(crypto:strong_rand_bytes(20)),
     case redis:get("node_hash_" ++ NodeId) of
@@ -163,6 +183,7 @@ remove_node(NodeId) ->
     ),
     ok.
 
+-spec set_max_version(integer()) -> any().
 set_max_version(Version) ->
     redis:set("max_version", Version).
 
@@ -178,13 +199,17 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
     redis:set(
         "version_" ++ integer_to_list(DeleteVersion),
         hrp_pb:encode(
-            {graphupdate, DeleteVersion, false, [], [], [{node, NodeId, "", 0, "", []}]}
+            {graphupdate, DeleteVersion, false, [], [], [
+                {node, NodeId, "", 0, "", []}
+            ]}
         )
     ),
     redis:set(
         "version_" ++ integer_to_list(AddVersion),
         hrp_pb:encode(
-            {graphupdate, AddVersion, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], [], []}
+            {graphupdate, AddVersion, false, [
+                {node, NodeId, IPaddress, Port, PublicKey, []}
+            ], [], []}
         )
     ),
     ok.
