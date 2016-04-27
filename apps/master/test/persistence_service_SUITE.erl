@@ -56,7 +56,7 @@ insert_new_client_return_ok_test(_Config) ->
 insert_existing_client_perform_update_return_ok_test(_Config) ->
     persistence_service:insert_client("Username", "SecretHash", "PublicKey", "Password"),
 
-    persistence_service:insert_client("Username", "UpdatedHash", "PublicKey", "Password"),
+    ok = persistence_service:insert_client("Username", "UpdatedHash", "PublicKey", "Password"),
     {"Username", "UpdatedHash", "PublicKey", "Password"} = persistence_service:select_client("Username").
 
 select_existing_client_return_client_test(_Config) ->

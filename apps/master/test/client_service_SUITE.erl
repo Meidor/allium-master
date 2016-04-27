@@ -10,12 +10,14 @@
 
 -export([
     client_register_valid_client_return_ok_test/1,
-    client_register_invalid_client_username_taken_return_error_test/1
+    client_register_invalid_client_username_taken_return_error_test/1,
+    client_register_unpredicted_error_return_error_test/1
 ]).
 
 all() -> [
     client_register_valid_client_return_ok_test,
-    client_register_invalid_client_username_taken_return_error_test
+    client_register_invalid_client_username_taken_return_error_test,
+    client_register_unpredicted_error_return_error_test
 ].
 
 init_per_suite(Config) ->
@@ -40,7 +42,15 @@ client_register_valid_client_return_ok_test(_Config) ->
 client_register_invalid_client_username_taken_return_error_test(_Config) ->
     InvalidUsername = "TakenUsername",
     Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
-    meck:expect(auth_service, client_register, fun(_ValidUsername, _Password) -> error(usernametaken) end),
+    meck:expect(auth_service, client_register, fun(_InvalidUsername, _Password) -> error(usernametaken) end),
 
     {error, "Username is already taken"} = client_service:client_register(InvalidUsername, Password),
     true = test_helpers:check_function_called(auth_service, client_register, [InvalidUsername, Password]).
+
+client_register_unpredicted_error_return_error_test(_Config) ->
+    ValidUsername = "TakenUsername",
+    Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
+    meck:expect(auth_service, client_register, fun(_ValidUsername, _Password) -> error(somethingwentwrong) end),
+
+    {error, "Something went wrong"} = client_service:client_register(ValidUsername, Password),
+    true = test_helpers:check_function_called(auth_service, client_register, [ValidUsername, Password]).
