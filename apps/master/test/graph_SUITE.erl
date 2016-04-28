@@ -49,10 +49,13 @@ all() -> [
 %%initial for datastructure graph, not right yet
 init_per_testcase(_, Config) ->
     meck:new(redis, [non_strict]),
+    meck:new(gproc),
+    meck:expect(gproc, send, fun(_,_) -> ok end),
     Config.
 
 end_per_testcase(_, Config) ->
     meck:unload(redis),
+    meck:unload(gproc),
     Config.
 
 get_graph_updates_without_existing_graph_test(_) ->
