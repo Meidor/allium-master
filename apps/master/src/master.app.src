@@ -8,7 +8,7 @@
     stdlib,
     websocket
    ]},
-  {env,[{gproc, "gproc_dist 'all'"}]},
+  {env,[]},
   {modules, [node_service]},
   {maintainers, []},
   {licenses, []},
