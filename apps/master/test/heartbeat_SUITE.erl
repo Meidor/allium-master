@@ -15,7 +15,7 @@ init_per_testcase(_, Config) ->
     meck:new(heartbeat_monitor, [passthrough]),
     meck:new(redis, [non_strict, passthrough]),
     meck:expect(heartbeat_monitor, get_current_time, fun() -> 100000 end),
-    meck:expect(node_service, verify_node,
+    meck:expect(node_service, node_verify,
         fun(NodeId, _) ->
             case NodeId of
                 "10" -> ok;
@@ -34,6 +34,9 @@ init_per_testcase(_, Config) ->
     [{secrethash, SecretHash}, {time, CurrentTime}, {timebetweenheartbeats, TimeBetweenHeartbeats}, {labels, Labels}] ++ Config.
 
 end_per_testcase(_, Config) ->
+    meck:unload(redis),
+    meck:unload(heartbeat_monitor),
+    meck:unload(node_service),
     Config.
 
 receive_heartbeat_valid_node_test(Config) ->
@@ -42,7 +45,7 @@ receive_heartbeat_valid_node_test(Config) ->
     NodeId = "10",
 
     ok = heartbeat_monitor:receive_heartbeat(NodeId, SecretHash),
-    true = test_helpers:check_function_called(node_service, verify_node, [NodeId, SecretHash]),
+    true = test_helpers:check_function_called(node_service, node_verify, [NodeId, SecretHash]),
     true = test_helpers:check_function_called(heartbeat_monitor, get_current_time, []),
     true = test_helpers:check_function_called(redis, set, [HeartbeatNodeLabel ++ NodeId, 100000]).
 
@@ -51,7 +54,7 @@ receive_heartbeat_invalid_node_test(Config) ->
     NodeId = "11",
 
     {error, "Node id and secret hash do not match"} = heartbeat_monitor:receive_heartbeat(NodeId, SecretHash),
-    true = test_helpers:check_function_called(node_service, verify_node, [NodeId, SecretHash]).
+    true = test_helpers:check_function_called(node_service, node_verify, [NodeId, SecretHash]).
 
 remove_nodes_with_inactive_heartbeats_test(Config) ->
     Time = ?config(time, Config),

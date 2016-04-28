@@ -5,7 +5,8 @@
   {mod, {master_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    websocket
    ]},
   {env,[]},
   {modules, [node_service]},

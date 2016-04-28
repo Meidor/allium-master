@@ -1,5 +1,5 @@
 var nodes, edges, network;
-var url = "ws://localhost:8080/";
+var url = "ws://10.182.5.110:8080/websocket";
 var socket;
 var counter = 10;
 var edgeCounter = 10;
@@ -17,6 +17,7 @@ $(function () {
 
 
     function initSocket() {
+        console.log("Initializing socket");
         socket = new WebSocket(url);
         socket.binaryType = "arraybuffer";
 
@@ -37,11 +38,11 @@ $(function () {
     }
 
     function socketOpen() {
-
+        console.log("WebSocket connection established");
     }
 
     function socketClose() {
-
+        console.log("WebSocket connection closed");
     }
 
     function socketMessage(event) {
@@ -52,21 +53,24 @@ $(function () {
             switch (wrapper.type) {
                 case Wrapper.Type.GRAPHUPDATERESPONSE:
                     console.log("Received GraphUpdateResponse...");
-                    var graphUpdateResponse = new GraphUpdateResponse().decodeDelimited(wrapper.data);
+                    var graphUpdateResponse = GraphUpdateResponse.decode(wrapper.data);
                     graphUpdateResponse.graphUpdates.forEach(function (update) {
-                        var graphUpdate = new GraphUpdate().decode(update);
+                        var graphUpdate = GraphUpdate.decode(update);
 
                         if (graphUpdate.isFullGraph) {
                             nodes.clear();
                         }
+                        if(graphUpdate.addedNodes){
+                            graphUpdate.addedNodes.forEach(function(node) {
+                                addNode(node);
+                            });
+                        }
 
-                        graphUpdate.addedNodes.forEach(function(node) {
-                            addNode(node);
-                        });
-
-                        graphUpdate.deletedNodes.forEach(function(node) {
-                            removeNode(node);
-                        });
+                        if(graphUpdate.deletedNodes){
+                            graphUpdate.deletedNodes.forEach(function(node) {
+                                removeNode(node);
+                            });
+                        }
                     });
                     break;
             }
@@ -81,7 +85,8 @@ $(function () {
                 id: node.id,
                 label: node.id
             });
-
+            if(!node.edges) return;
+            
             node.edges.forEach(function (edge) {
                 edges.add({
                     id: node.id + edge.targetNodeId,
@@ -137,7 +142,7 @@ $(function () {
 			
         });
 
-        network.moveTo('5');
+        //network.moveTo('5');
     }
 
     function clear() {
