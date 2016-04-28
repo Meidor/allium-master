@@ -171,14 +171,31 @@ handle_message(Msg) ->
             {nodeheartbeat, Id, SecretHash} = hrp_pb:decode_nodeheartbeat(Data),
             heartbeat_monitor:receive_heartbeat(Id, SecretHash);
         'CLIENTREGISTERREQUEST' ->
-            Request = hrp_pb:decode_clientregisterrequest(Data),
-            io:format("REGISTER REQUEST: ~p~n", [Request]),
-            get_wrapped_message(
-                'CLIENTREGISTERRESPONSE',
-                hrp_pb:encode(
-                    {clientregisterresponse, 'SUCCES'}
+            {clientregisterrequest, Username, Password} = hrp_pb:decode_clientregisterrequest(Data),
+            try client_service:client_register(Username, Password) of
+            ok ->
+                get_wrapped_message(
+                    'CLIENTREGISTERRESPONSE',
+                    hrp_pb:encode(
+                        {clientregisterresponse, 'SUCCES'}
+                    )
                 )
-            );
+            catch
+                error:usernametaken ->
+                    get_wrapped_message(
+                        'CLIENTREGISTERRESPONSE',
+                        hrp_pb:encode(
+                            {clientregisterresponse, 'TAKEN_USERNAME'}
+                        )
+                    );
+                _:_ ->
+                    get_wrapped_message(
+                        'CLIENTREGISTERRESPONSE',
+                        hrp_pb:encode(
+                            {clientregisterresponse, 'FAILED'}
+                        )
+                    )
+            end;
         'CLIENTLOGINREQUEST' ->
             Request = hrp_pb:decode_clientloginrequest(Data),
             get_wrapped_message(

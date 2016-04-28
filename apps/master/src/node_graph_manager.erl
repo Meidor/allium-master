@@ -65,7 +65,7 @@ rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
     case NewMinVersion of
         1 ->
-            Graph = {graphupdate, 1, true, [], [], []};
+            Graph = {graphupdate, 1, true, [], []};
         _ ->
             Graph = build_graph(NewMinVersion)
     end,
@@ -78,7 +78,7 @@ rebuild_graph() ->
 build_graph(RequestedMinVersion) ->
     NewMinVersion = min(max(get_min_version(), RequestedMinVersion), get_max_version()),
     GraphUpdates = lists:takewhile(
-        fun({graphupdate, VersionNumber, _, _, _, _}) -> VersionNumber =< NewMinVersion end,
+        fun({graphupdate, VersionNumber, _, _, _}) -> VersionNumber =< NewMinVersion end,
         protobuf_list_to_tuple_list(get_graph_updates(get_min_version()))
     ),
     NewGraph = lists:foldl(
@@ -86,8 +86,8 @@ build_graph(RequestedMinVersion) ->
         get_current_full_graph(),
         GraphUpdates
     ),
-    {graphupdate, _, _, Added, Edited, Deleted} = NewGraph,
-    {graphupdate, NewMinVersion, true, Added, Edited, Deleted}.
+    {graphupdate, _, _, Added, Deleted} = NewGraph,
+    {graphupdate, NewMinVersion, true, Added, Deleted}.
 
 -spec get_current_full_graph() -> tuple().
 get_current_full_graph() ->
@@ -99,8 +99,8 @@ get_current_full_graph() ->
 
 -spec merge_update_with_graph(tuple(), tuple()) -> tuple().
 merge_update_with_graph(Update, Graph) ->
-    {_, _, _, ResultingAdditions, _,  _} = Graph,
-    {_, _, _, Additions, _, Deletes} = Update,
+    {_, _, _, ResultingAdditions, _} = Graph,
+    {_, _, _, Additions, Deletes} = Update,
     NewAdditions = ResultingAdditions ++ Additions,
     TotalDeletionsAdditions = lists:foldl(
         fun({_, DeletedNodeId, _, _, _, _}, TotalAdditions) ->
@@ -112,7 +112,7 @@ merge_update_with_graph(Update, Graph) ->
         NewAdditions,
         Deletes
     ),
-    {graphupdate, 0, true, TotalDeletionsAdditions, [], []}.
+    {graphupdate, 0, true, TotalDeletionsAdditions, []}.
 
 -spec update_min_version(integer()) -> any().
 update_min_version(NewMinVersion) ->
@@ -154,7 +154,7 @@ add_node(IPaddress, Port, PublicKey) ->
     redis:set(
         "version_" ++ integer_to_list(Version),
         hrp_pb:encode(
-            {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], [], []}
+            {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
         )
     ),
     {NodeId, Hash}.
@@ -178,7 +178,7 @@ remove_node(NodeId) ->
     redis:set(
         "version_" ++ integer_to_list(Version),
         hrp_pb:encode(
-            {graphupdate, Version, false, [], [], [{node, NodeId, "", 0, "", []}]}
+            {graphupdate, Version, false, [], [{node, NodeId, "", 0, "", []}]}
         )
     ),
     ok.
@@ -199,7 +199,7 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
     redis:set(
         "version_" ++ integer_to_list(DeleteVersion),
         hrp_pb:encode(
-            {graphupdate, DeleteVersion, false, [], [], [
+            {graphupdate, DeleteVersion, false, [], [
                 {node, NodeId, "", 0, "", []}
             ]}
         )
@@ -209,7 +209,7 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
         hrp_pb:encode(
             {graphupdate, AddVersion, false, [
                 {node, NodeId, IPaddress, Port, PublicKey, []}
-            ], [], []}
+            ], []}
         )
     ),
     ok.
