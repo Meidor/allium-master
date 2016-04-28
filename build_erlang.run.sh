@@ -5,6 +5,8 @@
 #      START BUILD                      #
 #########################################
 
+/usr/bin/redis-server > /dev/null &
+
 rebar3 clean
 rebar3 deps
 rebar3 compile
