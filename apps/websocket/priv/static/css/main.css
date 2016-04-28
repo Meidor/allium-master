@@ -1,13 +1,28 @@
-html, body {
-    font: 11pt arial;
+* {
+    margin: 0;
+    padding: 0;
 }
 
-body {
-    height: 1000px;
+html, body {
+    font: 11pt arial;
+    height: 100%;
+    overflow: hidden;
+    background-color: #D1D1D1;
 }
 
 #network {
     width: 100%;
     height: 100%;
     border: 1px solid lightgray;
+}
+
+#dashboard {
+    z-index: 10;
+    position: fixed;
+    top: 30px;
+    left: 30px;
+    width: 300px;
+    background-color: cornsilk;
+    padding: 15px;
+    box-shadow: 10px 10px 10px grey;
 }

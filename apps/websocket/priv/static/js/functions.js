@@ -1,98 +1,112 @@
-$(function() {
+var nodes, edges, network;
+var url = "ws://localhost:8080/";
+var socket;
+var counter = 10;
+var edgeCounter = 10;
+
+
+$(function () {
     if (typeof dcodeIO === 'undefined' || !dcodeIO.ProtoBuf) {
         throw(new Error("ProtoBuf.js is not present."));
     }
     // Initialize ProtoBuf.js
     var ProtoBuf = dcodeIO.ProtoBuf;
-    var Client = ProtoBuf.loadProtoFile("js/hrp.proto").build("Client");
-    var firstClient = new Client();
-    firstClient.setUsername("test");
-    firstClient.setPublicKey("key123");
+    var Wrapper = ProtoBuf.loadProtoFile("js/hrp.proto").build("EncryptedWrapper");
+    var GraphUpdateResponse = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdateResponse");
+    var GraphUpdate = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdate");
 
-    var nodes, edges, network;
 
-    var counter = 10;
+    function initSocket() {
+        socket = new WebSocket(url);
+        socket.binaryType = "arraybuffer";
 
-    // convenience method to stringify a JSON object
-    function toJSON(obj) {
-        return JSON.stringify(obj, null, 4);
+        socket.onopen = socketOpen;
+        socket.onclose = socketClose;
+        socket.onmessage = socketMessage;
     }
 
-    function addNode() {
+    function socketSend(type, data) {
+        if (socket.readyState == WebSocket.OPEN) {
+            var wrapper = new EncryptedWrapper();
+            wrapper.setType(type);
+            wrapper.setData(data);
+            socket.send(wrapper.toArrayBuffer());
+        } else {
+            console.log("Not connected while sending: " + data);
+        }
+    }
+
+    function socketOpen() {
+
+    }
+
+    function socketClose() {
+
+    }
+
+    function socketMessage(event) {
+        console.log("Received message: " + event.data);
+        try {
+            var wrapper = Wrapper.decode(event.data);
+
+            switch (wrapper.type) {
+                case Wrapper.Type.GRAPHUPDATERESPONSE:
+                    console.log("Received GraphUpdateResponse...");
+                    var graphUpdateResponse = new GraphUpdateResponse().decodeDelimited(wrapper.data);
+                    graphUpdateResponse.graphUpdates.forEach(function (update) {
+                        var graphUpdate = new GraphUpdate().decode(update);
+
+                        if (graphUpdate.isFullGraph) {
+                            nodes.clear();
+                        }
+
+                        graphUpdate.addedNodes.forEach(function(node) {
+                            addNode(node);
+                        });
+
+                        graphUpdate.deletedNodes.forEach(function(node) {
+                            removeNode(node);
+                        });
+                    });
+                    break;
+            }
+        } catch (error) {
+            console.log("Error while receiving message: " + error);
+        }
+    }
+
+    function addNode(node) {
         try {
             nodes.add({
-                id: counter,
-                label: "Node" + counter
+                id: node.id,
+                label: node.id
             });
-            counter++;
-        }
-        catch (err) {
-            alert(err);
+
+            node.edges.forEach(function (edge) {
+                edges.add({
+                    id: node.id + edge.targetNodeId,
+                    from: node.id,
+                    to: edge.targetNodeId,
+                    weight: 1
+                });
+            });
+        } catch (error) {
+            alert(error);
         }
     }
 
-    function updateNode() {
+    function removeNode(node) {
         try {
-            nodes.update({
-                id: document.getElementById('node-id').value,
-                label: document.getElementById('node-label').value
+            nodes.remove({
+                id: node.id
             });
-        }
-        catch (err) {
-            alert(err);
-        }
-    }
-    function removeNode() {
-        try {
-            nodes.remove({id: document.getElementById('node-id').value});
-        }
-        catch (err) {
-            alert(err);
+        } catch (error) {
+            alert(error);
         }
     }
 
-    function addEdge() {
-        try {
-            edges.add({
-                id: document.getElementById('edge-id').value,
-                from: document.getElementById('edge-from').value,
-                to: document.getElementById('edge-to').value,
-                weight: document.getElementById('edge-weight').value
-            });
-
-        }
-        catch (err) {
-            alert(err);
-        }
-    }
-    function updateEdge() {
-        try {
-            edges.update({
-                id: document.getElementById('edge-id').value,
-                from: document.getElementById('edge-from').value,
-                to: document.getElementById('edge-to').value,
-                weight: document.getElementById('edge-weight').value
-            });
-        }
-        catch (err) {
-            alert(err);
-        }
-    }
-    function removeEdge() {
-        try {
-            edges.remove({id: document.getElementById('edge-id').value});
-        }
-        catch (err) {
-            alert(err);
-        }
-    }
-
-    function draw() {
-        // create an array with nodes
+    function drawGraph() {
         nodes = new vis.DataSet();
-        nodes.on('*', function () {
-
-        });
         nodes.add([
             {id: '1', label: 'Node 1'},
             {id: '2', label: 'Node 2'},
@@ -101,11 +115,7 @@ $(function() {
             {id: '5', label: 'Node 5'}
         ]);
 
-        // create an array with edges
         edges = new vis.DataSet();
-        edges.on('*', function () {
-
-        });
         edges.add([
             {id: '1', from: '1', to: '2', weight: '12'},
             {id: '2', from: '1', to: '3', weight: '212'},
@@ -113,22 +123,29 @@ $(function() {
             {id: '4', from: '2', to: '5', weight: '999'}
         ]);
 
-        // create a network
         var container = document.getElementById('network');
         var data = {
             nodes: nodes,
             edges: edges
         };
-        var options = {interaction:{hover:true} };
+        var options = {interaction: {hover: true}};
         network = new vis.Network(container, data, options);
-        network.on("hoverEdge", function(data) {
-            //alert(toJSON(data));
+        network.on("hoverEdge", function (data) {
+            // alert(toJSON(data));
             // alert(toJSON(edges.get(data.edges[0])));
         });
+
+        network.moveTo('5');
     }
 
-    draw();
+    function clear() {
+        nodes.clear();
+    }
 
-    setInterval(addNode, 1000);
+    drawGraph();
+    initSocket();
+    //setTimeout(function () {
+    //    clear()
+    //}, 1000);
 });
 
