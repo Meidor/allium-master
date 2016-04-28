@@ -5,9 +5,10 @@
   {mod, {master_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    websocket
    ]},
-  {env,[]},
+  {env,[{gproc, "gproc_dist 'all'"}]},
   {modules, [node_service]},
   {maintainers, []},
   {licenses, []},
