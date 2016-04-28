@@ -130,9 +130,11 @@ $(function () {
         };
         var options = {interaction: {hover: true}};
         network = new vis.Network(container, data, options);
-        network.on("hoverEdge", function (data) {
-            // alert(toJSON(data));
-            // alert(toJSON(edges.get(data.edges[0])));
+        network.on("selectEdge", function (data) {
+			$("#edgeDataFrom").html(JSON.stringify(edges._data[data.edges[0]].from));
+			$("#edgeDataTo").html(JSON.stringify(edges._data[data.edges[0]].to));
+			$("#weight").val(edges._data[data.edges[0]].weight);
+			
         });
 
         network.moveTo('5');

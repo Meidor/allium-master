@@ -20,7 +20,7 @@
     <div id="network"></div>
 
     <div id="dashboard">
-        <h2>HALLO NIELS</h2>
+        <h3>Find Node</h3>
         <p>
             LASTIGE SHIT<br />
             MAAR HET WERKT!!
@@ -29,7 +29,17 @@
                 <input type="submit" name="ZOEK" />
             </form>
         </p>
-
-    </div>
+		- - - - - - - - - - - - -
+		<h3>Alter weight</h3>
+		<p>
+			Selected edge: 
+			<span id = "edgeDataFrom"></span> <span id = "edgeDataTo"></span>
+			<form onsubmit="network.selectNodes(document.getElementById('node').value); return false;">
+				<input type="number" id="weight" value="22" />
+				<input type="submit" name="Wijzig" />
+			</form>
+		</p>
+	</div>
+	
 </body>
 </html>
