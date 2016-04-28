@@ -57,7 +57,7 @@ client_register_unpredicted_error_return_error_test(_Config) ->
     Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
     meck:expect(persistence_service, select_client, fun(_ValidUsername) -> error(oops) end),
 
-    ok = test_helpers:assert_fail(fun auth_service:client_register/2, [ValidUsername, Password],
+    test_helpers:assert_fail(fun auth_service:client_register/2, [ValidUsername, Password],
         error, somethingwentwrong, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(persistence_service, select_client, [ValidUsername]).
 

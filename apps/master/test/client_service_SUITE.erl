@@ -44,7 +44,8 @@ client_register_invalid_client_username_taken_return_error_test(_Config) ->
     Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
     meck:expect(auth_service, client_register, fun(_InvalidUsername, _Password) -> error(usernametaken) end),
 
-    {error, "Username is already taken"} = client_service:client_register(InvalidUsername, Password),
+    test_helpers:assert_fail(fun auth_service:client_register/2, [InvalidUsername, Password],
+        error, usernametaken, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(auth_service, client_register, [InvalidUsername, Password]).
 
 client_register_unpredicted_error_return_error_test(_Config) ->
@@ -52,5 +53,6 @@ client_register_unpredicted_error_return_error_test(_Config) ->
     Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
     meck:expect(auth_service, client_register, fun(_ValidUsername, _Password) -> error(somethingwentwrong) end),
 
-    {error, "Something went wrong"} = client_service:client_register(ValidUsername, Password),
+    test_helpers:assert_fail(fun auth_service:client_register/2, [ValidUsername, Password],
+        error, somethingwentwrong, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(auth_service, client_register, [ValidUsername, Password]).

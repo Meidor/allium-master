@@ -58,13 +58,8 @@ select_clients_by_hash(SecretHash) ->
 -spec select_all_clients() -> list().
 select_all_clients() ->
     {_, Result} = get_all_records_from_table(client),
-    case Result of
-        [] ->
-            [];
-        _ ->
-            [{Username, SecretHash, PublicKey, Password} ||
-                {_, Username, SecretHash, PublicKey, Password} <- Result]
-    end.
+    [{Username, SecretHash, PublicKey, Password} ||
+        {_, Username, SecretHash, PublicKey, Password} <- Result].
 
 -spec delete_client(list()) -> atom().
 delete_client(Username) ->

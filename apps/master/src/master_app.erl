@@ -175,21 +175,22 @@ handle_message(Msg) ->
                     hrp_pb:encode(
                         {clientregisterresponse, 'SUCCES'}
                     )
-                );
-            {error, "Username is already taken"} ->
-                get_wrapped_message(
-                   'CLIENTREGISTERRESPONSE',
-                   hrp_pb:encode(
-                        {clientregisterresponse, 'TAKEN_USERNAME'}
-                   )
                 )
-            catch _:_ ->
-                get_wrapped_message(
-                    'CLIENTREGISTERRESPONSE',
-                    hrp_pb:encode(
-                        {clientregisterresponse, 'FAILED'}
+            catch
+                error:usernametaken ->
+                    get_wrapped_message(
+                        'CLIENTREGISTERRESPONSE',
+                        hrp_pb:encode(
+                            {clientregisterresponse, 'TAKEN_USERNAME'}
+                        )
+                    );
+                _:_ ->
+                    get_wrapped_message(
+                        'CLIENTREGISTERRESPONSE',
+                        hrp_pb:encode(
+                            {clientregisterresponse, 'FAILED'}
+                        )
                     )
-                )
             end;
         'CLIENTLOGINREQUEST' ->
             Request = hrp_pb:decode_clientloginrequest(Data),

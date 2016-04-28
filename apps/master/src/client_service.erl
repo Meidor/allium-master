@@ -12,7 +12,7 @@ client_register(Username, Password) ->
             ok
     catch
         error:usernametaken ->
-            {error, "Username is already taken"};
+            error(usernametaken);
         _:_ ->
-            {error, "Something went wrong"}
+            error(somethingwentwrong)
     end.
