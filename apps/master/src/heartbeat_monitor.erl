@@ -10,7 +10,7 @@
 -spec receive_heartbeat(list(), list()) -> any().
 receive_heartbeat(NodeId, SecretHash) when is_list(NodeId), is_list(SecretHash) ->
     try
-        node_service:verify_node(NodeId, SecretHash)
+        node_service:node_verify(NodeId, SecretHash)
     of _ ->
         redis:set("heartbeat_node_" ++ NodeId, ?MODULE:get_current_time()),
         ok
@@ -22,7 +22,8 @@ receive_heartbeat(NodeId, SecretHash) when is_list(NodeId), is_list(SecretHash) 
 remove_inactive_nodes(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbeats) ->
     AllKeys = [binary_to_list(Key) || Key <- redis:get_matching_keys("heartbeat_node_")],
     AllValues = [binary_to_integer(Value) || Value <- redis:get_list(AllKeys)],
-    ExpiredNodes = [Key || {Key, Value} <- lists:zip(AllKeys, AllValues), Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)],
+    ExpiredNodes = [Key || {Key, Value} <- lists:zip(AllKeys, AllValues),
+                        Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)],
     LengthOfLabel = 22, %Length of "onion_heartbeat_node_", Key consists of Label + NodeId
     ExperidNodeIds = [string:substr(Key, LengthOfLabel) || Key <- ExpiredNodes],
     lists:foreach(

@@ -1,3 +1,4 @@
+// VERSION: 0.3.1
 //
 // Syntax for the proto file
 //
@@ -27,8 +28,7 @@ message GraphUpdate {
 	required int32 newVersion = 1; // Version of the new Graph, can be equal to the currentVersion of the GraphUpdateRequest
 	required bool isFullGraph = 2;
 	repeated Node addedNodes = 3;
-	repeated Node updatedNodes = 4;
-	repeated Node deletedNodes = 5;
+	repeated Node deletedNodes = 4;
 }
 
 message Node {
@@ -275,6 +275,5 @@ message EncryptedWrapper {
     }
 
     required Type type = 1;
-	required string publicKey = 2;
-	required bytes data = 3;
+	required bytes data = 2;
 }
