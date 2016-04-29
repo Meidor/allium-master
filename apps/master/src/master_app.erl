@@ -19,9 +19,10 @@
 
 -spec start(any(), any()) -> any().
 start(_StartType, _StartArgs) ->
+    lager:start(),
     Link = master_sup:start_link(),
     start(1337),
-    io:format("Start listening on port 1337...~n"),
+    lager:info("Start listening on port 1337..."),
     timer:sleep(100000000),
     Link.
 
@@ -55,9 +56,9 @@ handle_messages(Socket) ->
         {tcp, error, closed} ->
             done;
         {tcp, Socket, Data} ->
-            io:format("~p~n", [Data]),
+            lager:info("~p", [Data]),
             Response = handle_message(Data),
-            io:format("RESPONSE: ~p~n", [Response]),
+            lager:info("RESPONSE: ~p", [Response]),
             gen_tcp:send(Socket, Response);
         _ ->
             unexpected
@@ -66,7 +67,7 @@ handle_messages(Socket) ->
 -spec handle_message(list()) -> list().
 handle_message(Msg) ->
     DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg)),
-    io:format("MSG: ~p~nDECODED: ~p~n", [Msg, DecodedMsg]),
+    lager:info("MSG: ~pDECODED: ~p", [Msg, DecodedMsg]),
     {[{encryptedwrapper, Type, Data} | _], _} = DecodedMsg,
     case Type of
         'GRAPHUPDATEREQUEST' ->
@@ -149,7 +150,7 @@ handle_message(Msg) ->
             get_wrapped_message(
                 'CLIENTRESPONSE',
                 hrp_pb:encode(
-                    {clientresponse,[
+                    {clientresponse, [
                         {client, "123abc", "123456abcde", [
                             {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}
                         ]},
@@ -164,7 +165,7 @@ handle_message(Msg) ->
             get_wrapped_message(
                 'CLIENTRESPONSE',
                 hrp_pb:encode(
-                    {clientresponse,[{"USER", "KEY123", []}]}
+                    {clientresponse, [{"USER", "KEY123", []}]}
                 )
             );
         'NODEHEARTBEAT' ->
