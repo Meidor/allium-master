@@ -38,8 +38,7 @@ websocket_handle({text, Msg}, Req, State) ->
     {reply, {text, Msg}, Req, State};
 websocket_handle({binary, Msg}, Req, State) ->
     lager:info("Received binary message"),
-    DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg)),
-
+    DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg));
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
 
