@@ -21,6 +21,7 @@ init({tcp, http}, _Req, _Opts) ->
 
 -spec websocket_init(any(), any(), any()) -> tuple().
 websocket_init(_TransportName, Req, _Opts) ->
+    lager:info("New websocket connection intitialised."),
     subscribe(node_update),
     Version = 0,
     Graph = get_wrapped_message(
@@ -34,16 +35,20 @@ websocket_init(_TransportName, Req, _Opts) ->
 
 -spec websocket_handle(tuple(), any(), any()) -> tuple().
 websocket_handle({text, Msg}, Req, State) ->
-    {reply, {binary, Msg}, Req, State};
+    {reply, {text, Msg}, Req, State};
+websocket_handle({binary, Msg}, Req, State) ->
+    lager:info("Received binary message"),
+    DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg)),
+
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
 
 -spec websocket_info(tuple(), any(), any()) -> tuple().
 websocket_info({?MODULE, node_update, Msg}, Req, State) ->
+    lager:info("Received message from pub/sub sending it through the websocket."),
     {reply, {binary, Msg}, Req, State, hibernate};
-websocket_info({timeout, _Ref, Msg}, Req, State) ->
-    {reply, {text, Msg}, Req, State};
-websocket_info(_Info, Req, State) ->
+websocket_info(Info, Req, State) ->
+    lager:info("Unknown message received ignoring. Info: ~p", [Info]),
     {ok, Req, State}.
 
 -spec websocket_terminate(any(), any(), any()) -> atom().
