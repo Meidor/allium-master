@@ -181,6 +181,9 @@ $(function () {
         toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
 
         alert(JSON.stringify(toSend ));
+
+        // initSocket();
+        // socketSend(UPDATENODE, toSend);
     }
 
     
@@ -202,5 +205,8 @@ $(function () {
         toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
 
         alert(JSON.stringify(toSend));
+
+        // initSocket();
+        // socketSend(UPDATENODE, toSend);
     }
 
