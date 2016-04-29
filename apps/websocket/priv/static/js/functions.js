@@ -136,9 +136,14 @@ $(function () {
         var options = {interaction: {hover: true}};
         network = new vis.Network(container, data, options);
         network.on("selectEdge", function (data) {
-			$("#edgeDataFrom").html(JSON.stringify(edges._data[data.edges[0]].from));
-			$("#edgeDataTo").html(JSON.stringify(edges._data[data.edges[0]].to));
+
+            $("#edgeData").html("from node " + edges._data[data.edges[0]].from + " to node " + edges._data[data.edges[0]].to);
+
 			$("#weight").val(edges._data[data.edges[0]].weight);
+            $("#edgeId").val(edges._data[data.edges[0]].id);
+
+
+
 			
         });
 
@@ -155,4 +160,12 @@ $(function () {
     //    clear()
     //}, 1000);
 });
+    
+    function updateEdgeWeight(edgeId, newEdgeWeight) {
+        alert(edgeId + "   " + newEdgeWeight);
+    }
+
+    function deleteEdge(edgeId) {
+        alert (edgeId);
+    }
 
