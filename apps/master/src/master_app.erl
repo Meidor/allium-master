@@ -21,7 +21,7 @@
 start(_StartType, _StartArgs) ->
     Link = master_sup:start_link(),
     start(1337),
-    io:format("Start listening on port 1337...~n"),
+    lager:info("Start listening on port 1337..."),
     timer:sleep(100000000),
     Link.
 
@@ -55,9 +55,9 @@ handle_messages(Socket) ->
         {tcp, error, closed} ->
             done;
         {tcp, Socket, Data} ->
-            io:format("~p~n", [Data]),
+            lager:info("~p", [Data]),
             Response = handle_message(Data),
-            io:format("RESPONSE: ~p~n", [Response]),
+            lager:info("RESPONSE: ~p", [Response]),
             gen_tcp:send(Socket, Response),
             handle_messages(Socket);
         _ ->
@@ -67,7 +67,7 @@ handle_messages(Socket) ->
 -spec handle_message(list()) -> list().
 handle_message(Msg) ->
     DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg)),
-    io:format("MSG: ~p~nDECODED: ~p~n", [Msg, DecodedMsg]),
+    lager:info("MSG: ~p DECODED: ~p", [Msg, DecodedMsg]),
     {[{encryptedwrapper, Type, Data} | _], _} = DecodedMsg,
     case Type of
         'GRAPHUPDATEREQUEST' ->
@@ -98,7 +98,8 @@ handle_message(Msg) ->
                             {noderegisterresponse, 'ALREADY_EXISTS', undefined, undefined}
                         )
                     );
-                _:_ ->
+                _:Error ->
+                    lager:error("Error in node register request: ~p", [Error]),
                     get_wrapped_message(
                         'NODEREGISTERRESPONSE',
                         hrp_pb:encode(
@@ -118,7 +119,8 @@ handle_message(Msg) ->
                         {nodeupdateresponse, 'SUCCES'}
                     )
                 )
-            catch _:_ ->
+            catch _:Error ->
+                lager:error("Error in node update request: ~p", [Error]),
                 get_wrapped_message(
                     'NODEUPDATERESPONSE',
                     hrp_pb:encode(
@@ -137,7 +139,8 @@ handle_message(Msg) ->
                         {nodedeleteresponse, 'SUCCES'}
                     )
                 )
-            catch _:_ ->
+            catch _:Error ->
+                lager:error("Error in node delete request: ~p", [Error]),
                 get_wrapped_message(
                     'NODEDELETERESPONSE',
                     hrp_pb:encode(
@@ -189,7 +192,8 @@ handle_message(Msg) ->
                             {clientregisterresponse, 'TAKEN_USERNAME'}
                         )
                     );
-                _:_ ->
+                _:Error ->
+                    lager:error("Error in client register request: ~p", [Error]),
                     get_wrapped_message(
                         'CLIENTREGISTERRESPONSE',
                         hrp_pb:encode(
