@@ -48,9 +48,9 @@ select_client(Username) ->
     end.
 
 -spec select_clients_by_hash(list()) -> list().
-select_clients_by_hash(SecretHash) ->
+select_clients_by_hash(Hash) ->
     {_, Result} = mnesia:transaction(fun() ->
-        mnesia:match_object({client, '_', SecretHash, '_', '_'})
+        mnesia:match_object({client, '_', Hash, '_', '_'})
         end),
     [{Username, SecretHash, PublicKey, Password} ||
         {_, Username, SecretHash, PublicKey, Password} <- Result].

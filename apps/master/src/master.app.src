@@ -1,24 +1,36 @@
 {application, master,
- [{description, "An OTP application"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {mod, {master_app, []}},
-  {applications,
-   [kernel,
-    stdlib,
-    websocket
-   ]},
-  {env,[]},
-  {modules, [node_service]},
-  {maintainers, []},
-  {licenses, []},
-  {links, []},
-  {lager, [
-  {log_root, "log"},
-  {handlers, [
-    {lager_console_backend, info},
-    {lager_file_backend, [{file, "error.log"}, {level, error}, {size, 10485760}, {date, "$D0"}, {count, 5}]},
-    {lager_file_backend, [{file, "console.log"}, {level, info}, {size, 10485760}, {date, "$D0"}, {count, 5}]}
-  ]}
-]}
- ]}.
+    [
+        {description, "An OTP application"},
+        {vsn, "0.1.0"},
+        {registered, []},
+        {mod, {master_app, []}},
+        {applications,
+            [
+                kernel,
+                stdlib,
+                protobuffs,
+                eredis,
+                crypto,
+                lager,
+                websocket
+            ]
+        },
+        {env,[]},
+        {modules, [node_service]},
+        {maintainers, []},
+        {licenses, []},
+        {links, []},
+        {lager, 
+          [
+            {log_root, "log"},
+            {handlers, [
+                {lager_console_backend, info},
+                {lager_file_backend,
+                    [{file, "error.log"}, {level, error}, {size, 10485760}, {date, "$D0"}, {count, 5}]},
+                {lager_file_backend,
+                    [{file, "console.log"}, {level, info}, {size, 10485760}, {date, "$D0"}, {count, 5}]}
+            ]}
+          ]
+        }
+    ]
+}.
