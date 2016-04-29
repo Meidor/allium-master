@@ -148,15 +148,18 @@ protobufs_to_tuple(Data) ->
 add_node(IPaddress, Port, PublicKey) ->
     NodeId = get_unique_node_id(),
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
+    erlang:display("Hash and node ID are created"),
     redis:set("node_hash_" ++ NodeId, Hash),
     Version = get_max_version() + 1,
     set_max_version(Version),
+    erlang:display("Version is set"),
     redis:set(
         "version_" ++ integer_to_list(Version),
         hrp_pb:encode(
             {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
         )
     ),
+    erlang:display("Redis value is set"),
     {NodeId, Hash}.
 
 -spec get_unique_node_id() -> list().
