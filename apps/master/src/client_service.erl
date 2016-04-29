@@ -19,5 +19,5 @@ client_register(Username, Password) ->
     end.
 
 -spec client_verify(list(), list()) -> list().
-client_verify(Username, Password) when is_list(Username), is_list(Password) ->
-    ok.
+client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
+    SecretHash = auth_service:get_client_secret_hash(Username).
