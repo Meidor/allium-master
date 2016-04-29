@@ -6,6 +6,7 @@
 #########################################
 
 /usr/bin/redis-server --daemonize yes
+/usr/bin/redis-cli ping
 
 rebar3 clean
 rebar3 deps
