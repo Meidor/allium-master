@@ -217,4 +217,4 @@ handle_message(Msg) ->
 
 -spec get_wrapped_message(list(), list()) -> list().
 get_wrapped_message(Type, Msg) ->
-    hrp_pb:encode({encryptedwrapper, Type, Msg}).
+    hrp_pb:encode([{encryptedwrapper, Type, Msg}]).
