@@ -58,7 +58,8 @@ handle_messages(Socket) ->
             io:format("~p~n", [Data]),
             Response = handle_message(Data),
             io:format("RESPONSE: ~p~n", [Response]),
-            gen_tcp:send(Socket, Response);
+            gen_tcp:send(Socket, Response),
+            handle_messages(Socket);
         _ ->
             unexpected
     end.
