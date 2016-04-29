@@ -9,7 +9,8 @@
                 stdlib,
                 protobuffs,
                 eredis,
-                crypto
+                crypto,
+                lager
             ]},
         {env, []},
         {modules, [node_service]},
