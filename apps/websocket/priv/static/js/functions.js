@@ -83,6 +83,9 @@ $(function () {
         try {
             nodes.add({
                 id: node.id,
+                IPaddress: node.IPaddress,
+                port: node.port,
+                publicKey: node.publicKey,
                 label: node.id
             });
             if(!node.edges) return;
@@ -113,11 +116,11 @@ $(function () {
     function drawGraph() {
         nodes = new vis.DataSet();
         nodes.add([
-            {id: '1', label: 'Node 1'},
-            {id: '2', label: 'Node 2'},
-            {id: '3', label: 'Node 3'},
-            {id: '4', label: 'Node 4'},
-            {id: '5', label: 'Node 5'}
+            {id: '1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
+            {id: '2', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 2'},
+            {id: '3', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 3'},
+            {id: '4', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 4'},
+            {id: '5', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 5'}
         ]);
 
         edges = new vis.DataSet();
@@ -162,10 +165,42 @@ $(function () {
 });
     
     function updateEdgeWeight(edgeId, newEdgeWeight) {
-        alert(edgeId + "   " + newEdgeWeight);
+        edge = edges.get(edgeId);
+        node = nodes.get(edge.from);
+        edge.weight = newEdgeWeight;
+        edges.update(edge);
+
+        currentEdges = [];
+
+        edges.forEach(function(edgeToAdd) {
+            if(edgeToAdd.from == node.id) {
+                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight});
+            }
+        });
+
+        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
+
+        alert(JSON.stringify(toSend ));
     }
 
+    
+
+
     function deleteEdge(edgeId) {
-        alert (edgeId);
+        edge = edges.get(edgeId);
+        node = nodes.get(edge.from);
+
+        edges.remove(edge);
+
+        currentEdges = [];
+        edges.forEach(function(edgeToAdd) {
+            if(edgeToAdd.from == node.id) {
+                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight});
+            }
+        });
+
+        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
+
+        alert(JSON.stringify(toSend));
     }
 
