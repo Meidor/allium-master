@@ -14,8 +14,24 @@ start(_Type, _Args) ->
     {'_', [
       {"/", cowboy_static, {priv_file, websocket, "index.html"}},
       {"/websocket", ws_handler, []},
-      {"/static/js/hrp.proto", cowboy_static, {priv_file, websocket, "/static/js/hrp.proto", [{mimetypes, {<<"text">>, <<"plain">>, []}}]}},
-      {"/static/[...]", cowboy_static, {priv_dir, websocket, "static", [{mimetypes, cow_mimetypes, all}]}}
+      {
+          "/static/js/hrp.proto", cowboy_static,
+          {
+              priv_file,
+              websocket,
+              "/static/js/hrp.proto",
+              [{mimetypes, {<<"text">>, <<"plain">>, []}}]
+          }
+      },
+      {
+          "/static/[...]", cowboy_static,
+          {
+              priv_dir,
+              websocket,
+              "static",
+              [{mimetypes, cow_mimetypes, all}]
+          }
+      }
     ]}
   ]),
   {ok, _} = cowboy:start_http(http, 100, [{port, 8080}],
