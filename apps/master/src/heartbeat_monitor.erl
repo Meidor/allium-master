@@ -57,7 +57,7 @@ remove_inactive_clients(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartb
     AllValues = [binary_to_integer(Value) || Value <- redis:get_list(AllKeys)],
     ExpiredClients = [Key || {Key, Value} <- lists:zip(AllKeys, AllValues),
                         Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)],
-    LengthOfLabel = 24, %Length of "onion_heartbeat_client_", Key consists of Label + NodeId
+    LengthOfLabel = 24, %Length of "onion_heartbeat_client_", Key consists of Label + Username
     ExperidClientUsernames = [string:substr(Key, LengthOfLabel) || Key <- ExpiredClients],
     lists:foreach(
         fun(Client) ->
