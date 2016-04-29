@@ -147,27 +147,21 @@ protobufs_to_tuple(Data) ->
 -spec add_node(list(), integer(), list()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
     NodeId = get_unique_node_id(),
-    erlang:display("Uniek node id bepaald"),
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
-    erlang:display("Hash and node ID are created"),
     redis:set("node_hash_" ++ NodeId, Hash),
     Version = get_max_version() + 1,
     set_max_version(Version),
-    erlang:display("Version is set"),
     redis:set(
         "version_" ++ integer_to_list(Version),
         hrp_pb:encode(
             {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
         )
     ),
-    erlang:display("Redis value is set"),
     {NodeId, Hash}.
 
 -spec get_unique_node_id() -> list().
 get_unique_node_id() ->
-    erlang:display("Start functie unique_node_id"),
     NodeId = base64:encode_to_string(crypto:strong_rand_bytes(20)),
-    erlang:display("random NodeId bepaald"),
     case redis:get("node_hash_" ++ NodeId) of
         undefined ->
             NodeId;

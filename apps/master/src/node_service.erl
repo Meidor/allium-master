@@ -15,11 +15,8 @@ node_register(IPaddress, Port, PublicKey)
     when
         is_list(IPaddress), is_integer(Port), Port > 0, Port < 65536, is_list(PublicKey)
     ->
-    erlang:display("Node registration started"),
     {NodeId, SecretHash} = node_graph_manager:add_node(IPaddress, Port, PublicKey),
-    erlang:display("Node added to graph"),
     heartbeat_monitor:add_node(NodeId),
-    erlang:display("Node added to heartbeat monitor"),
     {NodeId, SecretHash}.
 
 %% @doc Unregister your node in the graph
