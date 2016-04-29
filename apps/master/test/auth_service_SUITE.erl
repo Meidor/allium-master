@@ -13,16 +13,16 @@
     client_register_valid_client_return_ok_test/1,
     client_register_invalid_client_username_taken_return_error_test/1,
     client_register_unpredicted_error_return_error_test/1,
-    get_client_secret_hash_existing_user/1,
-    get_client_secret_hash_not_existing_user/1
+    client_verify_existing_user/1,
+    client_verify_not_existing_user/1
 ]).
 
 all() -> [
     client_register_valid_client_return_ok_test,
     client_register_invalid_client_username_taken_return_error_test,
     client_register_unpredicted_error_return_error_test,
-    get_client_secret_hash_existing_user,
-    get_client_secret_hash_not_existing_user
+    client_verify_existing_user,
+    client_verify_not_existing_user
 ].
 
 init_per_suite(Config) ->
@@ -36,17 +36,17 @@ end_per_testcase(_, Config) ->
     meck:unload(persistence_service),
     Config.
 
-get_client_secret_hash_existing_user(_Config) ->
+client_verify_existing_user(_Config) ->
     Username = "Client1",
     SecretHash = "SECRETHASH123",
     meck:expect(persistence_service, select_client, fun(Username) -> {"Client1", "SECRETHASH123", "PUBLICKEY123", "Qwerty123"} end),
-    SecretHash = auth_service:get_client_secret_hash(Username).
+    auth_service:client_verify(Username, SecretHash).
 
-get_client_secret_hash_not_existing_user(_Config) ->
+client_verify_not_existing_user(_Config) ->
     Username = "Client2",
     SecretHash = "SECRETHASH123",
     meck:expect(persistence_service, select_client, fun(Username) -> undefined end),
-    test_helpers:assert_fail(fun auth_service:get_client_secret_hash/1, [Username],
+    test_helpers:assert_fail(fun auth_service:client_verify/2, [Username, SecretHash],
         error, {badmatch, undefined}, no_user_with_username).
 
 

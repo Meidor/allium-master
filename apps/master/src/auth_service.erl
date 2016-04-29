@@ -3,7 +3,7 @@
 %% API
 -export([
     client_register/2,
-    get_client_secret_hash/1
+    client_verify/2
 ]).
 
 -spec client_register(list(), list()) -> any().
@@ -18,7 +18,7 @@ client_register(Username, Password) ->
             error(somethingwentwrong)
     end.
 
--spec get_client_secret_hash(list()) -> list().
-get_client_secret_hash(Username) when is_list(Username) ->
-    {User, SecretHash, PublicKey, Password} = persistence_service:select_client(Username),
-    SecretHash.
+-spec client_verify(list(), list()) -> any().
+client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
+    {User, ActualSecretHash, PublicKey, Password} = persistence_service:select_client(Username),
+    SecretHash =:= ActualSecretHash.

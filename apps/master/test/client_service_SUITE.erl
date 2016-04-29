@@ -62,12 +62,22 @@ client_register_unpredicted_error_return_error_test(_Config) ->
 client_verify_existing_user(_Config) ->
     Username = "Client1",
     SecretHash = "SECRETHASH123",
-    meck:expect(auth_service, get_client_secret_hash, fun(Username) -> "SECRETHASH123" end),
-    SecretHash = client_service:client_verify(Username, SecretHash).
+    meck:expect(auth_service, client_verify, fun(Username, SecretHash) -> 
+                                                case Username of
+                                                    "Client1" -> ok;
+                                                    "Client2" -> error(no_match_secret_hash_match)
+                                                end
+                                            end),
+    client_service:client_verify(Username, SecretHash).
 
 client_verify_non_existing_user(_Config) ->
     Username = "Client2",
     SecretHash = "SECRETHASH123",
-    meck:expect(auth_service, get_client_secret_hash, fun(Username) -> undefined end),
+    meck:expect(auth_service, client_verify, fun(_, _) -> 
+                                                case Username of
+                                                    "Client1" -> ok;
+                                                    "Client2" -> error(no_match_secret_hash_match)
+                                                end 
+                                            end),
     test_helpers:assert_fail(fun client_service:client_verify/2, [Username, SecretHash],
-        error, {badmatch, undefined}, user_with_username).
+        error, no_match_secret_hash_match, user_with_username).
