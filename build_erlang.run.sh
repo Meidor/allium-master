@@ -5,7 +5,7 @@
 #      START BUILD                      #
 #########################################
 
-/usr/bin/redis-server > /dev/null &
+/usr/bin/redis-server --daemonize yes
 
 rebar3 clean
 rebar3 deps
