@@ -24,7 +24,7 @@ start(_StartType, _StartArgs) ->
     lager:info("Start listening on port 1337..."),
     persistence_service:init(),
     lager:info("Mnesia started..."),
-    timer:sleep(100000000),
+    timer:sleep(14400000),
     Link.
 
 -spec stop(any()) -> atom().
