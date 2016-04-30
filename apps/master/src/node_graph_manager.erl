@@ -189,7 +189,7 @@ set_max_version(Version) ->
 
 -spec get_node_secret_hash(list()) -> list().
 get_node_secret_hash(NodeId) ->
-    redis:get("node_hash_" ++ NodeId).
+    binary_to_list(redis:get("node_hash_" ++ NodeId)).
 
 -spec update_node(list(), list(), integer(), list()) -> atom().
 update_node(NodeId, IPaddress, Port, PublicKey) ->
