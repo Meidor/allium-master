@@ -11,6 +11,6 @@
 #rebar3 clean
 #rebar3 deps
 #rebar3 compile
-rebar3 release
+#rebar3 release
 cd "_build/default/rel/master/bin"
 nohup ./master console
