@@ -22,7 +22,7 @@ start(_StartType, _StartArgs) ->
     Link = master_sup:start_link(),
     start(1337),
     lager:info("Start listening on port 1337..."),
-    timer:sleep(100000000),
+    timer:sleep(14400000),
     Link.
 
 -spec stop(any()) -> atom().
