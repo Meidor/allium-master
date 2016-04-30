@@ -17,23 +17,36 @@
 
 -spec init() -> any().
 init() ->
-    mnesia:create_schema([node()]),
-    mnesia:start(),
-    mnesia:create_table(client,
-        [ {disc_copies, [node()] },
-            {attributes,
-                record_info(fields, client)} ]).
+    case mnesia:create_schema([node()]) of
+        ok ->
+            mnesia:start(),
+            case mnesia:create_table(client,[
+                {disc_copies, [node()] },
+                {attributes,
+                    record_info(fields, client)} ]) of
+                {atomic, ok} ->
+                    ok;
+                _ ->
+                    ok
+            end;
+        _ ->
+            ok
+    end.
 
--spec insert_client(list(), list(), list(), list()) -> atom().
+-spec insert_client(list(), list(), list(), list()) -> any().
 insert_client(Username, SecretHash, PublicKey, Password) ->
-    mnesia:transaction(fun() ->
+    case mnesia:transaction(fun() ->
         mnesia:write(
             #client{username = Username,
                 secrethash = SecretHash,
                 publickey = PublicKey,
                 password = Password} )
-        end),
-    ok.
+        end) of
+        {atomic, ok} ->
+            ok;
+        _ ->
+            error(somethingwentwrong)
+    end.
 
 -spec select_client(list()) -> any().
 select_client(Username) ->

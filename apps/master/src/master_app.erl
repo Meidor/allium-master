@@ -22,6 +22,8 @@ start(_StartType, _StartArgs) ->
     Link = master_sup:start_link(),
     start(1337),
     lager:info("Start listening on port 1337..."),
+    persistence_service:init(),
+    lager:info("Mnesia started..."),
     timer:sleep(100000000),
     Link.
 
