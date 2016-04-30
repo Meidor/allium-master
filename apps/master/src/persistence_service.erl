@@ -16,6 +16,7 @@
 -record(client, {username, secrethash, publickey, password}).
 
 init() ->
+    mnesia:stop(),
     mnesia:create_schema([node()]),
     mnesia:start(),
     mnesia:create_table(client,[
