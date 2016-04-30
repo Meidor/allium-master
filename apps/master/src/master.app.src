@@ -10,7 +10,8 @@
                 protobuffs,
                 eredis,
                 crypto,
-                lager
+                lager,
+                mnesia
             ]},
         {env, []},
         {modules, [node_service]},
