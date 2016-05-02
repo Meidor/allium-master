@@ -194,7 +194,7 @@ get_node_secret_hash(NodeId) ->
     catch
         _:_  ->
             undefined
-    end .
+    end.
 
 -spec update_node(list(), list(), integer(), list()) -> atom().
 update_node(NodeId, IPaddress, Port, PublicKey) ->
