@@ -19,8 +19,9 @@ receive_heartbeat_node(NodeId, SecretHash) when is_list(NodeId), is_list(SecretH
     of _ ->
         redis:set("heartbeat_node_" ++ NodeId, ?MODULE:get_current_time()),
         ok
-    catch _:_ ->
-        {error, "Node id and secret hash do not match"}
+    catch
+        _:_ ->
+            error(nodenotverified)
     end.
 
 -spec receive_heartbeat_client(list(), list()) -> any().
@@ -30,8 +31,9 @@ receive_heartbeat_client(Username, SecretHash) when is_list(Username), is_list(S
 	of _ ->
 		redis:set("heartbeat_client_" ++ Username, ?MODULE:get_current_time()),
 		ok
-	catch _:_ ->
-		{error, "username and Secret hash do not match"}
+	catch
+        _:_ ->
+		    error(clientnotverified)
 	end.
 
 
@@ -39,10 +41,9 @@ receive_heartbeat_client(Username, SecretHash) when is_list(Username), is_list(S
 remove_inactive_nodes(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbeats) ->
     AllKeys = [binary_to_list(Key) || Key <- redis:get_matching_keys("heartbeat_node_")],
     AllValues = [binary_to_integer(Value) || Value <- redis:get_list(AllKeys)],
-    ExpiredNodes = [Key || {Key, Value} <- lists:zip(AllKeys, AllValues),
-                        Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)],
-    LengthOfLabel = 22, %Length of "onion_heartbeat_node_", Key consists of Label + NodeId
-    ExperidNodeIds = [string:substr(Key, LengthOfLabel) || Key <- ExpiredNodes],
+    LengthOfLabel = length("onion_heartbeat_node_"),
+    ExperidNodeIds = [string:substr(Key, LengthOfLabel + 1) || {Key, Value} <- lists:zip(AllKeys, AllValues),
+        Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)],
     lists:foreach(
         fun(Node) ->
             node_service:node_unregister(Node),
@@ -55,10 +56,9 @@ remove_inactive_nodes(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbea
 remove_inactive_clients(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbeats) ->
     AllKeys = [binary_to_list(Key) || Key <- redis:get_matching_keys("heartbeat_client_")],
     AllValues = [binary_to_integer(Value) || Value <- redis:get_list(AllKeys)],
-    ExpiredClients = [Key || {Key, Value} <- lists:zip(AllKeys, AllValues),
-                        Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)],
-    LengthOfLabel = 24, %Length of "onion_heartbeat_client_", Key consists of Label + Username
-    ExperidClientUsernames = [string:substr(Key, LengthOfLabel) || Key <- ExpiredClients],
+    LengthOfLabel = length("onion_heartbeat_client_"),
+    ExperidClientUsernames = [string:substr(Key, LengthOfLabel + 1) || {Key, Value} <- lists:zip(AllKeys, AllValues),
+        Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)],
     lists:foreach(
         fun(Client) ->
             client_service:client_logout(Client),
@@ -66,7 +66,6 @@ remove_inactive_clients(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartb
         end,
         ExperidClientUsernames),
     ExperidClientUsernames.
-
 
 -spec add_node(list()) -> atom().
 add_node(NodeId) when is_list(NodeId) ->
