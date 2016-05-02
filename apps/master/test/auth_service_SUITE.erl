@@ -72,11 +72,11 @@ client_register_valid_client_return_ok_test(_Config) ->
     ValidUsername = "ValidUsername",
     Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
     meck:expect(persistence_service, select_client, fun(_ValidUsername) -> undefined end),
-    meck:expect(persistence_service, insert_client, fun(_ValidUsername, undefined, undefined, _Password) -> ok end),
+    meck:expect(persistence_service, insert_client, fun(_ValidUsername, _Password) -> ok end),
 
     ok = auth_service:client_register(ValidUsername, Password),
     true = test_helpers:check_function_called(persistence_service, insert_client,
-        [ValidUsername, undefined, undefined, Password]).
+        [ValidUsername, Password]).
 
 client_register_invalid_client_username_taken_return_error_test(_Config) ->
     InvalidUsername = "TakenUsername",

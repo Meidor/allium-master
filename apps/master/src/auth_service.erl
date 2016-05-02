@@ -9,14 +9,12 @@
 
 -spec client_register(list(), list()) -> any().
 client_register(Username, Password) when is_list(Username), is_list(Password) ->
-     persistence_service:insert_client(Username, undefined, undefined, Password).
+     persistence_service:insert_client(Username, Password).
 
 -spec client_verify(list(), list()) -> any().
 client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
     try
-        {_, CorrectSecretHash, _, _} = persistence_service:select_client(Username),
-        SecretHash = CorrectSecretHash,
-        ok
+        {_, SecretHash, _, _} = persistence_service:select_client(Username)
     catch
         _:_ ->
             error(clientnotverified)

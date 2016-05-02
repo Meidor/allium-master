@@ -2,7 +2,7 @@
 
 -export([
     init/0,
-    insert_client/4,
+    insert_client/2,
     update_client_hash/2,
     select_client/1,
     select_all_clients/0,
@@ -25,19 +25,13 @@ init() ->
             {attributes,
                 record_info(fields, client)} ]).
 
--spec insert_client(list(), list(), list(), list()) -> atom().
-insert_client(Username, SecretHash, PublicKey, Password) when
-    is_list(Username)
-    andalso (undefined == SecretHash orelse is_list(SecretHash))
-    andalso(undefined == PublicKey orelse is_list(PublicKey))
-    andalso is_list(Password) ->
+-spec insert_client(list(), list()) -> atom().
+insert_client(Username, Password) when is_list(Username), is_list(Password) ->
     try
-        undefined = select_client(Username),
         case mnesia:transaction(fun() ->
+            undefined = select_client(Username),
             mnesia:write(
                 #client{username = Username,
-                    secrethash = SecretHash,
-                    publickey = PublicKey,
                     password = Password})
             end) of
                 {atomic, ok} ->
@@ -77,9 +71,7 @@ select_client(Username) when is_list(Username) ->
 
 -spec select_clients_by_hash(list()) -> list().
 select_clients_by_hash(SecretHash) when (undefined == SecretHash orelse is_list(SecretHash)) ->
-    {_, Result} = mnesia:transaction(fun() ->
-        mnesia:match_object({client, '_', SecretHash, '_', '_'})
-        end),
+    Result = mnesia:dirty_match_object({client, '_', SecretHash, '_', '_'}),
     [{Username, SecretHash, PublicKey, Password} ||
         {_, Username, SecretHash, PublicKey, Password} <- Result].
 
@@ -91,15 +83,12 @@ select_all_clients() ->
 
 -spec delete_client(list()) -> atom().
 delete_client(Username) when is_list(Username) ->
-    mnesia:transaction(fun() ->
-        mnesia:delete({client, Username})
-    end),
-    ok.
+    mnesia:dirty_delete({client, Username}).
 
 -spec delete_all_clients() -> atom().
 delete_all_clients() ->
-    mnesia:clear_table(client),
-    ok.
+    {_, Result} = mnesia:clear_table(client),
+    Result.
 
 -spec get_all_records_from_table(atom()) -> any().
 get_all_records_from_table(Table) when is_atom(Table) ->
