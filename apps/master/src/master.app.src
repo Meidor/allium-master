@@ -8,7 +8,10 @@
                 kernel,
                 stdlib,
                 protobuffs,
-                eredis
+                eredis,
+                crypto,
+                lager,
+                mnesia
             ]},
         {env, []},
         {modules, [node_service]},

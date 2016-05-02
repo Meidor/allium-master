@@ -5,11 +5,7 @@
 #      START BUILD                      #
 #########################################
 
-/usr/bin/redis-server > /dev/null &
+/usr/bin/redis-server --daemonize yes
 
-rebar3 clean
-rebar3 deps
-rebar3 compile
-rebar3 release
 cd "_build/default/rel/master/bin"
 nohup ./master console
