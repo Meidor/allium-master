@@ -1,7 +1,7 @@
--module(heartbeat_monitor_app).
+-module(heartbeat_monitor_clients_app).
 -behaviour(gen_server).
 
--define(INTERVAL, 5000).
+-define(INTERVAL, 300000).
 
 %% API
 -export([
@@ -16,7 +16,7 @@
 
 -spec start_link() -> any().
 start_link() ->
-    gen_server:start_link({local, heartbeat_monitor_app}, ?MODULE, [], []).
+    gen_server:start_link({local, heartbeat_monitor_clients_app}, ?MODULE, [], []).
 
 -spec init(list()) -> tuple().
 init([]) ->
@@ -26,7 +26,7 @@ init([]) ->
 -spec handle_info(atom(), any()) -> tuple().
 handle_info(check, OldTimer) ->
     erlang:cancel_timer(OldTimer),
-    heartbeat_monitor:remove_inactive_nodes(?INTERVAL),
+    heartbeat_monitor:remove_inactive_clients(?INTERVAL),
     Timer = erlang:send_after(?INTERVAL, self(), check),
     {noreply, Timer}.
 
