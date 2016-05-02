@@ -464,12 +464,12 @@ remove_node_test(_) ->
 
 get_node_secret_hash_test(_) ->
     ExistingNodeId = "YWJjZGVmZ2hpamtsbW4=",
-    ExistingNodeHash =  <<"dspjihg8732ftv8ybnsd78vt7324tn">>,
+    ExistingNodeHash =  "dspjihg8732ftv8ybnsd78vt7324tn",
     NonExistingNodeId = "JSDOJFDOJFOKJG34=",
     meck:expect(redis, get, fun(Key) ->
         case Key of
             "node_hash_" ++ ExistingNodeId ->
-                ExistingNodeHash;
+                list_to_binary(ExistingNodeHash);
             _ ->
                 undefined
         end
