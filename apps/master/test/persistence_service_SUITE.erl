@@ -11,7 +11,9 @@
 
 -export([
     insert_new_client_return_ok_test/1,
-    insert_existing_client_perform_update_return_ok_test/1,
+    insert_existing_client__return_error_test/1,
+    update_existing_client_hash_return_ok_test/1,
+    update_non_existing_client_hash_return_error_test/1,
     select_existing_client_return_client_test/1,
     select_non_existing_client_return_undefined_test/1,
     select_all_existing_clients_while_two_clients_return_clients_test/1,
@@ -25,7 +27,9 @@
 
 all() -> [
     insert_new_client_return_ok_test,
-    insert_existing_client_perform_update_return_ok_test,
+    insert_existing_client__return_error_test,
+    update_existing_client_hash_return_ok_test,
+    update_non_existing_client_hash_return_error_test,
     select_existing_client_return_client_test,
     select_non_existing_client_return_undefined_test,
     select_all_existing_clients_while_two_clients_return_clients_test,
@@ -53,11 +57,24 @@ insert_new_client_return_ok_test(_Config) ->
 
     {"Username", "SecretHash", "PublicKey", "Password"} = persistence_service:select_client("Username").
 
-insert_existing_client_perform_update_return_ok_test(_Config) ->
+insert_existing_client__return_error_test(_Config) ->
     persistence_service:insert_client("Username", "SecretHash", "PublicKey", "Password"),
 
-    ok = persistence_service:insert_client("Username", "UpdatedHash", "PublicKey", "Password"),
-    {"Username", "UpdatedHash", "PublicKey", "Password"} = persistence_service:select_client("Username").
+    test_helpers:assert_fail(fun persistence_service:insert_client/4, ["Username", "OtherHash", "OtherKey", "Pass"],
+        error, usernametaken, failed_to_catch_taken_username),
+    {"Username", "SecretHash", "PublicKey", "Password"} = persistence_service:select_client("Username").
+
+update_existing_client_hash_return_ok_test(_Config) ->
+    persistence_service:insert_client("Username", "SecretHash", "PublicKey", "Password"),
+    persistence_service:insert_client("Username2", "SecretHash", "PublicKey", "Password"),
+
+    ok = persistence_service:update_client_hash("Username", "NewHash"),
+    [{"Username2", "SecretHash", "PublicKey", "Password"}, {"Username", "NewHash", "PublicKey",
+        "Password"}] = persistence_service:select_all_clients().
+
+update_non_existing_client_hash_return_error_test(_Config) ->
+    test_helpers:assert_fail(fun persistence_service:update_client_hash/2, ["Username", "SecretHash"],
+        error, couldnotbeupdated, client_does_not_exist).
 
 select_existing_client_return_client_test(_Config) ->
     persistence_service:insert_client("Username", "SecretHash", "PublicKey", "Password"),
