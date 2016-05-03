@@ -166,16 +166,11 @@ handle_message(Msg) ->
                 )
             );
         'CLIENTHEARTBEAT' ->
-            Request = hrp_pb:decode_clientheartbeat(Data),
-            get_wrapped_message(
-                'CLIENTRESPONSE',
-                hrp_pb:encode(
-                    {clientresponse,[{"USER", "KEY123", []}]}
-                )
-            );
+            {clientheartbeat, Username, SecretHash} = hrp_pb:decode_clientheartbeat(Data),
+            heartbeat_monitor:receive_heartbeat_client(Username, SecretHash);
         'NODEHEARTBEAT' ->
             {nodeheartbeat, Id, SecretHash} = hrp_pb:decode_nodeheartbeat(Data),
-            heartbeat_monitor:receive_heartbeat(Id, SecretHash);
+            heartbeat_monitor:receive_heartbeat_node(Id, SecretHash);
         'CLIENTREGISTERREQUEST' ->
             {clientregisterrequest, Username, Password} = hrp_pb:decode_clientregisterrequest(Data),
             try client_service:client_register(Username, Password) of

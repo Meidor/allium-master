@@ -2,7 +2,8 @@
 
 -export([
     init/0,
-    insert_client/4,
+    insert_client/2,
+    update_client_hash/2,
     select_client/1,
     select_all_clients/0,
     delete_client/1,
@@ -15,33 +16,53 @@
 
 -record(client, {username, secrethash, publickey, password}).
 
+-spec init() -> any().
 init() ->
-    mnesia:stop(),
     mnesia:create_schema([node()]),
     mnesia:start(),
-    mnesia:create_table(client,[
-    {disc_copies, [node()] },
-    {attributes, record_info(fields, client)} ]).
+    mnesia:create_table(client,
+        [ {disc_copies, [node()] },
+            {attributes,
+                record_info(fields, client)} ]).
 
-insert_client(Username, SecretHash, PublicKey, Password) ->
+-spec insert_client(list(), list()) -> atom().
+insert_client(Username, Password) when is_list(Username), is_list(Password) ->
+    try
+        case mnesia:transaction(fun() ->
+            undefined = select_client(Username),
+            mnesia:write(
+                #client{username = Username,
+                    password = Password})
+            end) of
+                {atomic, ok} ->
+                    ok;
+                _ ->
+                    error(couldnotbeinserted)
+        end
+    catch
+        _:_ ->
+            error(usernametaken)
+    end.
+
+-spec update_client_hash(list(), list()) -> atom().
+update_client_hash(Username, SecretHash) when
+    is_list(Username)
+    andalso (undefined == SecretHash orelse is_list(SecretHash)) ->
     case mnesia:transaction(fun() ->
-        mnesia:write(#client{username = Username,
-                secrethash = SecretHash,
-                publickey = PublicKey,
-                password = Password})
+        [Client] = mnesia:wread({client, Username}),
+        mnesia:write(
+            Client#client{username = Username,
+                secrethash = SecretHash})
         end) of
-        {atomic, ok} ->
-            ok;
-        _ ->
-            error(somethingwentwrong)
+            {atomic, ok} ->
+                ok;
+            _ ->
+                error(couldnotbeupdated)
     end.
 
 -spec select_client(list()) -> any().
-select_client(Username) ->
-    {_, Result} = mnesia:transaction(fun() ->
-        mnesia:read({client, Username})
-        end),
-    case Result of
+select_client(Username) when is_list(Username) ->
+    case mnesia:dirty_read({client, Username}) of
         [] ->
             undefined;
         [{_, Username, SecretHash, PublicKey, Password}] ->
@@ -49,10 +70,8 @@ select_client(Username) ->
     end.
 
 -spec select_clients_by_hash(list()) -> list().
-select_clients_by_hash(Hash) ->
-    {_, Result} = mnesia:transaction(fun() ->
-        mnesia:match_object({client, '_', Hash, '_', '_'})
-        end),
+select_clients_by_hash(SecretHash) when (undefined == SecretHash orelse is_list(SecretHash)) ->
+    Result = mnesia:dirty_match_object({client, '_', SecretHash, '_', '_'}),
     [{Username, SecretHash, PublicKey, Password} ||
         {_, Username, SecretHash, PublicKey, Password} <- Result].
 
@@ -63,19 +82,16 @@ select_all_clients() ->
         {_, Username, SecretHash, PublicKey, Password} <- Result].
 
 -spec delete_client(list()) -> atom().
-delete_client(Username) ->
-    mnesia:transaction(fun() ->
-        mnesia:delete({client, Username})
-    end),
-    ok.
+delete_client(Username) when is_list(Username) ->
+    mnesia:dirty_delete({client, Username}).
 
 -spec delete_all_clients() -> atom().
 delete_all_clients() ->
-    mnesia:clear_table(client),
-    ok.
+    {_, Result} = mnesia:clear_table(client),
+    Result.
 
 -spec get_all_records_from_table(atom()) -> any().
-get_all_records_from_table(Table) ->
+get_all_records_from_table(Table) when is_atom(Table) ->
     mnesia:transaction(fun() ->
         qlc:eval(qlc:q(
             [ X || X <- mnesia:table(Table) ]
