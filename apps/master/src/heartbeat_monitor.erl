@@ -3,7 +3,7 @@
 %% API
 -export([
     receive_heartbeat_node/2,
-	receive_heartbeat_client/2,
+    receive_heartbeat_client/2,
     remove_inactive_nodes/1,
     remove_inactive_clients/1,
     add_node/1,
@@ -25,14 +25,14 @@ receive_heartbeat_node(NodeId, SecretHash) when is_list(NodeId), is_list(SecretH
 
 -spec receive_heartbeat_client(list(), list()) -> any().
 receive_heartbeat_client(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
-	try
-		client_service:client_verify(Username, SecretHash)
-	of _ ->
-		redis:set("heartbeat_client_" ++ Username, ?MODULE:get_current_time())
-	catch
+    try
+        client_service:client_verify(Username, SecretHash)
+    of _ ->
+        redis:set("heartbeat_client_" ++ Username, ?MODULE:get_current_time())
+    catch
         _:_ ->
-		    error(clientnotverified)
-	end.
+            error(clientnotverified)
+    end.
 
 
 -spec remove_inactive_nodes(integer()) -> list().
@@ -64,7 +64,7 @@ add_node(NodeId) when is_list(NodeId) ->
 
 -spec add_client(list()) -> atom().
 add_client(Username) when is_list(Username) ->
-	redis:set("heartbeat_client_" ++ Username, ?MODULE:get_current_time()).
+    redis:set("heartbeat_client_" ++ Username, ?MODULE:get_current_time()).
 
 -spec remove_node(list()) -> atom().
 remove_node(NodeId) when is_list(NodeId) ->
@@ -72,7 +72,7 @@ remove_node(NodeId) when is_list(NodeId) ->
 
 -spec remove_client(list()) -> atom().
 remove_client(Username) when is_list(Username) ->
-	redis:remove("heartbeat_client_" ++ Username).
+    redis:remove("heartbeat_client_" ++ Username).
 
 -spec get_current_time() -> integer().
 get_current_time() ->

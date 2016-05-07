@@ -9,7 +9,7 @@
 
 -spec client_register(list(), list()) -> any().
 client_register(Username, Password) when is_list(Username), is_list(Password) ->
-     persistence_service:insert_client(Username, Password).
+    persistence_service:insert_client(Username, Password).
 
 -spec client_verify(list(), list()) -> any().
 client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
