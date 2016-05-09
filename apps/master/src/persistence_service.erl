@@ -30,27 +30,18 @@ init() ->
 insert_client(Username, Password) when is_list(Username), is_list(Password) ->
     try
         case mnesia:transaction(fun() ->
-            lager:info("Inserting client: Case statement entered.."),
-            lager:info("Select client result: ~p", select_client(Username)),
             undefined = select_client(Username),
-            lager:info("Inserting client: Username does not already exist.."),
             mnesia:write(
                 #client{username = Username,
                     password = Password})
             end) of
                 {atomic, ok} ->
-                    lager:info("Inserting client: Account created.."),
                     ok;
-                ErrorMessage ->
-                    lager:info(io_lib:format("~p", [ErrorMessage])),
-                    lager:info("Inserting client: Something went wrong.."),
+                _ ->
                     error(couldnotbeinserted)
         end
     catch
-        Error:Message ->
-            lager:info(Error),
-            lager:info(Message),
-            lager:info("Inserting client: Catch statement entered.."),
+        _:_ ->
             error(usernametaken)
     end.
 
@@ -72,7 +63,6 @@ update_client_hash(Username, SecretHash) when
 
 -spec select_client(list()) -> any().
 select_client(Username) when is_list(Username) ->
-    lager:info("Mnesia dirty read: ~p", [mnesia:dirty_read({client, Username})]),
     case mnesia:dirty_read({client, Username}) of
         [] ->
             undefined;
