@@ -29,18 +29,25 @@ init() ->
 insert_client(Username, Password) when is_list(Username), is_list(Password) ->
     try
         case mnesia:transaction(fun() ->
+            lager:info("Inserting client: Case statement entered.."),
             undefined = select_client(Username),
+            lager:info("Inserting client: Username does not already exist.."),
             mnesia:write(
                 #client{username = Username,
                     password = Password})
             end) of
                 {atomic, ok} ->
+                    lager:info("Inserting client: Account created.."),
                     ok;
                 _ ->
+                    lager:info("Inserting client: Something went wrong.."),
                     error(couldnotbeinserted)
         end
     catch
-        _:_ ->
+        Error:Message ->
+            lager:info(Error),
+            lager:info(Message),
+            lager:info("Inserting client: Catch statement entered.."),
             error(usernametaken)
     end.
 
