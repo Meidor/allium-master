@@ -18,6 +18,7 @@
 
 -spec init() -> any().
 init() ->
+    mnesia:stop(),
     mnesia:create_schema([node()]),
     mnesia:start(),
     mnesia:create_table(client,
