@@ -31,6 +31,7 @@ insert_client(Username, Password) when is_list(Username), is_list(Password) ->
     try
         case mnesia:transaction(fun() ->
             lager:info("Inserting client: Case statement entered.."),
+            lager:info("Select client result: ~p", select_client(Username)),
             undefined = select_client(Username),
             lager:info("Inserting client: Username does not already exist.."),
             mnesia:write(
@@ -71,6 +72,7 @@ update_client_hash(Username, SecretHash) when
 
 -spec select_client(list()) -> any().
 select_client(Username) when is_list(Username) ->
+    lager:info("Mnesia dirty read: ~p", [mnesia:dirty_read({client, Username})]),
     case mnesia:dirty_read({client, Username}) of
         [] ->
             undefined;
