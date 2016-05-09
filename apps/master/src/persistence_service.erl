@@ -39,7 +39,8 @@ insert_client(Username, Password) when is_list(Username), is_list(Password) ->
                 {atomic, ok} ->
                     lager:info("Inserting client: Account created.."),
                     ok;
-                _ ->
+                ErrorMessage ->
+                    lager:info(ErrorMessage),
                     lager:info("Inserting client: Something went wrong.."),
                     error(couldnotbeinserted)
         end
