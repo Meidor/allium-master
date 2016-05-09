@@ -40,7 +40,7 @@ insert_client(Username, Password) when is_list(Username), is_list(Password) ->
                     lager:info("Inserting client: Account created.."),
                     ok;
                 ErrorMessage ->
-                    lager:info(ErrorMessage),
+                    lager:info(io_lib:format("~p", [ErrorMessage])),
                     lager:info("Inserting client: Something went wrong.."),
                     error(couldnotbeinserted)
         end
