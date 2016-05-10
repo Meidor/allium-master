@@ -4,8 +4,7 @@
 -export([
     client_register/2,
     client_verify/2,
-    client_logout/1,
-    client_logout/2
+    client_logout/1, client_logout/2
 ]).
 
 -spec client_register(list(), list()) -> any().
@@ -22,5 +21,5 @@ client_logout(Username) when is_list(Username) ->
 
 -spec client_logout(list(), list()) -> any().
 client_logout(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
-	client_verify(Username, SecretHash),
-	client_logout(Username).
+    client_verify(Username, SecretHash),
+    client_logout(Username).
