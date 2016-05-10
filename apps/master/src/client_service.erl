@@ -4,8 +4,8 @@
 -export([
     client_register/2,
     client_verify/2,
-    client_logout/1
-]).
+    client_logout/1,
+    client_return_all_clients_by_hash/1]).
 
 -spec client_register(list(), list()) -> any().
 client_register(Username, Password) when is_list(Username), is_list(Password) ->
@@ -18,3 +18,7 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
 -spec client_logout(list()) -> any().
 client_logout(Username) when is_list(Username) ->
     auth_service:client_logout(Username).
+
+-spec client_return_all_clients_by_hash(int32) -> [].
+client_return_all_clients_by_hash(Hash) when Hash > 0 ->
+    auth_service:client_return_all_clients_by_hash(Hash).

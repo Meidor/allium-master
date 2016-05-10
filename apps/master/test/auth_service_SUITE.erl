@@ -16,7 +16,8 @@
     client_verify_existing_user/1,
     client_verify_not_existing_user/1,
     client_logout_return_ok_test/1,
-    non_existing_client_logout_return_ok_test/1
+    non_existing_client_logout_return_ok_test/1,
+    return_clients_by_hash_test/1
 ]).
 
 all() -> [
@@ -26,7 +27,8 @@ all() -> [
     client_verify_existing_user,
     client_verify_not_existing_user,
     client_logout_return_ok_test,
-    non_existing_client_logout_return_ok_test
+    non_existing_client_logout_return_ok_test,
+    return_clients_by_hash_test
 ].
 
 init_per_suite(Config) ->
@@ -100,3 +102,9 @@ non_existing_client_logout_return_ok_test(_Config) ->
     test_helpers:assert_fail(fun auth_service:client_logout/1, [InvalidUsername],
         error, couldnotbeloggedout, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(persistence_service, update_client_hash, [InvalidUsername, undefined]).
+
+return_clients_by_hash_test(_Config) ->
+    meck:expect(persistence_service, select_all_clients, fun() -> [] end),
+
+    [] = persistence_service:select_all_clients(),
+    true = test_helpers:check_function_called(persistence_service, select_all_clients, []).

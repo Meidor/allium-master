@@ -5,8 +5,8 @@
     all/0,
     init_per_testcase/2,
     end_per_testcase/2,
-    init_per_suite/1
-]).
+    init_per_suite/1,
+    client_return_all_clients_by_hash_test/1]).
 
 -export([
     client_register_valid_client_return_ok_test/1,
@@ -14,8 +14,8 @@
     client_register_unpredicted_error_return_error_test/1,
     client_verify_existing_user/1, client_verify_non_existing_user/1,
     client_logout_return_ok_test/1,
-    non_existing_client_logout_return_ok_test/1
-]).
+    non_existing_client_logout_return_ok_test/1,
+    client_return_all_clients_by_hash_test/1]).
 
 all() -> [
     client_register_valid_client_return_ok_test,
@@ -23,7 +23,8 @@ all() -> [
     client_register_unpredicted_error_return_error_test,
     client_verify_existing_user, client_verify_non_existing_user,
     client_logout_return_ok_test,
-    non_existing_client_logout_return_ok_test
+    non_existing_client_logout_return_ok_test,
+    client_return_all_clients_by_hash_test
 ].
 
 init_per_suite(Config) ->
@@ -102,3 +103,12 @@ non_existing_client_logout_return_ok_test(_Config) ->
     test_helpers:assert_fail(fun client_service:client_logout/1, [InvalidUsername],
         error, couldnotbeloggedout, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(auth_service, client_logout, [InvalidUsername]).
+
+client_return_all_clients_by_hash_test(_config) ->
+    Hash = 72,
+
+    meck:expect(auth_service, client_return_all_clients_by_hash, fun(_ReturnClientMatchingHash) -> [] end),
+
+    [] = client_service:client_return_all_clients_by_hash(Hash),
+    true = test_helpers:check_function_called(auth_service, client_return_all_clients_by_hash, [Hash]).
+
