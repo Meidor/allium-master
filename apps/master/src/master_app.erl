@@ -219,9 +219,9 @@ handle_message(Msg) ->
             catch
                 error:clientnotverified ->
                     get_wrapped_message(
-                        'CLIENTREGISTERRESPONSE',
+                        'CLIENTLOGOUTRESPONSE',
                         hrp_pb:encode(
-                            {clientregisterresponse, 'TAKEN_USERNAME'}
+                            {clientlogoutresponse, 'UNVERIFIEDUSER'}
                         )
                     )
             end
