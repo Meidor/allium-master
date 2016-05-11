@@ -103,6 +103,7 @@ non_existing_client_logout_return_ok_test(_Config) ->
         error, couldnotbeloggedout, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(persistence_service, update_client_hash, [InvalidUsername, undefined]).
 
+%%todo change when functionality is added in iteration 3.
 return_clients_by_hash_test(_Config) ->
     meck:expect(persistence_service, select_all_clients, fun() -> [] end),
 
