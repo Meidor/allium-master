@@ -33,7 +33,8 @@ client_logout(Username) when is_list(Username) ->
 -spec client_return_all_clients_by_hash(int32) -> [].
 client_return_all_clients_by_hash(Hash) when Hash > 0 ->
     try
-        {Username, _, PublicKey, _, ConnectedNodes} = persistence_service:select_all_clients()
+        {Username, _, PublicKey, _, ConnectedNodes} = persistence_service:select_all_clients(),
+        {Username, PublicKey, ConnectedNodes}
     catch
         _:_  ->
             error(noClientsForHash)
