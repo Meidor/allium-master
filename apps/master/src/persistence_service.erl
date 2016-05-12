@@ -9,9 +9,7 @@
     delete_client/1,
     delete_all_clients/0,
     select_clients_by_hash/1,
-    get_all_records_from_table/1,
-    update_client_dedicatednodes/2,
-    update_client_publickey/2
+    update_client/4
 ]).
 
 -include_lib("stdlib/include/qlc.hrl").
@@ -47,6 +45,25 @@ insert_client(Username, Password) when is_list(Username), is_list(Password) ->
             error(usernametaken)
     end.
 
+-spec update_client(list(), list(), list(), list()) -> atom().
+update_client(Username, SecretHash, PublicKey, DedicatedNodes) when is_list(Username)
+    andalso (undefined == SecretHash orelse is_list(SecretHash))
+    andalso (undefined == PublicKey orelse is_list(PublicKey))
+    andalso is_list(DedicatedNodes) ->
+    case mnesia:transaction(fun() ->
+        [Client] = mnesia:wread({client, Username}),
+        mnesia:write(
+            Client#client{username = Username,
+                secrethash = SecretHash,
+                publickey = PublicKey,
+                dedicatednodes = DedicatedNodes})
+                            end) of
+        {atomic, ok} ->
+            ok;
+        _ ->
+            error(couldnotbeupdated)
+    end.
+
 -spec update_client_hash(list(), list()) -> atom().
 update_client_hash(Username, SecretHash) when
     is_list(Username)
@@ -63,21 +80,6 @@ update_client_hash(Username, SecretHash) when
                 error(couldnotbeupdated)
     end.
 
--spec update_client_publickey(list(), list()) -> atom().
-update_client_publickey(Username, PublicKey) when
-    is_list(Username) ->
-    case mnesia:transaction(fun() ->
-        [Client] = mnesia:wread({client, Username}),
-        mnesia:write(
-            Client#client{username = Username,
-                publickey = PublicKey})
-                            end) of
-        {atomic, ok} ->
-            ok;
-        _ ->
-            error(couldnotbeupdated)
-    end.
-
 -spec select_client(list()) -> any().
 select_client(Username) when is_list(Username) ->
     case mnesia:dirty_read({client, Username}) of
@@ -89,15 +91,15 @@ select_client(Username) when is_list(Username) ->
 
 -spec select_clients_by_hash(list()) -> list().
 select_clients_by_hash(SecretHash) when (undefined == SecretHash orelse is_list(SecretHash)) ->
-    Result = mnesia:dirty_match_object({client, '_', SecretHash, '_', '_'}),
-    [{Username, SecretHash, PublicKey, Password} ||
-        {_, Username, SecretHash, PublicKey, Password} <- Result].
+    Result = mnesia:dirty_match_object({client, '_', SecretHash, '_', '_', '_'}),
+    [{Username, Hash, PublicKey, Password, DedicatedNodes} ||
+        {_, Username, Hash, PublicKey, Password, DedicatedNodes} <- Result].
 
 -spec select_all_clients() -> list().
 select_all_clients() ->
     {_, Result} = get_all_records_from_table(client),
-    [{Username, SecretHash, PublicKey, Password} ||
-        {_, Username, SecretHash, PublicKey, Password} <- Result].
+    [{Username, SecretHash, PublicKey, Password, DedicatedNodes} ||
+        {_, Username, SecretHash, PublicKey, Password, DedicatedNodes} <- Result].
 
 -spec delete_client(list()) -> atom().
 delete_client(Username) when is_list(Username) ->
@@ -115,17 +117,3 @@ get_all_records_from_table(Table) when is_atom(Table) ->
             [ X || X <- mnesia:table(Table) ]
         ))
     end).
-
--spec update_client_dedicatednodes(list(), list()) -> list().
-update_client_dedicatednodes(Username, DedicatedNodes) when is_list(Username), is_list(DedicatedNodes)->
-    case mnesia:transaction(fun() ->
-        [Client] = mnesia:wread({client, Username}),
-        mnesia:write(
-            Client#client{username = Username,
-                          dedicatednodes =  DedicatedNodes})
-                            end) of
-        [atomic, ok] ->
-            ok;
-        _ ->
-            error(couldnotbeupdated)
-    end.

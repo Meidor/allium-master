@@ -15,7 +15,8 @@
     client_verify_existing_user/1, client_verify_non_existing_user/1,
     client_logout_return_ok_test/1,
     non_existing_client_logout_return_ok_test/1,
-    client_login_valid_user/1, client_login_invalid_user/1
+    client_login_valid_user_return_user_test/1, 
+    client_login_invalid_user_return_error_test/1
 ]).
 
 all() -> [
@@ -25,7 +26,8 @@ all() -> [
     client_verify_existing_user, client_verify_non_existing_user,
     client_logout_return_ok_test,
     non_existing_client_logout_return_ok_test,
-    client_login_valid_user, client_login_invalid_user
+    client_login_valid_user_return_user_test, 
+    client_login_invalid_user_return_error_test
 ].
 
 init_per_suite(Config) ->
@@ -39,6 +41,7 @@ init_per_testcase(_, Config) ->
 
 end_per_testcase(_, Config) ->
     meck:unload(auth_service),
+    meck:unload(redis),
     Config.
 
 client_register_valid_client_return_ok_test(_Config) ->
@@ -107,24 +110,22 @@ non_existing_client_logout_return_ok_test(_Config) ->
         error, couldnotbeloggedout, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(auth_service, client_logout, [InvalidUsername]).
 
-client_login_valid_user(_Config) ->
+client_login_valid_user_return_user_test(_Config) ->
     ValidUsername = "Username",
     ValidPassword = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
     ValidPublicKey = "PublicKey@123",
-    meck:expect(auth_service, client_login, fun(_ValidUsername, _ValidPassword, _ValidPublicKey) -> ok end),
-    ok = client_service:client_login(ValidUsername, ValidPassword , ValidPublicKey),
+    SecretHash = "c hnhfa8fhduivnafuhsas23rt5352342",
+    Nodes = ["node1", "node2", "node3", "node4", "node5"],
+    meck:expect(auth_service, client_login, fun(_ValidUsername, _ValidPassword, _ValidPublicKey) -> {SecretHash, Nodes} end),
+    {SecretHash, Nodes} = client_service:client_login(ValidUsername, ValidPassword , ValidPublicKey),
     true = test_helpers:check_function_called(auth_service, client_login, [ValidUsername, ValidPassword, ValidPublicKey]).
 
-
-client_login_invalid_user(_Config) ->
-    Username = "TakenUsername",
+client_login_invalid_user_return_error_test(_Config) ->
+    Username = "InvalidUsername",
     ValidPassword = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
     ValidPublicKey = "PublicKey@123",
     meck:expect(auth_service, client_login, fun(_Username, _ValidPassword, _ValidPublicKey) ->
-                                                case _Username of
-                                                    "Username" -> ok;
-                                                    "TakenUsername" -> error(invalidusername)
-                                                end
+                                                error(invalidusername)
                                             end),
     test_helpers:assert_fail(fun client_service:client_login/3, [Username, ValidPassword, ValidPublicKey],
         error, invalidusername, non_existing_user),

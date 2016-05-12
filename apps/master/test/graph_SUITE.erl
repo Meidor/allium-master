@@ -13,6 +13,7 @@
 %% API
 -export([
     all/0,
+    init_per_suite/1,
     init_per_testcase/2,
     end_per_testcase/2
 ]).
@@ -28,7 +29,9 @@
     add_node_test/1,
     remove_node_test/1,
     get_node_secret_hash_test/1,
-    update_node_test/1
+    update_node_test/1,
+    get_random_dedicatednodes_return_randomnodes_test/1,
+    get_random_dedicatednodes_without_existing_nodes_return_empty_list_test/1
 ]).
 
 all() -> [
@@ -43,12 +46,17 @@ all() -> [
     add_node_test,
     remove_node_test,
     get_node_secret_hash_test,
-    update_node_test
+    update_node_test,
+    get_random_dedicatednodes_return_randomnodes_test,
+    get_random_dedicatednodes_without_existing_nodes_return_empty_list_test
 ].
+
+init_per_suite(Config) ->
+    meck:new(redis, [non_strict, passthrough]),
+    Config.
 
 %%initial for datastructure graph, not right yet
 init_per_testcase(_, Config) ->
-    meck:new(redis, [non_strict]),
     Config.
 
 end_per_testcase(_, Config) ->
@@ -414,7 +422,7 @@ add_node_test(_) ->
         end
     end),
 
-    meck:expect(redis, set, fun(Key, Value) ->
+    meck:expect(redis, set, fun(Key, _Value) ->
         case Key of
             _ ->
                 ok
@@ -507,3 +515,19 @@ update_node_test(_) ->
     end),
 
     ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz").
+
+get_random_dedicatednodes_return_randomnodes_test(_) ->
+    RedisNodes = [<<"node1">>, <<"node2">>, <<"node3">>, <<"node4">>, <<"node5">>],
+    DedicatedNodes = ["node1", "node2", "node3", "node4", "node5"],
+    meck:expect(redis, srandmember, fun(_Key, _Amount) -> RedisNodes end),
+    AmountOfNodes = 5,
+    DedicatedNodes = node_graph_manager:get_random_dedicatednodes(AmountOfNodes),
+    true = test_helpers:check_function_called(redis, srandmember, ["node_hash_", AmountOfNodes]).
+
+get_random_dedicatednodes_without_existing_nodes_return_empty_list_test(_) ->
+    RedisNodes = [],
+    DedicatedNodes = [],
+    meck:expect(redis, srandmember, fun(_Key, _Amount) -> RedisNodes end),
+    AmountOfNodes = 5,
+    DedicatedNodes = node_graph_manager:get_random_dedicatednodes(AmountOfNodes),
+    true = test_helpers:check_function_called(redis, srandmember, ["node_hash_", AmountOfNodes]).

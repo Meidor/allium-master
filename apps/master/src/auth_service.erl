@@ -16,7 +16,7 @@ client_register(Username, Password) when is_list(Username), is_list(Password) ->
 -spec client_verify(list(), list()) -> any().
 client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
     try
-        {_, SecretHash, _, _} = persistence_service:select_client(Username)
+        {_, SecretHash, _, _, _} = persistence_service:select_client(Username)
     catch
         _:_ ->
             error(clientnotverified)
@@ -42,18 +42,9 @@ client_logout(Username) when is_list(Username) ->
 
 -spec client_login(list(), list(), list())-> any().
 client_login(Username, Password, PublicKey) when is_list(Username), is_list(Password), is_list(PublicKey) ->
-    try
-        NumberOfDedicatedNodes = 5,
         client_checkpassword(Username, Password),
-        %%todo: placeholder secrethash vervangen
         SecretHash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
-        persistence_service:update_client_hash(Username, SecretHash),
-        persistence_service:update_client_publickey(Username, PublicKey),
-        %%todo: placeholder bij redis (alle) nodes ophalen
-        DedicatedNodes = node_graph_manager:get_random_dedicatednodes(NumberOfDedicatedNodes),
-%%        {"node1","node2","node3","node4","node5"},
-        persistence_service:update_client_dedicatednodes(Username, DedicatedNodes)
-    catch
-        _:_ ->
-            error(couldnotlogin)
-    end.
+        AmountOfNode = 5,
+        DedicatedNodes = node_graph_manager:get_random_dedicatednodes(AmountOfNode),
+        persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
+        {SecretHash, DedicatedNodes}.
