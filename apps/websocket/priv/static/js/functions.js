@@ -9,6 +9,7 @@ $(function () {
     if (typeof dcodeIO === 'undefined' || !dcodeIO.ProtoBuf) {
         throw(new Error("ProtoBuf.js is not present."));
     }
+
     // Initialize ProtoBuf.js
     var ProtoBuf = dcodeIO.ProtoBuf;
     var Wrapper = ProtoBuf.loadProtoFile("js/hrp.proto").build("EncryptedWrapper");
@@ -118,17 +119,11 @@ $(function () {
         nodes.add([
             {id: '1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
             {id: '2', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 2'},
-            {id: '3', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 3'},
-            {id: '4', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 4'},
-            {id: '5', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 5'}
         ]);
 
         edges = new vis.DataSet();
         edges.add([
             {id: '1', from: '1', to: '2', weight: '12'},
-            {id: '2', from: '1', to: '3', weight: '212'},
-            {id: '3', from: '2', to: '4', weight: '222'},
-            {id: '4', from: '2', to: '5', weight: '999'}
         ]);
 
         var container = document.getElementById('network');
@@ -144,13 +139,7 @@ $(function () {
 
 			$("#weight").val(edges._data[data.edges[0]].weight);
             $("#edgeId").val(edges._data[data.edges[0]].id);
-
-
-
-			
         });
-
-        //network.moveTo('5');
     }
 
     function clear() {
@@ -159,9 +148,6 @@ $(function () {
 
     drawGraph();
     initSocket();
-    //setTimeout(function () {
-    //    clear()
-    //}, 1000);
 });
     
     function updateEdgeWeight(edgeId, newEdgeWeight) {
@@ -180,10 +166,11 @@ $(function () {
 
         toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
 
-        alert(JSON.stringify(toSend ));
+        alert(JSON.stringify(toSend));
 
         // initSocket();
         // socketSend(UPDATENODE, toSend);
+        // socketClose();
     }
 
     
@@ -208,5 +195,6 @@ $(function () {
 
         // initSocket();
         // socketSend(UPDATENODE, toSend);
+        // socketClose();
     }
 
