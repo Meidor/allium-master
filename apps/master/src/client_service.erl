@@ -4,7 +4,8 @@
 -export([
     client_register/2,
     client_verify/2,
-    client_logout/1
+    client_logout/1,
+    client_login/3
 ]).
 
 -spec client_register(list(), list()) -> any().
@@ -18,3 +19,8 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
 -spec client_logout(list()) -> any().
 client_logout(Username) when is_list(Username) ->
     auth_service:client_logout(Username).
+
+-spec client_login(list(), list(), list()) -> any().
+client_login(Username, Password, PublicKey) when is_list(Username), is_list(Password), is_list(PublicKey) ->
+    auth_service:client_login(Username, Password, PublicKey),
+    heartbeat_monitor:add_client(Username).
