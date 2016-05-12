@@ -11,7 +11,9 @@
     add_node/3,
     remove_node/1,
     get_node_secret_hash/1,
-    update_node/4]).
+    update_node/4%%,
+%%  get_random_dedicatednodes/1
+    ]).
 
 -spec get_graph_updates(integer()) -> list().
 get_graph_updates(Version) when is_integer(Version) ->
@@ -218,3 +220,12 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
         )
     ),
     ok.
+
+%%-spec get_random_dedicatednodes(integer()) -> list().
+%%get_random_dedicatednodes(NumberOfDedicatedNodes) ->
+%%    try
+%%        binary_to_list(redis:srandmember(Nodes, NumberOfDedicatedNodes))c
+%%    catch
+%%        _:_  ->
+%%            undefined
+%%    end.
