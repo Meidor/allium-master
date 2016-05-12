@@ -151,6 +151,7 @@ add_node(IPaddress, Port, PublicKey) ->
     NodeId = get_unique_node_id(),
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
     redis:set("node_hash_" ++ NodeId, Hash),
+    redis:sadd("active_nodes", NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
     redis:set(
@@ -177,6 +178,7 @@ remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
+    redis:srem("active_nodes", NodeId),
     redis:set(
         "version_" ++ integer_to_list(Version),
         hrp_pb:encode(
@@ -224,7 +226,7 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
 -spec get_random_dedicatednodes(integer()) -> list().
 get_random_dedicatednodes(NumberOfDedicatedNodes) ->
     try
-        [binary_to_list(NodeId) || NodeId  <- redis:srandmember("node_hash_", NumberOfDedicatedNodes)]
+        [binary_to_list(NodeId) || NodeId  <- redis:srandmember("active_nodes", NumberOfDedicatedNodes)]
     catch
             _:_  ->
             undefined

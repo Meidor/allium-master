@@ -33,6 +33,7 @@ all() -> [
 init_per_suite(Config) ->
     meck:new(auth_service, [non_strict]),
     meck:new(redis, [non_strict, passthrough]),
+    meck:new(heartbeat_monitor, [non_strict, passthrough]),
     Config.
 
 init_per_testcase(_, Config) ->
@@ -42,6 +43,7 @@ init_per_testcase(_, Config) ->
 end_per_testcase(_, Config) ->
     meck:unload(auth_service),
     meck:unload(redis),
+    meck:unload(heartbeat_monitor),
     Config.
 
 client_register_valid_client_return_ok_test(_Config) ->
@@ -116,9 +118,11 @@ client_login_valid_user_return_user_test(_Config) ->
     ValidPublicKey = "PublicKey@123",
     SecretHash = "c hnhfa8fhduivnafuhsas23rt5352342",
     Nodes = ["node1", "node2", "node3", "node4", "node5"],
+    meck:expect(heartbeat_monitor, add_client, fun(_Username) -> ok end),
     meck:expect(auth_service, client_login, fun(_ValidUsername, _ValidPassword, _ValidPublicKey) -> {SecretHash, Nodes} end),
     {SecretHash, Nodes} = client_service:client_login(ValidUsername, ValidPassword , ValidPublicKey),
-    true = test_helpers:check_function_called(auth_service, client_login, [ValidUsername, ValidPassword, ValidPublicKey]).
+    true = test_helpers:check_function_called(auth_service, client_login, [ValidUsername, ValidPassword, ValidPublicKey]),
+    true = test_helpers:check_function_called(heartbeat_monitor, add_client, [ValidUsername]).
 
 client_login_invalid_user_return_error_test(_Config) ->
     Username = "InvalidUsername",

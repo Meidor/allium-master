@@ -6,9 +6,7 @@
 -export([node_register/3,
     node_unregister/1, node_unregister/2,
     node_verify/2,
-    node_update/5%%,
-%%    sadd/2,
-%%    srem/2
+    node_update/5
 ]).
 
 %% @doc Register your node in the graph
@@ -62,11 +60,3 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     ->
     node_verify(NodeId, SecretHash),
     node_graph_manager:update_node(NodeId, IPaddress, Port, PublicKey).
-
-%%-spec sadd(list(), list()) -> any().
-%%sadd(Nodes, NodeId) ->
-%%    Nodes ++ [NodeId].
-%%
-%%-spec srem(list(), list()) -> any().
-%%srem(Nodes, NodeId) ->
-%%    Nodes -- [NodeId].

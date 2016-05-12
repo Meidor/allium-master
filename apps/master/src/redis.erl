@@ -12,7 +12,9 @@
     remove/1,
     get_matching_keys/1,
     get_list/1,
-    srandmember/2
+    srandmember/2,
+    sadd/2,
+    srem/2
 ]).
 
 -spec get(list()) -> list().
@@ -48,4 +50,15 @@ remove(Key) ->
 -spec srandmember(list(), integer()) -> any().
 srandmember(Set, Amount) ->
     {ok, Connection} = eredis:start_link(),
-    eredis:q(Connection, ["SRANDMEMBER", Set,  Amount]).
+    {ok, Keys} = eredis:q(Connection, ["SRANDMEMBER", Set,  Amount]),
+    Keys.
+
+-spec sadd(list(), list()) -> any().
+sadd(Set, Value) ->
+    {ok, Connection} = eredis:start_link(),
+    eredis:q(Connection, ["SADD", "onion_" ++ Set, Value]).
+
+-spec srem(list(), list()) -> any().
+srem(Set, Value) ->
+    {ok, Connection} = eredis:start_link(),
+    eredis:q(Connection, ["SREM", "onion_" ++ Set, Value]).
