@@ -36,8 +36,8 @@ all() -> [
 
 init_per_suite(Config) ->
     meck:new(auth_service, [non_strict]),
-    meck:new(redis, [non_strict, passthrough]),
-    meck:new(heartbeat_monitor, [non_strict, passthrough]),
+    meck:new(redis, [non_strict]),
+    meck:new(heartbeat_monitor, [non_strict]),
     Config.
 
 init_per_testcase(_, Config) ->
@@ -119,7 +119,7 @@ non_existing_client_logout_return_ok_test(_Config) ->
 client_login_valid_user_return_user_test(_Config) ->
     ValidUsername = "Username",
     ValidPassword = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
-    ValidPublicKey = "PublicKey@123",
+    ValidPublicKey = <<"PublicKey@123">>,
     SecretHash = "c hnhfa8fhduivnafuhsas23rt5352342",
     Nodes = ["node1", "node2", "node3", "node4", "node5"],
     meck:expect(heartbeat_monitor, add_client, fun(_Username) -> ok end),
@@ -131,12 +131,12 @@ client_login_valid_user_return_user_test(_Config) ->
 client_login_invalid_user_return_error_test(_Config) ->
     Username = "InvalidUsername",
     ValidPassword = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
-    ValidPublicKey = "PublicKey@123",
+    ValidPublicKey = <<"PublicKey@123">>,
     meck:expect(auth_service, client_login, fun(_Username, _ValidPassword, _ValidPublicKey) ->
-                                                error(invalidusername)
+                                                error(invalidclient)
                                             end),
     test_helpers:assert_fail(fun client_service:client_login/3, [Username, ValidPassword, ValidPublicKey],
-        error, invalidusername, non_existing_user),
+        error, invalidclient, non_existing_user),
     true = test_helpers:check_function_called(auth_service, client_login, [Username, ValidPassword, ValidPublicKey]).
 
 client_logout_with_valid_username_and_secrethash(_Config) ->

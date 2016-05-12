@@ -44,7 +44,7 @@ remove(Key) ->
 
 -spec srandmember(list(), integer()) -> any().
 srandmember(Set, Amount) ->
-    {ok, Keys} = eredis:q(get_connection(), ["SRANDMEMBER", Set,  Amount]),
+    {ok, Keys} = eredis:q(get_connection(), ["SRANDMEMBER", "onion_" ++ Set,  Amount]),
     Keys.
 
 -spec sadd(list(), list()) -> any().

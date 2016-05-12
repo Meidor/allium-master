@@ -228,6 +228,6 @@ get_random_dedicatednodes(NumberOfDedicatedNodes) ->
     try
         [binary_to_list(NodeId) || NodeId  <- redis:srandmember("active_nodes", NumberOfDedicatedNodes)]
     catch
-            _:_  ->
+        _:_  ->
             undefined
     end.

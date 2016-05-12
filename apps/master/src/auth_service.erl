@@ -44,7 +44,6 @@ client_logout(Username) when is_list(Username) ->
 client_login(Username, Password, PublicKey) when is_list(Username), is_list(Password), is_binary(PublicKey) ->
         client_checkpassword(Username, Password),
         SecretHash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
-        AmountOfNode = 5,
-        DedicatedNodes = node_graph_manager:get_random_dedicatednodes(AmountOfNode),
+        DedicatedNodes = node_graph_manager:get_random_dedicatednodes(5),
         persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
         {SecretHash, DedicatedNodes}.

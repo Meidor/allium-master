@@ -21,8 +21,8 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
 client_logout(Username) when is_list(Username) ->
     auth_service:client_logout(Username).
 
--spec client_login(list(), list(), list()) -> any().
-client_login(Username, Password, PublicKey) when is_list(Username), is_list(Password), is_list(PublicKey) ->
+-spec client_login(list(), list(), binary()) -> any().
+client_login(Username, Password, PublicKey) when is_list(Username), is_list(Password), is_binary(PublicKey) ->
     Response = auth_service:client_login(Username, Password, PublicKey),
     heartbeat_monitor:add_client(Username),
     Response.

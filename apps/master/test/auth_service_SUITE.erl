@@ -34,8 +34,8 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
-    meck:new(persistence_service, [non_strict, passthrough]),
-    meck:new(node_graph_manager, [non_strict, passthrough]),
+    meck:new(persistence_service, [non_strict]),
+    meck:new(node_graph_manager, [non_strict]),
     Config.
 
 init_per_testcase(_, Config) ->
@@ -50,7 +50,7 @@ client_verify_existing_user(_Config) ->
     Username = "Client1",
     SecretHash = "SECRETHASH123",
     meck:expect(persistence_service, select_client, fun(_Username) ->
-        {Username, SecretHash, "PUBLICKEY123", "Qwerty123", []} end),
+        {Username, SecretHash, <<"PUBLICKEY123">>, "Qwerty123", []} end),
 
     auth_service:client_verify(Username, SecretHash),
     test_helpers:check_function_called(persistence_service, select_client, [Username]).
@@ -59,7 +59,7 @@ client_verify_existing_user_wrong_hash(_Config) ->
     Username = "Client1",
     SecretHash = "SECRETHASH123",
     meck:expect(persistence_service, select_client, fun(_Username) ->
-        {Username, "OTHERSECRETHASH", "PUBLICKEY123", "Qwerty123", []} end),
+        {Username, "OTHERSECRETHASH", <<"PUBLICKEY123">>, "Qwerty123", []} end),
 
     test_helpers:assert_fail(fun auth_service:client_verify/2, [Username, SecretHash],
         error, clientnotverified, no_user_with_username),
@@ -114,10 +114,12 @@ client_login_return_client_test(_Config) ->
     DedicatedNodes = ["node1","node2","node3","node4","node5"],
     AmountOfNodes = 5,
     meck:expect(persistence_service, update_client, fun(_Username, _Secrethash, _publicKey, _DedicatedNodes) -> ok end),
-    meck:expect(persistence_service, select_client, fun(_Username) -> {ValidUsername, undefined, ValidPublicKey, ValidPassword, []} end),
+    meck:expect(persistence_service, select_client, fun(_Username) ->
+        {ValidUsername, undefined, ValidPublicKey, ValidPassword, []} end),
     meck:expect(node_graph_manager, get_random_dedicatednodes, fun(_AmountOfNodes) -> DedicatedNodes end),
     {SecretHash, Nodes} = auth_service:client_login(ValidUsername, ValidPassword, ValidPublicKey),
-    true = test_helpers:check_function_called(persistence_service, update_client, [ValidUsername, SecretHash, ValidPublicKey, Nodes]),
+    true = test_helpers:check_function_called(persistence_service, update_client,
+        [ValidUsername, SecretHash, ValidPublicKey, Nodes]),
     true = test_helpers:check_function_called(node_graph_manager, get_random_dedicatednodes, [AmountOfNodes]).
 
 client_login_with_wrong_password_return_clientnotverified_test(_Config) ->
