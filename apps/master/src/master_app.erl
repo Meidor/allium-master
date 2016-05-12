@@ -155,7 +155,7 @@ handle_message(Msg) ->
             get_wrapped_message(
                 'CLIENTRESPONSE',
                 hrp_pb:encode(
-                    {clientresponse, client_service:client_return_all_clients_by_hash(ClientGroup)}
+                    {clientresponse, client_manager:return_all_clients_by_hash(ClientGroup)}
                 )
             );
         'CLIENTHEARTBEAT' ->
