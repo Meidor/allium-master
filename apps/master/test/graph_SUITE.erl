@@ -160,29 +160,29 @@ build_graph_test(_) ->
 
     {graphupdate, 10, true,
         [
-            {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}
+            {node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}
         ],
         []
     } = node_graph_manager:build_graph(9),
     {graphupdate, 10, true,
         [
-            {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}
+            {node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}
         ],
         []
     } = node_graph_manager:build_graph(10),
     {graphupdate, 12, true,
         [
-            {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]},
-            {node, "5", "192.168.0.3", 80, "abc123", []},
-            {node, "3", "192.168.0.3", 80, "abc123", []}
+            {node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]},
+            {node, "5", "192.168.0.3", 80, <<"abc123">>, []},
+            {node, "3", "192.168.0.3", 80, <<"abc123">>, []}
         ],
         []
     } = node_graph_manager:build_graph(12),
     {graphupdate, 12, true,
         [
-            {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]},
-            {node, "5", "192.168.0.3", 80, "abc123", []},
-            {node, "3", "192.168.0.3", 80, "abc123", []}
+            {node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]},
+            {node, "5", "192.168.0.3", 80, <<"abc123">>, []},
+            {node, "3", "192.168.0.3", 80, <<"abc123">>, []}
         ],
         []
     } = node_graph_manager:build_graph(13),
@@ -204,7 +204,7 @@ build_graph_test(_) ->
 
     {graphupdate, 12, true,
         [
-            {node, "3", "192.168.0.3", 80, "abc123", []}],
+            {node, "3", "192.168.0.3", 80, <<"abc123">>, []}],
         []
     } = node_graph_manager:build_graph(12),
     {graphupdate, 11, true,
@@ -228,7 +228,7 @@ build_graph_test(_) ->
     end),
     {graphupdate, 12, true,
         [
-            {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}
+            {node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}
         ],
         []
     } = node_graph_manager:build_graph(12).
@@ -270,7 +270,7 @@ build_graph_test_impossible_actions(_) ->
     end),
     {graphupdate, 11, true,
         [
-            {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}
+            {node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}
         ],
         []
     } = node_graph_manager:build_graph(11).
@@ -353,48 +353,48 @@ merge_update_with_graph_test(_) ->
             {graphupdate, 11, true, [], []}
         ),
     %The empty graph is merged with an update with a new node, which is added to the new graph
-    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []} =
+    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []} =
         node_graph_manager:merge_update_with_graph(
-            {graphupdate, 12, false, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []},
+            {graphupdate, 12, false, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []},
             {graphupdate, 11, true, [], []}
         ),
     %The graph with one node is merged with an empty update, which results in the same graph as before the update
-    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []} =
+    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []} =
         node_graph_manager:merge_update_with_graph(
             {graphupdate, 12, false, [], []},
-            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []}
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []}
         ),
     %The graph with one node is merged with an update deleting that node, which results in an empty graph
     {graphupdate, _, true, [], []} =
         node_graph_manager:merge_update_with_graph(
-            {graphupdate, 12, false, [], [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}]},
-            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []}
+            {graphupdate, 12, false, [], [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}]},
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []}
         ),
     %The graph with one node is merged with an update deleting a non-exisiting node, which results in the same graph as before the update
-    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []} =
+    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []} =
         node_graph_manager:merge_update_with_graph(
-            {graphupdate, 12, false, [], [{node, "3", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}]},
-            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []}
+            {graphupdate, 12, false, [], [{node, "3", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}]},
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []}
         ),
     %%The graph with one node is merged with an update adding another node, which results in a graph with two nodes
-    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}, {node, "5",
-        "192.168.0.5", 80, "abcdef1234567", [{edge, "1", 7.0}]}], []} =
+    {graphupdate, _, true, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}, {node, "5",
+        "192.168.0.5", 80, <<"abcdef1234567">>, [{edge, "1", 7.0}]}], []} =
         node_graph_manager:merge_update_with_graph(
-            {graphupdate, 12, false, [{node, "5", "192.168.0.5", 80, "abcdef1234567", [{edge, "1", 7.0}]}], []},
-            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []}
+            {graphupdate, 12, false, [{node, "5", "192.168.0.5", 80, <<"abcdef1234567">>, [{edge, "1", 7.0}]}], []},
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []}
         ),
     %%The graph with two nodes is merged with an update deleting one of them, which results in a graph with only the other node
-    {graphupdate, _, true, [{node, "5", "192.168.0.5", 80, "abcdef1234567", [{edge, "1", 7.0}]}], []} =
+    {graphupdate, _, true, [{node, "5", "192.168.0.5", 80, <<"abcdef1234567">>, [{edge, "1", 7.0}]}], []} =
         node_graph_manager:merge_update_with_graph(
-            {graphupdate, 12, false, [], [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}]},
-            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]},
-                {node, "5", "192.168.0.5", 80, "abcdef1234567", [{edge, "1", 7.0}]}], []}
+            {graphupdate, 12, false, [], [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}]},
+            {graphupdate, 11, true, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]},
+                {node, "5", "192.168.0.5", 80, <<"abcdef1234567">>, [{edge, "1", 7.0}]}], []}
         ),
     %%The graph with one nodes is merged with an update which adds and deletes the same node, which results in the same graph as before the update
-    {graphupdate, _, true, [{node, "5", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []} =
+    {graphupdate, _, true, [{node, "5", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []} =
         node_graph_manager:merge_update_with_graph(
-            {graphupdate, 12, false, [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], [{node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}]},
-            {graphupdate, 11, true, [{node, "5", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}], []}
+            {graphupdate, 12, false, [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], [{node, "2", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}]},
+            {graphupdate, 11, true, [{node, "5", "192.168.0.1", 80, <<"abcdef123456">>, [{edge, "1", 5.0}]}], []}
         ).
 
 add_node_test(_) ->
@@ -496,7 +496,7 @@ update_node_test(_) ->
                 {graphupdate, 13, false, [], [{node, "YWJjZGVmZ2hpamtsbW5vcA==", _, _, _, _}]}
                     = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
             "version_14" ->
-                {graphupdate, 14, false, [{node, "YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz", []}], []}
+                {graphupdate, 14, false, [{node, "YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, <<"xyz">>, []}], []}
                     = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
             "max_version" ->
                 true = lists:any(

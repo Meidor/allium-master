@@ -144,7 +144,7 @@ protobuf_list_to_tuple_list(List) ->
 protobufs_to_tuple(Data) ->
     hrp_pb:decode_graphupdate(Data).
 
--spec add_node(list(), integer(), list()) -> tuple().
+-spec add_node(list(), integer(), binary()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
     NodeId = get_unique_node_id(),
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
@@ -196,7 +196,7 @@ get_node_secret_hash(NodeId) ->
             undefined
     end.
 
--spec update_node(list(), list(), integer(), list()) -> atom().
+-spec update_node(list(), list(), integer(), binary()) -> atom().
 update_node(NodeId, IPaddress, Port, PublicKey) ->
     DeleteVersion = get_max_version() + 1,
     AddVersion = DeleteVersion + 1,
