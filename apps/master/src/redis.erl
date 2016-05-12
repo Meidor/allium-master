@@ -38,6 +38,7 @@ set(Key, Value) ->
 remove(Key) ->
     eredis:q(get_connection(), ["DEL", "onion_" ++ Key]).
 
+-spec get_connection() -> pid().
 get_connection() ->
     case whereis(redis) of
         undefined ->
