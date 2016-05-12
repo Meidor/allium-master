@@ -15,10 +15,6 @@ subscribe(Event) ->
     gproc:send({p, l, {?MODULE, RandomEvent}}, {?MODULE, RandomEvent, get_full_graph()}),
     gproc:unreg({p, l, {?MODULE, RandomEvent}}).
 
--spec publish(atom(), any()) -> any().
-publish(Event, Data) ->
-    gproc:send({p, l, {?MODULE, Event}}, {?MODULE, Event, Data}).
-
 -spec init(tuple(), any(), any()) -> tuple().
 init({tcp, http}, _Req, _Opts) ->
     {upgrade, protocol, cowboy_websocket}.
@@ -32,9 +28,9 @@ websocket_init(_TransportName, Req, _Opts) ->
 -spec websocket_handle(tuple(), any(), any()) -> tuple().
 websocket_handle({text, Msg}, Req, State) ->
     {reply, {text, Msg}, Req, State};
-websocket_handle({binary, Msg}, Req, State) ->
+websocket_handle({binary, Msg}, _Req, _State) ->
     lager:info("Received binary message"),
-    DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg));
+    hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg));
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
 
