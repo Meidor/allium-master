@@ -1,183 +1,219 @@
-// VERSION: 0.3.1
-//
-// Syntax for the proto file
-//
+//----------------------------------------
+// VERSION: 0.3.4
+//----------------------------------------
+
 syntax = "proto2";
 
-//
 // Java variables to allow access to the generated protocol class from different packages
-//
 option java_package = "nl.han.asd.project.protocol";
 option java_outer_classname = "HanRoutingProtocol";
 
-//
-// Get graph
-//
-
-// Responded to with a GraphUpdateResponse, target is to recieve updates of the Graph
+// Fetch all updates of the graph
+// Responded to with a GraphUpdateResponse
 message GraphUpdateRequest {
+	// Hightest version the client currently knows
+	// Sending 0 as currentVersion will always result in a full graph
 	required int32 currentVersion = 1;
 }
 
-// Response to the GraphUpdateRequest, gives updates on the Graph or returns the whole Graph plus updates if the currentVersion is too old.
+// Gives updates on the Graph or returns the whole Graph plus updates if the currentVersion is too old.
+// Response to GraphUpdateRequest
 message GraphUpdateResponse {
-    repeated bytes graphUpdates = 1; // List of GraphUpdate items, already encoded
+	// List of GraphUpdate items, already encoded
+	// Updates are ordered, lower version numbers come first
+    repeated bytes graphUpdates = 1;
 }
 
+// Part of a GraphUpdateResponse
 message GraphUpdate {
-	required int32 newVersion = 1; // Version of the new Graph, can be equal to the currentVersion of the GraphUpdateRequest
+	// Version of the graph after applying this update
+	required int32 newVersion = 1;
+
+	// Clear local graph if the received graph is a full graph
 	required bool isFullGraph = 2;
+
+	// List of added nodes
 	repeated Node addedNodes = 3;
+
+	// List of deleted nodes
 	repeated Node deletedNodes = 4;
 }
 
+// A node with all public information
 message Node {
+	// Unique ID
 	required string id = 1;
+
 	required string IPaddress = 2;
 	required int32 port = 3;
-	required string publicKey = 4;
+	required bytes publicKey = 4;
+
+	// List of edges, unordered
 	repeated Edge edge = 5;
 }
 
+// An edge between two nodes
 message Edge {
+	// Target node ID of edge
 	required string targetNodeId = 1;
 	required float weight = 2;
 }
 
-//
-// Node registration
-//
+// Register as a node
+// Responded to with a NodeRegisterResponse
 message NodeRegisterRequest {
 	required string IPaddress = 1;
 	required int32 port = 2;
-	required string publicKey = 3;
+	required bytes publicKey = 3;
 }
 
+// Returns register success and assigned information
+// Response to NodeRegisterRequest
 message NodeRegisterResponse {
-// Possible states that can occur with this response
-// SUCCES: Request succesfully processed.
-// FAILED: Request failed to process.
-// ALREADY_EXISTS: Node is already registered by the Master.
 	enum Status {
+		// SUCCES: Request succesfully processed.
 		SUCCES = 1;
+
+		// FAILED: Request failed to process.
 		FAILED = 2;
+
+		// ALREADY_EXISTS: Node is already registered by the Master.
 		ALREADY_EXISTS = 3;
 	}
 
 	required Status status = 1;
+
+	// Assigned unique ID
 	optional string id = 2;
-	optional string secretHash = 3; // Hash used to authenticate a Node at the Master
+
+	// Assigned secret hash, used to authenticate a node with master
+	optional string secretHash = 3;
 }
 
+// Update your own information as a node
+// Responded to with NodeUpdateResponse
 message NodeUpdateRequest {
 	required string id = 1;
 	required string secretHash = 2;
 	optional string IPaddress = 3;
 	optional int32 port = 4;
-	optional string publicKey = 5;
+	optional bytes publicKey = 5;
 }
 
+// Returns update success
+// Response to NodeUpdateRequest
 message NodeUpdateResponse {
-// Possible states that can occur with this response
-// SUCCES: Request succesfully processed.
-// FAILED: Request failed to process.
 	enum Status {
+		// SUCCES: Request succesfully processed.
 		SUCCES = 1;
+
+		// FAILED: Request failed to process.
 		FAILED = 2;
 	}
 
 	required Status status = 1;
 }
 
+// Remove yourself from the network as a node
+// Responded to with NodeDeleteResponse
 message NodeDeleteRequest {
 	required string id = 1;
 	required string secretHash = 2;
 }
 
+// Returns deletion success
+// Response to NodeDeleteRequest
 message NodeDeleteResponse {
-// Possible states that can occur with this response
-// SUCCES: Request succesfully processed.
-// FAILED: Request failed to process.
 	enum Status {
+		// SUCCES: Request succesfully processed.
 		SUCCES = 1;
+
+		// FAILED: Request failed to process.
 		FAILED = 2;
 	}
 
 	required Status status = 1;
 }
 
-//
-// Get all clients
-//
+// Get all clients connected to the network
+// Responded to with ClientResponse
 message ClientRequest {
+	// Currently unused
 	optional int32 clientGroup = 1;
 }
 
+// List of clients that are currenctly connected to the network
+// Response to ClientRequest
 message ClientResponse {
+	// List of clients, unordered
 	repeated Client clients = 1;
 }
 
+// A client with all public information
 message Client {
-	required string username = 1; // has to be unique
-	required string publicKey = 2;
-	repeated Node connectedNodes = 3;
+	// Unique username
+	required string username = 1;
+	required bytes publicKey = 2;
+
+	// List of nodes the client is expecting messages on
+	repeated string connectedNodes = 3;
 }
 
-//
 // Client heartbeat
-//
 message ClientHeartbeat {
 	required string username = 1;
 	required string secretHash = 2;
 }
 
-//
 // Node heartbeat
-//
 message NodeHeartbeat {
 	required string id = 1;
 	required string secretHash = 2;
 }
 
-//
-// Client register
-//
+// Create an account as a Client
+// Responded to with ClientRegisterResponse
 message ClientRegisterRequest {
 	required string username = 1;
 	required string password = 2;
 }
 
+// Returns account creation success
+// Response to ClientRegisterRequest
 message ClientRegisterResponse {
-// Possible states that can occur with this response
-// SUCCES: Request succesfully processed.
-// FAILED: Request failed to process.
-// TAKEN_USERNAME: Username already in use.
 	enum Status {
+		// SUCCES: Request succesfully processed.
 		SUCCES = 1;
+
+		// FAILED: Request failed to process.
 		FAILED = 2;
+
+		// TAKEN_USERNAME: Username already in use.
 		TAKEN_USERNAME = 3;
 	}
 
 	required Status status = 1;
 }
 
-//
-// Client login
-//
+// Client connect to network
+// Responded to with ClientLoginResponse
 message ClientLoginRequest {
 	required string username = 1;
 	required string password = 2;
-	required string publicKey = 3;
+	required bytes publicKey = 3;
 }
 
+// Returns login success with an identifying secret hash and a list of nodes the client should connect to, in order to start receiving messages
+// Response to ClientLoginRequest
 message ClientLoginResponse {
-// Possible states that can occur with this response
-// SUCCES: Request succesfully processed.
-// FAILED: Request failed to process.
-// INVALID_COMBINATION: Username and password combination is invalid.
 	enum Status {
+		// SUCCES: Request succesfully processed.
 		SUCCES = 1;
+
+		// FAILED: Request failed to process.
 		FAILED = 2;
+
+		// INVALID_COMBINATION: Username and password combination is invalid.
 		INVALID_COMBINATION = 3;
 	}
 
@@ -186,58 +222,72 @@ message ClientLoginResponse {
 	repeated Node connectedNodes = 3;
 }
 
-//
 // Client logout
-//
+// Responded to with ClientLogoutResponse
 message ClientLogoutRequest {
 	required string username = 1;
 	required string secretHash = 2;
 }
 
+// Returns client logout success
+// Response to ClientLogoutRequest
 message ClientLogoutResponse {
-// Possible states that can occur with this response
-// SUCCES: Request succesfully processed.
-// FAILED: Request failed to process.
 	enum Status {
+		// SUCCES: Request succesfully processed.
 		SUCCES = 1;
+
+		// FAILED: Request failed to process.
 		FAILED = 2;
 	}
 
 	required Status status = 1;
 }
 
-//
-// Send message
-//
-message EncryptedMessage {
+// Wrapper used when sending a message
+message MessageWrapper {
+	// Either a target IP and port, or a target username has to be sent with this wrapper
+	// Username is used if the node is one of the client's connected nodes and the current node is the last hop
 	optional string IPaddress = 1;
 	optional int32 port = 2;
+
 	optional string username = 3;
-	required bytes encryptedData = 4; // This will contain either a new EncryptedMessage or a Message/MessageConfirmation after decryption
+
+	// This will contain either a new MessageWrapper or a Message/MessageConfirmation after decryption
+	required bytes encryptedData = 4;
 }
 
+// Actual message, wrapped by several MessageWrapper's while sending
 message Message {
-	required string id = 1; // Unique, generated by Client
+	// Unique, generated by client
+	required string id = 1;
+
 	required string text = 2;
 	required string sender = 3;
+
+	// UNIX timestamp
+    required int64 timeSent = 4;
 }
 
+// Message used to confirm receiving a message
 message MessageConfirmation {
+	// Unique message ID which has been received
 	required string confirmationId = 1;
 }
 
-//
 // Establish connection between Client and Node
 // As Client you send your username to the Nodes you are required to connect with, so they can send messages to you
-//
 message ClientNodeConnection {
+	// Connect to node with own username
 	required string username = 1;
 }
 
-//
-// Encryption wrapper for communication with the Master
-//
-message EncryptedWrapper {
+// Message used in the admin panel to add/remove/change edges
+message UpdateNode {
+    required Node node = 1;
+}
+
+// Wrapper for all communication
+message Wrapper {
     enum Type {
         GRAPHUPDATEREQUEST = 1;
         GRAPHUPDATERESPONSE = 2;
@@ -267,11 +317,13 @@ message EncryptedWrapper {
         CLIENTLOGOUTREQUEST = 17;
         CLIENTLOGOUTRESPONSE = 18;
 
-        ENCRYPTEDMESSAGE = 19;
+        MESSAGEWRAPPER = 19;
 
         MESSAGECONFIRMATION = 20;
 
         CLIENTNODECONNECTION = 21;
+
+        UPDATENODE = 22;
     }
 
     required Type type = 1;

@@ -110,8 +110,7 @@ non_existing_client_logout_return_ok_test(_Config) ->
 client_login_return_client_test(_Config) ->
     ValidUsername = "Username",
     ValidPassword = "Password123",
-    ValidPublicKey = "PublicKey@123",
-    ValidSecretHash = "SECRETHASH123",
+    ValidPublicKey = <<"PublicKey@123">>,
     DedicatedNodes = ["node1","node2","node3","node4","node5"],
     AmountOfNodes = 5,
     meck:expect(persistence_service, update_client, fun(_Username, _Secrethash, _publicKey, _DedicatedNodes) -> ok end),
@@ -124,10 +123,7 @@ client_login_return_client_test(_Config) ->
 client_login_with_wrong_password_return_clientnotverified_test(_Config) ->
     ValidUsername = "Username1234567890",
     InvalidPassword = "Password123",
-    ValidPublicKey = "PublicKey@123",
-    ValidSecretHash = "SECRETHASH123",
-    DedicatedNodes = ["node1","node2","node3","node4","node5"],
-    AmountOfNodes = 5,
+    ValidPublicKey = <<"PublicKey@123">>,
     meck:expect(persistence_service, select_client, fun(_Username) -> undefined end),
     test_helpers:assert_fail(fun auth_service:client_login/3, [ValidUsername, InvalidPassword, ValidPublicKey],
         error, invalidclient, failed_to_catch_invalid_password).

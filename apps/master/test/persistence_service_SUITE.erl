@@ -84,12 +84,12 @@ update_existing_client_return_ok_test(_Config) ->
     persistence_service:insert_client("Username", "Password"),
     persistence_service:insert_client("Username2", "Password"),
 
-    ok = persistence_service:update_client("Username", "NewHash", "PublicKey", ["1", "11", "111"]),
-    [{"Username2", undefined, undefined, "Password", []}, {"Username", "NewHash", "PublicKey",
+    ok = persistence_service:update_client("Username", "NewHash", <<"PublicKey">>, ["1", "11", "111"]),
+    [{"Username2", undefined, undefined, "Password", []}, {"Username", "NewHash", <<"PublicKey">>,
         "Password", ["1", "11", "111"]}] = persistence_service:select_all_clients().
 
 update_non_existing_client_return_error_test(_Config) ->
-    test_helpers:assert_fail(fun persistence_service:update_client/4, ["Username", "SecretHash", "Password", ["1", "11", "111"]],
+    test_helpers:assert_fail(fun persistence_service:update_client/4, ["Username", "SecretHash", <<"PublicKey">>, ["1", "11", "111"]],
         error, couldnotbeupdated, client_does_not_exist).
 
 select_existing_client_return_client_test(_Config) ->

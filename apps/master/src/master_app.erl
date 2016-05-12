@@ -207,13 +207,24 @@ handle_message(Msg) ->
                 )
             );
         'CLIENTLOGOUTREQUEST' ->
-            Request = hrp_pb:decode_clientlogoutrequest(Data),
-            get_wrapped_message(
-                'CLIENTLOGOUTRESPONSE',
-                hrp_pb:encode(
-                    {clientlogoutresponse, 'SUCCES'}
+            {clientlogoutrequest, Username, SecretHash} = hrp_pb:decode_clientlogoutrequest(Data),
+            try client_service:client_logout(Username, SecretHash) of
+            ok ->
+                get_wrapped_message(
+                    'CLIENTLOGOUTRESPONSE',
+                    hrp_pb:encode(
+                        {clientlogoutresponse, 'SUCCES'}
+                    )
                 )
-            )
+            catch
+                error:clientnotverified ->
+                    get_wrapped_message(
+                        'CLIENTLOGOUTRESPONSE',
+                        hrp_pb:encode(
+                            {clientlogoutresponse, 'UNVERIFIEDUSER'}
+                        )
+                    )
+            end
     end.
 
 -spec get_wrapped_message(list(), list()) -> list().

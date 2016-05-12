@@ -16,7 +16,9 @@
     client_logout_return_ok_test/1,
     non_existing_client_logout_return_ok_test/1,
     client_login_valid_user_return_user_test/1, 
-    client_login_invalid_user_return_error_test/1
+    client_login_invalid_user_return_error_test/1,
+    client_logout_with_valid_username_and_secrethash/1,
+    non_existing_client_logout_invalid/1
 ]).
 
 all() -> [
@@ -27,7 +29,9 @@ all() -> [
     client_logout_return_ok_test,
     non_existing_client_logout_return_ok_test,
     client_login_valid_user_return_user_test, 
-    client_login_invalid_user_return_error_test
+    client_login_invalid_user_return_error_test,
+    client_logout_with_valid_username_and_secrethash,
+    non_existing_client_logout_invalid
 ].
 
 init_per_suite(Config) ->
@@ -134,3 +138,22 @@ client_login_invalid_user_return_error_test(_Config) ->
     test_helpers:assert_fail(fun client_service:client_login/3, [Username, ValidPassword, ValidPublicKey],
         error, invalidusername, non_existing_user),
     true = test_helpers:check_function_called(auth_service, client_login, [Username, ValidPassword, ValidPublicKey]).
+
+client_logout_with_valid_username_and_secrethash(_Config) ->
+    ValidUsername = "Username",
+    SecretHash = "SECRETHASH123",
+    meck:expect(auth_service, client_verify, fun(_ValidUsername, _SecretHash) -> ok end),
+    meck:expect(auth_service, client_logout, fun(_ValidUsername) -> ok end),
+    ok = client_service:client_logout(ValidUsername, SecretHash),
+    true = test_helpers:check_function_called(auth_service, client_verify, [ValidUsername, SecretHash]),
+    true = test_helpers:check_function_called(auth_service, client_logout, [ValidUsername]).
+
+non_existing_client_logout_invalid(_Config) ->
+    InvalidUsername = "InvalidUsername",
+    SecretHash = "asdadawdadsaHHJFB*H*W#(RHDHF",
+    meck:expect(auth_service, client_verify, fun(_ValidUsername, _SecretHash) -> error(clientnotverified) end),
+    meck:expect(auth_service, client_logout, fun(_ValidUsername) -> ok end),
+    test_helpers:assert_fail(fun client_service:client_logout/2, [InvalidUsername, SecretHash],
+        error, clientnotverified, failed_to_verify_client),
+    true = test_helpers:check_function_called(auth_service, client_verify, [InvalidUsername, SecretHash]).
+

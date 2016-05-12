@@ -45,10 +45,10 @@ insert_client(Username, Password) when is_list(Username), is_list(Password) ->
             error(usernametaken)
     end.
 
--spec update_client(list(), list(), list(), list()) -> atom().
+-spec update_client(list(), list(), binary(), list()) -> atom().
 update_client(Username, SecretHash, PublicKey, DedicatedNodes) when is_list(Username)
     andalso (undefined == SecretHash orelse is_list(SecretHash))
-    andalso (undefined == PublicKey orelse is_list(PublicKey))
+    andalso (undefined == PublicKey orelse is_binary(PublicKey))
     andalso is_list(DedicatedNodes) ->
     case mnesia:transaction(fun() ->
         [Client] = mnesia:wread({client, Username}),
