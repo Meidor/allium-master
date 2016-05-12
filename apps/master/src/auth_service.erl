@@ -5,7 +5,7 @@
     client_register/2,
     client_verify/2,
     client_logout/1
-    , client_return_all_clients_by_hash/1]).
+    ]).
 
 -spec client_register(list(), list()) -> any().
 client_register(Username, Password) when is_list(Username), is_list(Password) ->
@@ -27,15 +27,4 @@ client_logout(Username) when is_list(Username) ->
     catch
         _:_ ->
             error(couldnotbeloggedout)
-    end.
-
-%% Todo: Change select_all_clients to it's own function. for iteration 3.
--spec client_return_all_clients_by_hash(int32) -> [].
-client_return_all_clients_by_hash(Hash) when Hash > 0 ->
-    try
-        {Username, _, PublicKey, _, ConnectedNodes} = persistence_service:select_all_clients(),
-        {Username, PublicKey, ConnectedNodes}
-    catch
-        _:_  ->
-            error(noClientsForHash)
     end.
