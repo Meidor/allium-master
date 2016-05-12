@@ -9,12 +9,14 @@
     delete_client/1,
     delete_all_clients/0,
     select_clients_by_hash/1,
-    get_all_records_from_table/1
+    get_all_records_from_table/1,
+    update_client_dedicatednodes/2,
+    update_client_publickey/2
 ]).
 
 -include_lib("stdlib/include/qlc.hrl").
 
--record(client, {username, secrethash, publickey, password}).
+-record(client, {username, secrethash, publickey, password, dedicatednodes = []}).
 
 -spec init() -> any().
 init() ->
@@ -61,13 +63,28 @@ update_client_hash(Username, SecretHash) when
                 error(couldnotbeupdated)
     end.
 
+-spec update_client_publickey(list(), list()) -> atom().
+update_client_publickey(Username, PublicKey) when
+    is_list(Username) ->
+    case mnesia:transaction(fun() ->
+        [Client] = mnesia:wread({client, Username}),
+        mnesia:write(
+            Client#client{username = Username,
+                publickey = PublicKey})
+                            end) of
+        {atomic, ok} ->
+            ok;
+        _ ->
+            error(couldnotbeupdated)
+    end.
+
 -spec select_client(list()) -> any().
 select_client(Username) when is_list(Username) ->
     case mnesia:dirty_read({client, Username}) of
         [] ->
             undefined;
-        [{_, Username, SecretHash, PublicKey, Password}] ->
-            {Username, SecretHash, PublicKey, Password}
+        [{_, Username, SecretHash, PublicKey, Password, DedicatedNodes}] ->
+            {Username, SecretHash, PublicKey, Password, DedicatedNodes}
     end.
 
 -spec select_clients_by_hash(list()) -> list().
@@ -98,3 +115,17 @@ get_all_records_from_table(Table) when is_atom(Table) ->
             [ X || X <- mnesia:table(Table) ]
         ))
     end).
+
+-spec update_client_dedicatednodes(list(), list()) -> list().
+update_client_dedicatednodes(Username, DedicatedNodes) when is_list(Username), is_list(DedicatedNodes)->
+    case mnesia:transaction(fun() ->
+        [Client] = mnesia:wread({client, Username}),
+        mnesia:write(
+            Client#client{username = Username,
+                          dedicatednodes =  DedicatedNodes})
+                            end) of
+        [atomic, ok] ->
+            ok;
+        _ ->
+            error(couldnotbeupdated)
+    end.
