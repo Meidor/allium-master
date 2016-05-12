@@ -14,7 +14,8 @@
     client_register_unpredicted_error_return_error_test/1,
     client_verify_existing_user/1, client_verify_non_existing_user/1,
     client_logout_return_ok_test/1,
-    non_existing_client_logout_return_ok_test/1
+    non_existing_client_logout_return_ok_test/1,
+    client_login_valid_user/1, client_login_invalid_user/1
 ]).
 
 all() -> [
@@ -23,14 +24,17 @@ all() -> [
     client_register_unpredicted_error_return_error_test,
     client_verify_existing_user, client_verify_non_existing_user,
     client_logout_return_ok_test,
-    non_existing_client_logout_return_ok_test
+    non_existing_client_logout_return_ok_test,
+    client_login_valid_user, client_login_invalid_user
 ].
 
 init_per_suite(Config) ->
     meck:new(auth_service, [non_strict]),
+    meck:new(redis, [non_strict, passthrough]),
     Config.
 
 init_per_testcase(_, Config) ->
+    meck:expect(redis, set, fun(_,_) -> ok end),
     Config.
 
 end_per_testcase(_, Config) ->
@@ -102,3 +106,26 @@ non_existing_client_logout_return_ok_test(_Config) ->
     test_helpers:assert_fail(fun client_service:client_logout/1, [InvalidUsername],
         error, couldnotbeloggedout, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(auth_service, client_logout, [InvalidUsername]).
+
+client_login_valid_user(_Config) ->
+    ValidUsername = "Username",
+    ValidPassword = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
+    ValidPublicKey = "PublicKey@123",
+    meck:expect(auth_service, client_login, fun(_ValidUsername, _ValidPassword, _ValidPublicKey) -> ok end),
+    ok = client_service:client_login(ValidUsername, ValidPassword , ValidPublicKey),
+    true = test_helpers:check_function_called(auth_service, client_login, [ValidUsername, ValidPassword, ValidPublicKey]).
+
+
+client_login_invalid_user(_Config) ->
+    Username = "TakenUsername",
+    ValidPassword = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
+    ValidPublicKey = "PublicKey@123",
+    meck:expect(auth_service, client_login, fun(_Username, _ValidPassword, _ValidPublicKey) ->
+                                                case _Username of
+                                                    "Username" -> ok;
+                                                    "TakenUsername" -> error(invalidusername)
+                                                end
+                                            end),
+    test_helpers:assert_fail(fun client_service:client_login/3, [Username, ValidPassword, ValidPublicKey],
+        error, invalidusername, non_existing_user),
+    true = test_helpers:check_function_called(auth_service, client_login, [Username, ValidPassword, ValidPublicKey]).
