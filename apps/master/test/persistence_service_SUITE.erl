@@ -74,7 +74,7 @@ update_existing_client_hash_return_ok_test(_Config) ->
 
     ok = persistence_service:update_client_hash("Username", "NewHash"),
     [{"Username2", undefined, undefined, "Password", []}, {"Username", "NewHash", undefined,
-        "Password", _}] = persistence_service:select_all_clients().
+        "Password", []}] = persistence_service:select_all_clients().
 
 update_non_existing_client_hash_return_error_test(_Config) ->
     test_helpers:assert_fail(fun persistence_service:update_client_hash/2, ["Username", "SecretHash"],
@@ -117,7 +117,7 @@ select_all_existing_clients_with_given_hash_two_matches_return_clients_test(_Con
     persistence_service:update_client_hash("Username", "SecretHash"),
     persistence_service:update_client_hash("Username3", "SecretHash"),
 
-    [{"Username", "SecretHash", undefined, "Password", _},
+    [{"Username", "SecretHash", undefined, "Password", []},
         {"Username3", "SecretHash", undefined, "Password", []}] =  persistence_service:select_clients_by_hash("SecretHash").
 
 select_all_existing_clients_with_given_hash_no_matches_return_empty_test(_Config) ->
