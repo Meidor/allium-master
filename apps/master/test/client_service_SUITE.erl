@@ -6,7 +6,7 @@
     init_per_testcase/2,
     end_per_testcase/2,
     init_per_suite/1
-    ]).
+]).
 
 -export([
     client_register_valid_client_return_ok_test/1,
@@ -15,7 +15,7 @@
     client_verify_existing_user/1, client_verify_non_existing_user/1,
     client_logout_return_ok_test/1,
     non_existing_client_logout_return_ok_test/1
-    ]).
+]).
 
 all() -> [
     client_register_valid_client_return_ok_test,
@@ -102,4 +102,3 @@ non_existing_client_logout_return_ok_test(_Config) ->
     test_helpers:assert_fail(fun client_service:client_logout/1, [InvalidUsername],
         error, couldnotbeloggedout, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(auth_service, client_logout, [InvalidUsername]).
-
