@@ -28,7 +28,6 @@ end_per_testcase(_, Config) ->
   meck:unload(persistence_service),
   Config.
 
-%%todo change when functionality is added in iteration 3.
 return_clients_by_hash_test(_Config) ->
   meck:expect(persistence_service, select_all_clients, fun() -> [] end),
 
