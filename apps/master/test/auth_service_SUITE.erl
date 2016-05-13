@@ -17,8 +17,8 @@
     client_verify_not_existing_user/1,
     client_logout_return_ok_test/1,
     non_existing_client_logout_return_ok_test/1,
-    client_login_return_client_test/1,
-    client_login_with_wrong_password_return_clientnotverified_test/1
+    client_login_return_secrethash_and_dedicated_nodes_test/1,
+    client_login_with_wrong_password_return_client_not_verified_test/1
 ]).
 
 all() -> [
@@ -29,8 +29,8 @@ all() -> [
     client_verify_not_existing_user,
     client_logout_return_ok_test,
     non_existing_client_logout_return_ok_test,
-    client_login_return_client_test,
-    client_login_with_wrong_password_return_clientnotverified_test
+    client_login_return_secrethash_and_dedicated_nodes_test,
+    client_login_with_wrong_password_return_client_not_verified_test
 ].
 
 init_per_suite(Config) ->
@@ -107,25 +107,25 @@ non_existing_client_logout_return_ok_test(_Config) ->
         error, couldnotbeloggedout, failed_to_catch_invalid_username),
     true = test_helpers:check_function_called(persistence_service, update_client_hash, [InvalidUsername, undefined]).
 
-client_login_return_client_test(_Config) ->
+client_login_return_secrethash_and_dedicated_nodes_test(_Config) ->
     ValidUsername = "Username",
     ValidPassword = "Password123",
     ValidPublicKey = <<"PublicKey@123">>,
     DedicatedNodes = ["node1","node2","node3","node4","node5"],
-    AmountOfNodes = 5,
+    AmountOfDedicatedNodes = 5,
     meck:expect(persistence_service, update_client, fun(_Username, _Secrethash, _publicKey, _DedicatedNodes) -> ok end),
     meck:expect(persistence_service, select_client, fun(_Username) ->
         {ValidUsername, undefined, ValidPublicKey, ValidPassword, []} end),
-    meck:expect(node_graph_manager, get_random_dedicatednodes, fun(_AmountOfNodes) -> DedicatedNodes end),
+    meck:expect(node_graph_manager, get_random_dedicated_nodes, fun(_AmountOfNodes) -> DedicatedNodes end),
     {SecretHash, Nodes} = auth_service:client_login(ValidUsername, ValidPassword, ValidPublicKey),
     true = test_helpers:check_function_called(persistence_service, update_client,
         [ValidUsername, SecretHash, ValidPublicKey, Nodes]),
-    true = test_helpers:check_function_called(node_graph_manager, get_random_dedicatednodes, [AmountOfNodes]).
+    true = test_helpers:check_function_called(node_graph_manager, get_random_dedicated_nodes, [AmountOfDedicatedNodes]).
 
-client_login_with_wrong_password_return_clientnotverified_test(_Config) ->
+client_login_with_wrong_password_return_client_not_verified_test(_Config) ->
     ValidUsername = "Username1234567890",
     InvalidPassword = "Password123",
     ValidPublicKey = <<"PublicKey@123">>,
     meck:expect(persistence_service, select_client, fun(_Username) -> undefined end),
     test_helpers:assert_fail(fun auth_service:client_login/3, [ValidUsername, InvalidPassword, ValidPublicKey],
-        error, invalidclient, failed_to_catch_invalid_password).
+        error, clientcredentialsnotvalid, failed_to_catch_invalid_password).
