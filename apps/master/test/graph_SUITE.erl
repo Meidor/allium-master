@@ -30,8 +30,8 @@
     remove_node_test/1,
     get_node_secret_hash_test/1,
     update_node_test/1,
-    get_random_dedicatednodes_return_randomnodes_test/1,
-    get_random_dedicatednodes_without_existing_nodes_return_empty_list_test/1
+    get_random_dedicated_nodes_return_random_nodes_test/1,
+    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test/1
 ]).
 
 all() -> [
@@ -47,12 +47,12 @@ all() -> [
     remove_node_test,
     get_node_secret_hash_test,
     update_node_test,
-    get_random_dedicatednodes_return_randomnodes_test,
-    get_random_dedicatednodes_without_existing_nodes_return_empty_list_test
+    get_random_dedicated_nodes_return_random_nodes_test,
+    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test
 ].
 
 init_per_suite(Config) ->
-    meck:new(redis, [non_strict, passthrough]),
+    meck:new(redis, [non_strict]),
     Config.
 
 %%initial for datastructure graph, not right yet
@@ -422,19 +422,13 @@ add_node_test(_) ->
         end
     end),
 
-    meck:expect(redis, set, fun(Key, _Value) ->
-        case Key of
-            _ ->
-                ok
-            end
-        end),
-
-    meck:expect(redis, sadd, fun(_Key, _Value) -> ok end),
+    meck:expect(redis, set, fun(Key, _Value) -> ok end),
+    meck:expect(redis, set_add, fun(_Key, _Value) -> ok end),
 
     {NodeId, SecretHash} = node_graph_manager:add_node(NewNodeIP, NewNodePort, NewPublicKey),
     true = test_helpers:check_function_called(redis, set, ["max_version", list_to_integer(NewMaxVersion)]),
     true = test_helpers:check_function_called(redis, set, ["node_hash_" ++ NodeId, SecretHash]),
-    true = test_helpers:check_function_called(redis, sadd, ["active_nodes", NodeId]),
+    true = test_helpers:check_function_called(redis, set_add, ["active_nodes", NodeId]),
     HashedNewGraphUpdate = (["version_" ++ NewMaxVersion, hrp_pb:encode({graphupdate, list_to_integer(NewMaxVersion), false, [{node, NodeId, NewNodeIP, NewNodePort, NewPublicKey, []}], []})]),
     true = test_helpers:check_function_called(redis, set, HashedNewGraphUpdate).
 
@@ -467,12 +461,12 @@ remove_node_test(_) ->
         end
     end),
 
-    meck:expect(redis, srem, fun(_Key, _Value) -> ok end),
+    meck:expect(redis, set_remove, fun(_Key, _Value) -> ok end),
 
     ok = node_graph_manager:remove_node(RemovableNodeId),
     true = test_helpers:check_function_called(redis, set, ["max_version", list_to_integer(NewMaxVersion)]),
     HashedNewGraphUpdate = hrp_pb:encode({graphupdate, list_to_integer(NewMaxVersion), false, [], [{node, RemovableNodeId, "", 0, "", []}]}),
-    true = test_helpers:check_function_called(redis, srem, ["active_nodes", RemovableNodeId]),
+    true = test_helpers:check_function_called(redis, set_remove, ["active_nodes", RemovableNodeId]),
     true = test_helpers:check_function_called(redis, set, ["version_" ++ NewMaxVersion, HashedNewGraphUpdate]),
     true = test_helpers:check_function_called(redis, remove, ["node_hash_" ++ RemovableNodeId]).
 
@@ -523,18 +517,18 @@ update_node_test(_) ->
 
     ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz").
 
-get_random_dedicatednodes_return_randomnodes_test(_) ->
+get_random_dedicated_nodes_return_random_nodes_test(_) ->
     RedisNodes = [<<"node1">>, <<"node2">>, <<"node3">>, <<"node4">>, <<"node5">>],
     DedicatedNodes = ["node1", "node2", "node3", "node4", "node5"],
-    meck:expect(redis, srandmember, fun(_Key, _Amount) -> RedisNodes end),
-    AmountOfNodes = 5,
-    DedicatedNodes = node_graph_manager:get_random_dedicatednodes(AmountOfNodes),
-    true = test_helpers:check_function_called(redis, srandmember, ["active_nodes", AmountOfNodes]).
+    meck:expect(redis, set_randmember, fun(_Key, _Amount) -> RedisNodes end),
+    AmountOfDedicatedNodes = 5,
+    DedicatedNodes = node_graph_manager:get_random_dedicated_nodes(AmountOfDedicatedNodes),
+    true = test_helpers:check_function_called(redis, set_randmember, ["active_nodes", AmountOfDedicatedNodes]).
 
-get_random_dedicatednodes_without_existing_nodes_return_empty_list_test(_) ->
+get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test(_) ->
     RedisNodes = [],
     DedicatedNodes = [],
-    meck:expect(redis, srandmember, fun(_Key, _Amount) -> RedisNodes end),
-    AmountOfNodes = 5,
-    DedicatedNodes = node_graph_manager:get_random_dedicatednodes(AmountOfNodes),
-    true = test_helpers:check_function_called(redis, srandmember, ["active_nodes", AmountOfNodes]).
+    meck:expect(redis, set_randmember, fun(_Key, _Amount) -> RedisNodes end),
+    AmountOfDedicatedNodes = 5,
+    DedicatedNodes = node_graph_manager:get_random_dedicated_nodes(AmountOfDedicatedNodes),
+    true = test_helpers:check_function_called(redis, set_randmember, ["active_nodes", AmountOfDedicatedNodes]).
