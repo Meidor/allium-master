@@ -199,7 +199,8 @@ handle_message(Msg) ->
                     )
             end;
         'CLIENTLOGINREQUEST' ->
-            {clientloginrequest, Username, Password, PublicKey} = hrp_pb:decode_clientloginrequest(Data),
+            {clientloginrequest, Username, Password, PublicKey}
+                = hrp_pb:decode_clientloginrequest(Data),
             try
                 client_service:client_login(Username, Password, PublicKey)
             of {SecretHash, ConnectedNodes} ->

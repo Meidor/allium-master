@@ -42,7 +42,10 @@ client_logout(Username) when is_list(Username) ->
     end.
 
 -spec client_login(list(), list(), binary())-> any().
-client_login(Username, Password, PublicKey) when is_list(Username), is_list(Password), is_binary(PublicKey) ->
+client_login(Username, Password, PublicKey)
+    when
+        is_list(Username), is_list(Password), is_binary(PublicKey)
+    ->
     client_checkpassword(Username, Password),
     AmountOfDedicatedNodes = ?AMOUNTOFDEDICATEDNODES,
     SecretHash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
