@@ -68,9 +68,9 @@ handle_messages(Socket) ->
 
 -spec handle_message(list()) -> list().
 handle_message(Msg) ->
-    DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg)),
+    DecodedMsg = hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
     lager:info("MSG: ~p DECODED: ~p", [Msg, DecodedMsg]),
-    {[{encryptedwrapper, Type, Data} | _], _} = DecodedMsg,
+    {[{wrapper, Type, Data} | _], _} = DecodedMsg,
     case Type of
         'GRAPHUPDATEREQUEST' ->
             {graphupdaterequest, Version} = hrp_pb:decode_graphupdaterequest(Data),
@@ -229,4 +229,4 @@ handle_message(Msg) ->
 
 -spec get_wrapped_message(list(), list()) -> list().
 get_wrapped_message(Type, Msg) ->
-    hrp_pb:encode([{encryptedwrapper, Type, Msg}]).
+    hrp_pb:encode([{wrapper, Type, Msg}]).
