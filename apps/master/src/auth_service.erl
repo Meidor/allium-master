@@ -5,9 +5,10 @@
     client_register/2,
     client_verify/2,
     client_logout/1,
-    client_login/3,
-    client_checkpassword/2
+    client_login/3
 ]).
+
+-define(AMOUNTOFDEDICATEDNODES, 5).
 
 -spec client_register(list(), list()) -> any().
 client_register(Username, Password) when is_list(Username), is_list(Password) ->
@@ -28,7 +29,7 @@ client_checkpassword(Username, Password) when is_list(Username), is_list(Passwor
         {_, _, _, Password, _} = persistence_service:select_client(Username)
     catch
         _:_ ->
-            error(invalidclient)
+            error(clientcredentialsnotvalid)
     end.
 
 -spec client_logout(list()) -> any().
@@ -42,8 +43,9 @@ client_logout(Username) when is_list(Username) ->
 
 -spec client_login(list(), list(), binary())-> any().
 client_login(Username, Password, PublicKey) when is_list(Username), is_list(Password), is_binary(PublicKey) ->
-        client_checkpassword(Username, Password),
-        SecretHash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
-        DedicatedNodes = node_graph_manager:get_random_dedicatednodes(5),
-        persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
-        {SecretHash, DedicatedNodes}.
+    client_checkpassword(Username, Password),
+    AmountOfDedicatedNodes = ?AMOUNTOFDEDICATEDNODES,
+    SecretHash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
+    DedicatedNodes = node_graph_manager:get_random_dedicated_nodes(AmountOfDedicatedNodes),
+    persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
+    {SecretHash, DedicatedNodes}.
