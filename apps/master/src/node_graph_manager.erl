@@ -11,7 +11,9 @@
     add_node/3,
     remove_node/1,
     get_node_secret_hash/1,
-    update_node/4]).
+    update_node/4,
+    get_random_dedicated_nodes/1
+    ]).
 
 -spec get_graph_updates(integer()) -> list().
 get_graph_updates(Version) when is_integer(Version) ->
@@ -149,6 +151,7 @@ add_node(IPaddress, Port, PublicKey) ->
     NodeId = get_unique_node_id(),
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
     redis:set("node_hash_" ++ NodeId, Hash),
+    redis:set_add("active_nodes", NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
     redis:set(
@@ -175,6 +178,7 @@ remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
+    redis:set_remove("active_nodes", NodeId),
     redis:set(
         "version_" ++ integer_to_list(Version),
         hrp_pb:encode(
@@ -218,3 +222,7 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
         )
     ),
     ok.
+
+-spec get_random_dedicated_nodes(integer()) -> list().
+get_random_dedicated_nodes(NumberOfDedicatedNodes) ->
+    [binary_to_list(NodeId) || NodeId  <- redis:set_randmember("active_nodes", NumberOfDedicatedNodes)].

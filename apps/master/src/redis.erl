@@ -11,7 +11,11 @@
     set/2,
     remove/1,
     get_matching_keys/1,
-    get_list/1]).
+    get_list/1,
+    set_randmember/2,
+    set_add/2,
+    set_remove/2
+]).
 
 -spec get(list()) -> list().
 get(Key) ->
@@ -37,6 +41,19 @@ set(Key, Value) ->
 -spec remove(list()) -> any().
 remove(Key) ->
     eredis:q(get_connection(), ["DEL", "onion_" ++ Key]).
+
+-spec set_randmember(list(), integer()) -> any().
+set_randmember(Set, Amount) ->
+    {ok, Keys} = eredis:q(get_connection(), ["SRANDMEMBER", "onion_" ++ Set,  Amount]),
+    Keys.
+
+-spec set_add(list(), list()) -> any().
+set_add(Set, Value) ->
+    eredis:q(get_connection(), ["SADD", "onion_" ++ Set, Value]).
+
+-spec set_remove(list(), list()) -> any().
+set_remove(Set, Value) ->
+    eredis:q(get_connection(), ["SREM", "onion_" ++ Set, Value]).
 
 -spec get_connection() -> pid().
 get_connection() ->

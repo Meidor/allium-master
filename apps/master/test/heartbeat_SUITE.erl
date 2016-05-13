@@ -36,11 +36,11 @@ all() ->
     ].
 
 init_per_suite(Config) ->
-    meck:new(node_service, [non_strict, passthrough]),
-    meck:new(client_service, [non_strict, passthrough]),
+    meck:new(node_service, [non_strict]),
+    meck:new(client_service, [non_strict]),
     meck:new(heartbeat_monitor, [passthrough]),
-    meck:new(redis, [non_strict, passthrough]),
-    meck:new(persistence_service, [non_strict, passthrough]),
+    meck:new(redis, [non_strict]),
+    meck:new(persistence_service, [non_strict]),
     TimeBetweenHeartbeats = 5000,
     CurrentTime = 100000,
     HeartbeatNodeLabel = "heartbeat_node_",
