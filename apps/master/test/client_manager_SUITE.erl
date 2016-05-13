@@ -31,5 +31,5 @@ end_per_testcase(_, Config) ->
 return_clients_by_hash_test(_Config) ->
   meck:expect(persistence_service, select_all_clients, fun() -> [] end),
 
-  [] = persistence_service:select_all_clients(),
+  [] = client_manager:return_all_clients_by_hash(2),
   true = test_helpers:check_function_called(persistence_service, select_all_clients, []).
