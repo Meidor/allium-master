@@ -1,5 +1,5 @@
 var nodes, edges, network;
-var url = "ws://10.182.5.110:8080/websocket";
+var url = "ws://localhost:8080/websocket";
 var socket;
 var counter = 10;
 var edgeCounter = 10;
@@ -115,29 +115,43 @@ $(function () {
 
     function drawGraph() {
         nodes = new vis.DataSet();
-        nodes.add([
-            {id: '1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
-            {id: '2', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 2'},
-        ]);
-
         edges = new vis.DataSet();
-        edges.add([
-            {id: '1', from: '1', to: '2'},
-        ]);
 
         var container = document.getElementById('network');
+
         var data = {
             nodes: nodes,
             edges: edges
         };
-        var options = {interaction: {hover: true}};
-        network = new vis.Network(container, data, options);
 
+        var options = {interaction: {hover: true}};
+
+        network = new vis.Network(container, data, options);
     }
 
     function clear() {
         nodes.clear();
     }
+
+    $("#finder").on('submit', function(event) {
+        event.preventDefault();
+        var findNode = $("#find_node");
+        var search = findNode.val();
+
+        var result;
+        nodes.forEach(function(node) {
+            if (node.id.lastIndexOf(search, 0) === 0) {
+                result = node;
+            }
+        });
+
+        if (result !== undefined) {
+            network.focus(result.id);
+            network.selectNodes([result.id]);
+        }
+
+        findNode.val("");
+    });
 
     drawGraph();
     initSocket();
