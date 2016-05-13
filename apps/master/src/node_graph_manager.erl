@@ -225,4 +225,5 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
 
 -spec get_random_dedicated_nodes(integer()) -> list().
 get_random_dedicated_nodes(NumberOfDedicatedNodes) ->
-    [binary_to_list(NodeId) || NodeId  <- redis:set_randmember("active_nodes", NumberOfDedicatedNodes)].
+    [binary_to_list(NodeId) ||
+        NodeId  <- redis:set_randmember("active_nodes", NumberOfDedicatedNodes)].
