@@ -12,7 +12,7 @@ $(function () {
 
     // Initialize ProtoBuf.js
     var ProtoBuf = dcodeIO.ProtoBuf;
-    var Wrapper = ProtoBuf.loadProtoFile("js/hrp.proto").build("EncryptedWrapper");
+    var Wrapper = ProtoBuf.loadProtoFile("js/hrp.proto").build("Wrapper");
     var GraphUpdateResponse = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdateResponse");
     var GraphUpdate = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdate");
 
@@ -29,7 +29,7 @@ $(function () {
 
     function socketSend(type, data) {
         if (socket.readyState == WebSocket.OPEN) {
-            var wrapper = new EncryptedWrapper();
+            var wrapper = new Wrapper();
             wrapper.setType(type);
             wrapper.setData(data);
             socket.send(wrapper.toArrayBuffer());
