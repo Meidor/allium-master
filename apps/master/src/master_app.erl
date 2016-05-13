@@ -200,16 +200,38 @@ handle_message(Msg) ->
                     )
             end;
         'CLIENTLOGINREQUEST' ->
-            Request = hrp_pb:decode_clientloginrequest(Data),
-            get_wrapped_message(
-                'CLIENTLOGINRESPONSE',
-                hrp_pb:encode(
-                    {clientloginresponse, 'SUCCES', "KEY123", []}
+            {clientloginrequest, Username, Password, PublicKey}
+                = hrp_pb:decode_clientloginrequest(Data),
+            try
+                client_service:client_login(Username, Password, PublicKey)
+            of {SecretHash, ConnectedNodes} ->
+                get_wrapped_message(
+                    'CLIENTLOGINRESPONSE',
+                    hrp_pb:encode(
+                        {clientloginresponse, 'SUCCES', SecretHash, ConnectedNodes}
+                    )
                 )
-            );
+            catch
+                error:invalidclient ->
+                    get_wrapped_message(
+                        'CLIENTLOGINRESPONSE',
+                        hrp_pb:encode(
+                            {noderegisterresponse, 'INVALID_COMBINATION', undefined, undefined}
+                        )
+                    );
+                _:Error ->
+                    lager:error("Error in client login request: ~p", [Error]),
+                    get_wrapped_message(
+                        'NODEREGISTERRESPONSE',
+                        hrp_pb:encode(
+                            {noderegisterresponse, 'FAILED', undefined, undefined}
+                        )
+                    )
+            end;
         'CLIENTLOGOUTREQUEST' ->
             {clientlogoutrequest, Username, SecretHash} = hrp_pb:decode_clientlogoutrequest(Data),
-            try client_service:client_logout(Username, SecretHash) of
+            try
+                client_service:client_logout(Username, SecretHash) of
             ok ->
                 get_wrapped_message(
                     'CLIENTLOGOUTRESPONSE',
