@@ -144,7 +144,7 @@ protobuf_list_to_tuple_list(List) ->
 protobufs_to_tuple(Data) ->
     hrp_pb:decode_graphupdate(Data).
 
--spec add_node(list(), integer(), list()) -> tuple().
+-spec add_node(list(), integer(), binary()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
     NodeId = get_unique_node_id(),
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
@@ -195,9 +195,14 @@ set_max_version(Version) ->
 
 -spec get_node_secret_hash(list()) -> list().
 get_node_secret_hash(NodeId) ->
-    redis:get("node_hash_" ++ NodeId).
+    try
+        binary_to_list(redis:get("node_hash_" ++ NodeId))
+    catch
+        _:_  ->
+            undefined
+    end.
 
--spec update_node(list(), list(), integer(), list()) -> atom().
+-spec update_node(list(), list(), integer(), binary()) -> atom().
 update_node(NodeId, IPaddress, Port, PublicKey) ->
     DeleteVersion = get_max_version() + 1,
     AddVersion = DeleteVersion + 1,
@@ -229,4 +234,4 @@ publish(Event, Data) ->
 -spec get_wrapped_graphupdate_message(list(), list()) -> list().
 get_wrapped_graphupdate_message(Type, Msg) ->
     EncodedMessage  =hrp_pb:encode({graphupdateresponse, [Msg]}),
-    hrp_pb:encode({encryptedwrapper, Type, EncodedMessage}).
+    hrp_pb:encode({wrapper, Type, EncodedMessage}).

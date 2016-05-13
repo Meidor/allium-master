@@ -15,30 +15,36 @@
 
 -spec get(list()) -> list().
 get(Key) ->
-    {ok, Connection} = eredis:start_link(),
-    {ok, Value} = eredis:q(Connection, ["GET", "onion_" ++ Key]),
+    {ok, Value} = eredis:q(get_connection(), ["GET", "onion_" ++ Key]),
     Value.
 
 -spec get_matching_keys(list()) -> list().
 get_matching_keys(Key) ->
-    {ok, Connection} = eredis:start_link(),
-    {ok, Keys} = eredis:q(Connection, ["KEYS", "onion_" ++ Key ++ "*"]),
+    {ok, Keys} = eredis:q(get_connection(), ["KEYS", "onion_" ++ Key ++ "*"]),
     Keys.
 
 -spec get_list(list()) -> list().
 get_list([])->
     [];
 get_list(ListOfKeys) ->
-    {ok, Connection} = eredis:start_link(),
-    {ok, ListOfValues} = eredis:q(Connection, ["MGET" | ListOfKeys]),
+    {ok, ListOfValues} = eredis:q(get_connection(), ["MGET" | ListOfKeys]),
     ListOfValues.
 
 -spec set(list(), list()) -> any().
 set(Key, Value) ->
-    {ok, Connection} = eredis:start_link(),
-    eredis:q(Connection, ["SET", "onion_" ++ Key, Value]).
+    eredis:q(get_connection(), ["SET", "onion_" ++ Key, Value]).
 
 -spec remove(list()) -> any().
 remove(Key) ->
-    {ok, Connection} = eredis:start_link(),
-    eredis:q(Connection, ["DEL", "onion_" ++ Key]).
+    eredis:q(get_connection(), ["DEL", "onion_" ++ Key]).
+
+-spec get_connection() -> pid().
+get_connection() ->
+    case whereis(redis) of
+        undefined ->
+            {ok, Connection} = eredis:start_link(),
+            register(redis, Connection),
+            Connection;
+        Pid ->
+            Pid
+    end.

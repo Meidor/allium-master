@@ -12,7 +12,8 @@
                 eredis,
                 crypto,
                 lager,
-                websocket
+                websocket,
+                mnesia
             ]
         },
         {env,[]},

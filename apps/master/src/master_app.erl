@@ -23,7 +23,9 @@ start(_StartType, _StartArgs) ->
     Link = master_sup:start_link(),
     start(1337),
     lager:info("Start listening on port 1337..."),
-    timer:sleep(100000000),
+    persistence_service:init(),
+    lager:info("Mnesia started..."),
+    timer:sleep(14400000),
     Link.
 
 -spec stop(any()) -> atom().
@@ -67,9 +69,9 @@ handle_messages(Socket) ->
 
 -spec handle_message(list()) -> list().
 handle_message(Msg) ->
-    DecodedMsg = hrp_pb:delimited_decode_encryptedwrapper(iolist_to_binary(Msg)),
+    DecodedMsg = hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
     lager:info("MSG: ~p DECODED: ~p", [Msg, DecodedMsg]),
-    {[{encryptedwrapper, Type, Data} | _], _} = DecodedMsg,
+    {[{wrapper, Type, Data} | _], _} = DecodedMsg,
     case Type of
         'GRAPHUPDATEREQUEST' ->
             {graphupdaterequest, Version} = hrp_pb:decode_graphupdaterequest(Data),
@@ -165,16 +167,11 @@ handle_message(Msg) ->
                 )
             );
         'CLIENTHEARTBEAT' ->
-            Request = hrp_pb:decode_clientheartbeat(Data),
-            get_wrapped_message(
-                'CLIENTRESPONSE',
-                hrp_pb:encode(
-                    {clientresponse, [{"USER", "KEY123", []}]}
-                )
-            );
+            {clientheartbeat, Username, SecretHash} = hrp_pb:decode_clientheartbeat(Data),
+            heartbeat_monitor:receive_heartbeat_client(Username, SecretHash);
         'NODEHEARTBEAT' ->
             {nodeheartbeat, Id, SecretHash} = hrp_pb:decode_nodeheartbeat(Data),
-            heartbeat_monitor:receive_heartbeat(Id, SecretHash);
+            heartbeat_monitor:receive_heartbeat_node(Id, SecretHash);
         'CLIENTREGISTERREQUEST' ->
             {clientregisterrequest, Username, Password} = hrp_pb:decode_clientregisterrequest(Data),
             try client_service:client_register(Username, Password) of
@@ -211,15 +208,26 @@ handle_message(Msg) ->
                 )
             );
         'CLIENTLOGOUTREQUEST' ->
-            Request = hrp_pb:decode_clientlogoutrequest(Data),
-            get_wrapped_message(
-                'CLIENTLOGOUTRESPONSE',
-                hrp_pb:encode(
-                    {clientlogoutresponse, 'SUCCES'}
+            {clientlogoutrequest, Username, SecretHash} = hrp_pb:decode_clientlogoutrequest(Data),
+            try client_service:client_logout(Username, SecretHash) of
+            ok ->
+                get_wrapped_message(
+                    'CLIENTLOGOUTRESPONSE',
+                    hrp_pb:encode(
+                        {clientlogoutresponse, 'SUCCES'}
+                    )
                 )
-            )
+            catch
+                error:clientnotverified ->
+                    get_wrapped_message(
+                        'CLIENTLOGOUTRESPONSE',
+                        hrp_pb:encode(
+                            {clientlogoutresponse, 'UNVERIFIEDUSER'}
+                        )
+                    )
+            end
     end.
 
 -spec get_wrapped_message(list(), list()) -> list().
 get_wrapped_message(Type, Msg) ->
-    hrp_pb:encode({encryptedwrapper, Type, Msg}).
+    hrp_pb:encode([{wrapper, Type, Msg}]).
