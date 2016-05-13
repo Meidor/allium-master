@@ -422,7 +422,7 @@ add_node_test(_) ->
         end
     end),
 
-    meck:expect(redis, set, fun(Key, _Value) -> ok end),
+    meck:expect(redis, set, fun(_Key, _Value) -> ok end),
     meck:expect(redis, set_add, fun(_Key, _Value) -> ok end),
 
     {NodeId, SecretHash} = node_graph_manager:add_node(NewNodeIP, NewNodePort, NewPublicKey),
