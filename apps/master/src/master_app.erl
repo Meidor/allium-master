@@ -151,18 +151,11 @@ handle_message(Msg) ->
                 )
             end;
         'CLIENTREQUEST' ->
-            Request = hrp_pb:decode_clientrequest(Data),
+            {clientrequest, ClientGroup} = hrp_pb:decode_clientrequest(Data),
             get_wrapped_message(
                 'CLIENTRESPONSE',
                 hrp_pb:encode(
-                    {clientresponse,[
-                        {client, "123abc", "123456abcde", [
-                            {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}
-                        ]},
-                        {client, "456def", "654321fedcba", [
-                            {node, "2", "192.168.0.1", 80, "abcdef123456", [{edge, "1", 5.0}]}
-                        ]}
-                    ]}
+                    {clientresponse, client_manager:return_all_clients_by_hash(ClientGroup)}
                 )
             );
         'CLIENTHEARTBEAT' ->
