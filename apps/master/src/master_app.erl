@@ -236,7 +236,7 @@ handle_message(Msg) ->
                     get_wrapped_message(
                         'CLIENTLOGOUTRESPONSE',
                         hrp_pb:encode(
-                            {clientlogoutresponse, 'UNVERIFIEDUSER'}
+                            {clientlogoutresponse, 'FAILED'}
                         )
                     )
             end

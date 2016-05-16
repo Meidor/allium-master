@@ -20,7 +20,8 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
 -spec client_logout(list()) -> any().
 client_logout(Username) when is_list(Username) ->
     auth_service:client_logout(Username),
-    heartbeat_monitor:remove_client(Username).
+    heartbeat_monitor:remove_client(Username),
+    ok.
 
 -spec client_login(list(), list(), binary()) -> any().
 client_login(Username, Password, PublicKey)
