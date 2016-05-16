@@ -21,7 +21,7 @@
 
 -spec start_link() -> any().
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+    supervisor:start_link({local, master}, ?MODULE, []).
 
 %%====================================================================
 %% Supervisor callbacks
@@ -30,7 +30,27 @@ start_link() ->
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 -spec init(list()) -> tuple().
 init([]) ->
-    {ok, { {one_for_all, 0, 1}, []} }.
+    {ok, { {one_for_one, 0, 1},
+        [
+            {
+                heartbeat_monitor_sup,
+                {heartbeat_monitor_sup, start_link, []},
+                permanent,
+                brutal_kill,
+                supervisor,
+                [heartbeat_monitor_sup]
+            },
+            {
+                graph_monitor_sup,
+                {graph_monitor_sup, start_link, []},
+                permanent,
+                brutal_kill,
+                supervisor,
+                [graph_monitor_sup]
+            }
+        ]
+        }
+    }.
 
 %%====================================================================
 %% Internal functions

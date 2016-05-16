@@ -39,9 +39,9 @@ return_clients_by_clientgroup_with_valid_response_test(_Config) ->
         {"test3", undefined, undefined, "pass3", []},
         {"test1", undefined, undefined, "pass1", []}] end),
 
-    [{"test2", <<"publickeytest">>, []},
-    {"test3", undefined, []},
-    {"test1", undefined, []}] = client_manager:return_all_clients_by_clientgroup(2),
+    [{client, "test2", <<"publickeytest">>, []},
+    {client, "test3", undefined, []},
+    {client, "test1", undefined, []}] = client_manager:return_all_clients_by_clientgroup(2),
     true = test_helpers:check_function_called(persistence_service, select_all_clients, []).
 
 

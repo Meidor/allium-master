@@ -7,7 +7,7 @@
 -module(graph_monitor_app).
 -behaviour(gen_server).
 
--define(INTERVAL, 5000).
+-define(INTERVAL, 32000).
 
 %% API
 -export([

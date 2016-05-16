@@ -150,7 +150,7 @@ remove_clients_with_inactive_heartbeats_test(Config) ->
     MonitoredTimes = [integer_to_binary(TimeHeartbeat) || {_, _, TimeHeartbeat} <- ClientsWithTimes],
     meck:expect(redis, get_matching_keys, fun(_HeartbeatClientLabel) -> MonitoredClients end),
     meck:expect(redis, get_list, fun(_) -> MonitoredTimes end),
-    meck:expect(persistence_service, update_client_hash, fun(_, undefined) -> ok end),
+    meck:expect(persistence_service, update_client_hash, fun(_, _) -> ok end),
 
     [InactiveClientIdOne, InactiveClientIdTwo] = heartbeat_monitor:remove_inactive_clients(HeartbeatTime),
     true = test_helpers:check_function_called(redis, get_matching_keys, [HeartbeatClientLabel]),
