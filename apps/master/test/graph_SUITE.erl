@@ -73,6 +73,8 @@ get_graph_updates_without_existing_graph_test(_) ->
         end
     end),
 
+    meck:expect(redis, set, fun(_Key, _Value) -> ok end),
+
     [VERSION1] = node_graph_manager:get_graph_updates(-1),
     [VERSION1] = node_graph_manager:get_graph_updates(0),
     [] = node_graph_manager:get_graph_updates(1),
@@ -120,6 +122,8 @@ build_graph_without_existing_graph_test(_) ->
                 VERSION1
         end
     end),
+
+    meck:expect(redis, set, fun(_Key, _Value) -> ok end),
 
     {graphupdate, 1, true,
         [],
