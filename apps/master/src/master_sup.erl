@@ -32,22 +32,22 @@ start_link() ->
 init([]) ->
     {ok, { {one_for_one, 0, 1},
         [
-            {
-                heartbeat_monitor_sup,
-                {heartbeat_monitor_sup, start_link, []},
-                permanent,
-                brutal_kill,
-                supervisor,
-                [heartbeat_monitor_sup]
-            },
-            {
-                graph_monitor_sup,
-                {graph_monitor_sup, start_link, []},
-                permanent,
-                brutal_kill,
-                supervisor,
-                [graph_monitor_sup]
-            }
+%%            {
+%%                heartbeat_monitor_sup,
+%%                {heartbeat_monitor_sup, start_link, []},
+%%                permanent,
+%%                brutal_kill,
+%%                supervisor,
+%%                [heartbeat_monitor_sup]
+%%            },
+%%            {
+%%                graph_monitor_sup,
+%%                {graph_monitor_sup, start_link, []},
+%%                permanent,
+%%                brutal_kill,
+%%                supervisor,
+%%                [graph_monitor_sup]
+%%            }
         ]
         }
     }.

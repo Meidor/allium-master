@@ -32,7 +32,6 @@ all() -> [
 
 init_per_suite(Config) ->
     test_helpers_int:empty_database(),
-    master_sup:start_link(),
     persistence_service:init(),
     persistence_service:delete_all_clients(),
 
@@ -138,7 +137,8 @@ register_new_client_and_log_in_while_nodes_exist_return_nodes_as_dedicated_nodes
         [{loggedoutclient, test_helpers_int:retrieve_from_last_test(existingclient, Config)},
             {loggedinclient, {Username, Password, PublicKey, undefined, []}}]}.
 
-client_is_logged_out_after_not_sending_heartbeat_test(Config) ->
+client_is_logged_out_after_not_sending_heartbeat_test(_Config) ->
+%%      heartbeat_monitor_sup:start_link(),
 %%    {Username, Password, PublicKey, undefined, []} =
 %%        test_helpers_int:retrieve_from_last_test(loggedoutclient, Config),
 %%    {UsernameTwo, PasswordTwo, PublicKeyTwo, SecretHashTwo, DedicatedNodesTwo} =
@@ -151,10 +151,11 @@ client_is_logged_out_after_not_sending_heartbeat_test(Config) ->
 %%
 %%    HeartbeatRequest = test_helpers_int:encode_message_to_binary({nodeheartbeat, UsernameTwo, SecretHashTwo}),
 %%
-%%    timer:sleep(3000),
+%%    timer:sleep(4000),
 %%    test_helpers_int:send_heartbeat(HeartbeatRequest, 'CLIENTHEARTBEAT'),
-%%    timer:sleep(3000),
-%%    heartbeat_monitor:remove_inactive_clients(4),
+%%    timer:sleep(4000),
+%%    test_helpers_int:send_heartbeat(HeartbeatRequest, 'CLIENTHEARTBEAT'),
+%%    timer:sleep(4000),
 %%
 %%    {Username, undefined, PublicKey, Password, []} = persistence_service:select_client(Username),
 %%    {UsernameTwo, SecretHashTwo, PublicKeyTwo, PasswordTwo, DedicatedNodesTwo} =

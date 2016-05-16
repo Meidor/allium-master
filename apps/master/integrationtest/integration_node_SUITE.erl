@@ -175,7 +175,8 @@ get_graph_updates_from_version_three_on_return_adding_deleting_updated_node_test
     test_helpers_int:pass_to_next_test([{deletednode, {NodeId, SecretHash, IP, Port, PublicKey}}]).
 
 rebuild_graph_return_graph_with_graphupdate_three_as_full_graph_test(Config) ->
-    node_graph_manager:rebuild_graph(),
+    graph_monitor_sup:start_link(),
+    timer:sleep(11000),
 
     {NodeId, _, IP, Port, PublicKey} = test_helpers_int:retrieve_from_last_test(deletednode, Config),
     Request = {graphupdaterequest, 0},
@@ -189,6 +190,8 @@ rebuild_graph_return_graph_with_graphupdate_three_as_full_graph_test(Config) ->
     ] = DecodedGraphFourUpdates.
 
 node_is_removed_after_not_sending_heartbeat_test(Config) ->
+    heartbeat_monitor_sup:start_link(),
+
     {_, _, IPOne, PortOne, PublicKeyOne} = ?config(node, Config),
     IPTwo = "255.255.0.1",
     PortTwo = 50,
@@ -203,10 +206,11 @@ node_is_removed_after_not_sending_heartbeat_test(Config) ->
 
     HeartbeatRequest = test_helpers_int:encode_message_to_binary({nodeheartbeat, NodeIdOne, SecretHashOne}),
 
-    timer:sleep(3000),
+    timer:sleep(7000),
     test_helpers_int:send_heartbeat(HeartbeatRequest, 'NODEHEARTBEAT'),
-    timer:sleep(3000),
-    heartbeat_monitor:remove_inactive_nodes(3),
+    timer:sleep(7000),
+    test_helpers_int:send_heartbeat(HeartbeatRequest, 'NODEHEARTBEAT'),
+    timer:sleep(7000),
 
     true = is_binary(redis:get("heartbeat_node_" ++ NodeIdOne)),
     undefined = redis:get("heartbeat_node_" ++ NodeIdTwo),
@@ -216,7 +220,8 @@ node_is_removed_after_not_sending_heartbeat_test(Config) ->
         {deletednode, {NodeIdTwo, SecretHashTwo, IPTwo, PortTwo, PublicKeyTwo}}]).
 
 rebuild_graph_return_graph_with_graphupdate_six_as_full_graph_and_node_without_heartbeat_deleted_test(Config) ->
-    node_graph_manager:rebuild_graph(),
+    graph_monitor_sup:start_link(),
+    timer:sleep(11000),
 
     {NodeId, _, IP, Port, PublicKey} = test_helpers_int:retrieve_from_last_test(activenode, Config),
     {NodeIdDeleted, _, IPDeleted, PortDeleted, PublicKeyDeleted} =
@@ -231,5 +236,4 @@ rebuild_graph_return_graph_with_graphupdate_six_as_full_graph_and_node_without_h
         {graphupdate, 7, false, [{node, NodeIdDeleted, IPDeleted, PortDeleted, PublicKeyDeleted, []}], []},
         {graphupdate, 8, false, [], [{node, NodeIdDeleted, [], 0, <<>>, []}]}
     ] = DecodedGraphUpdates.
-
 

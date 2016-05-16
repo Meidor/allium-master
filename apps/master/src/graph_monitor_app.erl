@@ -7,7 +7,7 @@
 -module(graph_monitor_app).
 -behaviour(gen_server).
 
--define(INTERVAL, 32000).
+-define(INTERVAL, 10000).
 
 %% API
 -export([
@@ -25,7 +25,7 @@ start_link() ->
 
 -spec init(list()) -> tuple().
 init([])->
-    Timer = erlang:send_after(1, self(), check),
+    Timer = erlang:send_after(?INTERVAL, self(), check),
     {ok, Timer}.
 
 -spec handle_info(atom(), any()) -> tuple().
