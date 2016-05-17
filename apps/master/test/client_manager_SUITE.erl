@@ -7,14 +7,14 @@
     init_per_suite/1,
     init_per_testcase/2,
     end_per_testcase/2,
-    return_logged_in_clients_by_clientgroup_when_no_clients_return_empty_list_test/1,
-    return_logged_in_clients_by_clientgroup_return_list_logged_in_clients_test/1
+    return_logged_in_clients_by_clientgroup_when_no_clients_returns_empty_list_test/1,
+    return_logged_in_clients_by_clientgroup_returns_list_of_logged_in_clients_test/1
 
 ]).
 
 all() -> [
-    return_logged_in_clients_by_clientgroup_when_no_clients_return_empty_list_test,
-    return_logged_in_clients_by_clientgroup_return_list_logged_in_clients_test
+    return_logged_in_clients_by_clientgroup_when_no_clients_returns_empty_list_test,
+    return_logged_in_clients_by_clientgroup_returns_list_of_logged_in_clients_test
 ].
 
 init_per_suite(Config) ->
@@ -28,12 +28,12 @@ end_per_testcase(_, Config) ->
     meck:unload(persistence_service),
     Config.
 
-return_logged_in_clients_by_clientgroup_when_no_clients_return_empty_list_test(_Config) ->
+return_logged_in_clients_by_clientgroup_when_no_clients_returns_empty_list_test(_Config) ->
     meck:expect(persistence_service, select_all_clients, fun() -> [] end),
     [] = client_manager:return_all_clients_by_clientgroup(2),
     true = test_helpers:check_function_called(persistence_service, select_all_clients, []).
 
-return_logged_in_clients_by_clientgroup_return_list_logged_in_clients_test(_Config) ->
+return_logged_in_clients_by_clientgroup_returns_list_of_logged_in_clients_test(_Config) ->
     meck:expect(persistence_service, select_all_clients, fun() ->
         [{"test2", "secrethash", <<"publickeytest">>, "pass2", []},
         {"test3", "othersecrethash", undefined, "pass3", []},
