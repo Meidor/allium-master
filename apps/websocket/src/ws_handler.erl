@@ -2,10 +2,12 @@
 -behaviour(cowboy_websocket_handler).
 
 -export([init/3]).
--export([websocket_init/3]).
--export([websocket_handle/3]).
--export([websocket_info/3]).
--export([websocket_terminate/3]).
+-export([
+    websocket_init/3,
+    websocket_handle/3,
+    websocket_info/3,
+    websocket_terminate/3
+]).
 
 -spec subscribe(any()) -> any().
 subscribe(Event) ->
