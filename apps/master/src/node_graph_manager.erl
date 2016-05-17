@@ -154,12 +154,15 @@ add_node(IPaddress, Port, PublicKey) ->
     redis:set_add("active_nodes", NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
+    GraphUpdate = hrp_pb:encode(
+            {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
+    ),
     redis:set(
         "version_" ++ integer_to_list(Version),
-        hrp_pb:encode(
-            {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
-        )
+        GraphUpdate
     ),
+    UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
+    publish(node_update, UpdateMessage),
     {NodeId, Hash}.
 
 -spec get_unique_node_id() -> list().
@@ -178,13 +181,16 @@ remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
+    GraphUpdate =  hrp_pb:encode(
+            {graphupdate, Version, false, [], [{node, NodeId, "", 0, "", []}]}
+    ),
     redis:set_remove("active_nodes", NodeId),
     redis:set(
         "version_" ++ integer_to_list(Version),
-        hrp_pb:encode(
-            {graphupdate, Version, false, [], [{node, NodeId, "", 0, "", []}]}
-        )
+        GraphUpdate
     ),
+    UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
+    publish(node_update, UpdateMessage),
     ok.
 
 -spec set_max_version(integer()) -> any().
@@ -213,15 +219,26 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
             ]}
         )
     ),
-    redis:set(
-        "version_" ++ integer_to_list(AddVersion),
-        hrp_pb:encode(
+    GraphUpdate = hrp_pb:encode(
             {graphupdate, AddVersion, false, [
                 {node, NodeId, IPaddress, Port, PublicKey, []}
             ], []}
-        )
     ),
+    redis:set(
+        "version_" ++ integer_to_list(AddVersion),
+        GraphUpdate
+    ),
+    UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
+    publish(node_update, UpdateMessage),
     ok.
+
+publish(Event, Data) ->
+    gproc:send({p, l, {ws_handler, Event}}, {ws_handler, Event, Data}).
+
+-spec get_wrapped_graphupdate_message(list(), list()) -> list().
+get_wrapped_graphupdate_message(Type, Msg) ->
+    EncodedMessage = hrp_pb:encode({graphupdateresponse, [Msg]}),
+    hrp_pb:encode({wrapper, Type, EncodedMessage}).
 
 -spec get_random_dedicated_nodes(integer()) -> list().
 get_random_dedicated_nodes(NumberOfDedicatedNodes) ->

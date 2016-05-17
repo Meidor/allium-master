@@ -19,6 +19,7 @@
 
 -spec start(any(), any()) -> any().
 start(_StartType, _StartArgs) ->
+    lager:start(),
     Link = master_sup:start_link(),
     start(1337),
     lager:info("Start listening on port 1337..."),
