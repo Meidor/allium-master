@@ -209,7 +209,7 @@ handle_message(Msg) ->
                     get_wrapped_message(
                         'CLIENTLOGINRESPONSE',
                         hrp_pb:encode(
-                            {clientloginresponse, 'INVALID_COMBINATION', "", []}
+                            {clientloginresponse, 'INVALID_COMBINATION', undefined, []}
                         )
                     );
                 _:Error ->
@@ -217,7 +217,7 @@ handle_message(Msg) ->
                     get_wrapped_message(
                         'CLIENTLOGINRESPONSE',
                         hrp_pb:encode(
-                            {clientloginresponse, 'FAILED', "", []}
+                            {clientloginresponse, 'FAILED', undefined, []}
                         )
                     )
             end;
