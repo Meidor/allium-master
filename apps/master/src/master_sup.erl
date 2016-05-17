@@ -27,31 +27,37 @@ start_link() ->
 %% Supervisor callbacks
 %%====================================================================
 
-%% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 -spec init(list()) -> tuple().
 init([]) ->
+    init_shell().
+
+-spec init_shell() -> tuple().
+init_shell() ->
     {ok, { {one_for_one, 0, 1},
-        [
-%%            {
-%%                heartbeat_monitor_sup,
-%%                {heartbeat_monitor_sup, start_link, []},
-%%                permanent,
-%%                brutal_kill,
-%%                supervisor,
-%%                [heartbeat_monitor_sup]
-%%            },
-%%            {
-%%                graph_monitor_sup,
-%%                {graph_monitor_sup, start_link, []},
-%%                permanent,
-%%                brutal_kill,
-%%                supervisor,
-%%                [graph_monitor_sup]
-%%            }
-        ]
+            []
         }
     }.
 
-%%====================================================================
-%% Internal functions
-%%====================================================================
+-spec init_full() -> tuple().
+init_full() ->
+    {ok, { {one_for_one, 0, 1},
+        [
+            {
+                heartbeat_monitor_sup,
+                {heartbeat_monitor_sup, start_link, []},
+                permanent,
+                brutal_kill,
+                supervisor,
+                [heartbeat_monitor_sup]
+            },
+            {
+                graph_monitor_sup,
+                {graph_monitor_sup, start_link, []},
+                permanent,
+                brutal_kill,
+                supervisor,
+                [graph_monitor_sup]
+            }
+        ]
+    }
+    }.

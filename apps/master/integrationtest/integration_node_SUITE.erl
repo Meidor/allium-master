@@ -99,7 +99,7 @@ register_already_registered_node_return_error_test(Config) ->
 %%    Request = {noderegisterrequest, IP, Port, PublicKey},
 
 %%    {noderegisterresponse, 'ALREADY_EXISTS', "", ""} = hrp_pb:decode_noderegisterresponse(
-%%        test_helpers_int:get_data_encrypted_response(Request, 'NODEREGISTERREQUEST', 'NODEREGISTERRESPONSE'))
+%%        test_helpers_int:get_data_encrypted_response(Request, 'NODEREGISTERREQUEST', 'NODEREGISTERRESPONSE')),
 
     {skip_and_save, "An already registered node can still register at this time",
         [{registerednode, {NodeId, SecretHash, IP, Port, PublicKey}}]}.

@@ -36,7 +36,7 @@ init_per_suite(Config) ->
     persistence_service:delete_all_clients(),
 
     NodeIPsAndKeys = [{"255.255.0.1", <<"publickey1">>}, {"255.255.0.2", <<"publickey2">>},
-        {"255.255.0.3", <<"publickey3">>}, {"255.255.0.4", <<"publickey4">>}],
+        {"255.255.0.3", <<"publickey3">>}],
     ValidUsername = "username",
     ValidPassword = "Password1234",
     ValidClientPublicKey = <<"generatedpublickey">>,
@@ -117,48 +117,44 @@ register_new_client_and_log_in_while_nodes_exist_return_nodes_as_dedicated_nodes
     Username = "anotherusername",
     Password = "Password1234",
     PublicKey = <<"anotherpublickey">>,
-%%    Request = {clientregisterrequest, Username, Password},
-%%
-%%    {clientregisterresponse, 'SUCCES'} = hrp_pb:decode_clientregisterresponse(
-%%        test_helpers_int:get_data_encrypted_response(Request, 'CLIENTREGISTERREQUEST', 'CLIENTREGISTERRESPONSE')),
-%%
-%%    NodeIPsAndKeys = ?config(nodes, Config),
-%%    NodeIds = [test_helpers_int:register_node_return_id(IP, Key) || {IP, Key} <- NodeIPsAndKeys],
-%%    LoginRequest = {clientloginrequest, Username, Password, PublicKey},
-%%
-%%    {clientloginresponse, 'SUCCES', SecretHash, DedicatedNodes} = hrp_pb:decode_clientloginresponse(
-%%        test_helpers_int:get_data_encrypted_response(LoginRequest, 'CLIENTLOGINREQUEST', 'CLIENTLOGINRESPONSE')),
-%%    true = test_helpers_int:valid_secret_hash(SecretHash),
-%%    3 = length(lists:filter(fun(NodeId) -> lists:member(NodeId, DedicatedNodes) end, NodeIds)),
+    Request = {clientregisterrequest, Username, Password},
 
-%%    test_helpers_int:pass_to_next_test([{loggedinclient, {Username, Password, PublicKey, SecretHash, DedicatedNodes}}]).
+    {clientregisterresponse, 'SUCCES'} = hrp_pb:decode_clientregisterresponse(
+        test_helpers_int:get_data_encrypted_response(Request, 'CLIENTREGISTERREQUEST', 'CLIENTREGISTERRESPONSE')),
 
-    {skip_and_save, "After logging in entire nodes are added to the client as dedicated node instead of ids",
-        [{loggedoutclient, test_helpers_int:retrieve_from_last_test(existingclient, Config)},
-            {loggedinclient, {Username, Password, PublicKey, undefined, []}}]}.
+    NodeIPsAndKeys = ?config(nodes, Config),
+    NodeIds = [test_helpers_int:register_node_return_id(IP, Key) || {IP, Key} <- NodeIPsAndKeys],
+    LoginRequest = {clientloginrequest, Username, Password, PublicKey},
 
-client_is_logged_out_after_not_sending_heartbeat_test(_Config) ->
-%%      heartbeat_monitor_sup:start_link(),
-%%    {Username, Password, PublicKey, undefined, []} =
-%%        test_helpers_int:retrieve_from_last_test(loggedoutclient, Config),
-%%    {UsernameTwo, PasswordTwo, PublicKeyTwo, SecretHashTwo, DedicatedNodesTwo} =
-%%        test_helpers_int:retrieve_from_last_test(loggedinclient, Config),
-%%
-%%    LoginRequest = {clientloginrequest, Username, Password, PublicKey},
-%%
-%%    {clientloginresponse, 'SUCCES', _SecretHash, _DedicatedNodes} = hrp_pb:decode_clientloginresponse(
-%%        test_helpers_int:get_data_encrypted_response(LoginRequest, 'CLIENTLOGINREQUEST', 'CLIENTLOGINRESPONSE')),
-%%
-%%    HeartbeatRequest = test_helpers_int:encode_message_to_binary({nodeheartbeat, UsernameTwo, SecretHashTwo}),
-%%
-%%    timer:sleep(4000),
-%%    test_helpers_int:send_heartbeat(HeartbeatRequest, 'CLIENTHEARTBEAT'),
-%%    timer:sleep(4000),
-%%    test_helpers_int:send_heartbeat(HeartbeatRequest, 'CLIENTHEARTBEAT'),
-%%    timer:sleep(4000),
-%%
-%%    {Username, undefined, PublicKey, Password, []} = persistence_service:select_client(Username),
-%%    {UsernameTwo, SecretHashTwo, PublicKeyTwo, PasswordTwo, DedicatedNodesTwo} =
-%%        persistence_service:select_client(Username).
+    {clientloginresponse, 'SUCCES', SecretHash, DedicatedNodes} = hrp_pb:decode_clientloginresponse(
+        test_helpers_int:get_data_encrypted_response(LoginRequest, 'CLIENTLOGINREQUEST', 'CLIENTLOGINRESPONSE')),
+    true = test_helpers_int:valid_secret_hash(SecretHash),
+    3 = length(lists:filter(fun(NodeId) -> lists:member(NodeId, DedicatedNodes) end, NodeIds)),
 
-    {skip, "After logging in entire nodes are added to the client as dedicated node instead of ids"}.
+    test_helpers_int:pass_to_next_test([
+        {loggedoutclient, test_helpers_int:retrieve_from_last_test(existingclient, Config)},
+        {loggedinclient, {Username, Password, PublicKey, SecretHash, DedicatedNodes}}]).
+
+client_is_logged_out_after_not_sending_heartbeat_test(Config) ->
+      heartbeat_monitor_sup:start_link(),
+    {Username, Password, PublicKey, undefined, []} =
+        test_helpers_int:retrieve_from_last_test(loggedoutclient, Config),
+    {UsernameTwo, PasswordTwo, PublicKeyTwo, SecretHashTwo, DedicatedNodesTwo} =
+        test_helpers_int:retrieve_from_last_test(loggedinclient, Config),
+
+    LoginRequest = {clientloginrequest, Username, Password, PublicKey},
+
+    {clientloginresponse, 'SUCCES', _SecretHash, DedicatedNodesOne} = hrp_pb:decode_clientloginresponse(
+        test_helpers_int:get_data_encrypted_response(LoginRequest, 'CLIENTLOGINREQUEST', 'CLIENTLOGINRESPONSE')),
+
+    HeartbeatRequest = test_helpers_int:encode_message_to_binary({nodeheartbeat, UsernameTwo, SecretHashTwo}),
+
+    timer:sleep(4000),
+    test_helpers_int:send_heartbeat(HeartbeatRequest, 'CLIENTHEARTBEAT'),
+    timer:sleep(4000),
+    test_helpers_int:send_heartbeat(HeartbeatRequest, 'CLIENTHEARTBEAT'),
+    timer:sleep(4000),
+
+    {Username, undefined, PublicKey, Password, DedicatedNodesOne} = persistence_service:select_client(Username),
+    {UsernameTwo, SecretHashTwo, PublicKeyTwo, PasswordTwo, DedicatedNodesTwo} =
+        persistence_service:select_client(UsernameTwo).
