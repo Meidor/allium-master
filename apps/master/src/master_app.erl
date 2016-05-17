@@ -233,7 +233,8 @@ handle_message(Msg) ->
                     )
                 )
             catch
-                error:clientnotverified ->
+                _:Error ->
+                    lager:error("Error in client logout request: ~p", [Error]),
                     get_wrapped_message(
                         'CLIENTLOGOUTRESPONSE',
                         hrp_pb:encode(
