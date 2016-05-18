@@ -1,7 +1,7 @@
 -module(heartbeat_monitor_nodes_app).
 -behaviour(gen_server).
 
--define(INTERVAL, 10000).
+-define(INTERVAL,  element(2, application:get_env(master, node_heartbeat_interval))).
 
 %% API
 -export([

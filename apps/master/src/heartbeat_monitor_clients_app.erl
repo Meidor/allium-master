@@ -1,7 +1,7 @@
 -module(heartbeat_monitor_clients_app).
 -behaviour(gen_server).
 
--define(INTERVAL, 5000).
+-define(INTERVAL,  element(2, application:get_env(master, client_heartbeat_interval))).
 
 %% API
 -export([

@@ -5,9 +5,10 @@
 %%% Created : 18. Apr 2016 7:49 PM
 %%%===================================================================
 -module(graph_monitor_app).
+
 -behaviour(gen_server).
 
--define(INTERVAL, 30000).
+-define(INTERVAL, element(2, application:get_env(master, graph_rebuild_interval))).
 
 %% API
 -export([

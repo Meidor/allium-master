@@ -40,7 +40,7 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
-    master_sup:start_link(),
+    application:load(master),
 
     ValidNodeId = "12345",
     ValidNodeSecretHash = "secrethash12345",
@@ -60,6 +60,7 @@ init_per_testcase(_, Config) ->
     Config.
 
 end_per_suite(Config) ->
+    application:unload(master),
     Config.
 
 update_a_non_existing_node_return_error_test(Config) ->

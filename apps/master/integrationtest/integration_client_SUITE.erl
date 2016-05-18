@@ -32,6 +32,7 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
+    application:load(master),
     persistence_service:init(),
 
     NodeIPsAndKeys = [
@@ -58,6 +59,7 @@ init_per_testcase(_, Config) ->
     Config.
 
 end_per_suite(Config) ->
+    application:unload(master),
     Config.
 
 login_non_existing_client_return_error_test(Config) ->
