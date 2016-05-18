@@ -1,14 +1,7 @@
-%%%===================================================================
-%%% @copyright (C) 2016, <COMPANY>
-%%% @doc
-%%% @end
-%%% Created : 18. Apr 2016 7:49 PM
-%%%===================================================================
--module(graph_monitor_app).
-
+-module(heartbeat_monitor_clients_app).
 -behaviour(gen_server).
 
--define(INTERVAL, element(2, application:get_env(master, graph_rebuild_interval))).
+-define(INTERVAL,  element(2, application:get_env(master, client_heartbeat_interval))).
 
 %% API
 -export([
@@ -18,21 +11,22 @@
     handle_call/3,
     handle_cast/2,
     terminate/2,
-    code_change/3]).
+    code_change/3
+]).
 
 -spec start_link() -> any().
 start_link() ->
-    gen_server:start_link({local, graph_monitor_app}, ?MODULE, [], []).
+    gen_server:start_link({local, heartbeat_monitor_clients_app}, ?MODULE, [], []).
 
 -spec init(list()) -> tuple().
-init([])->
+init([]) ->
     Timer = erlang:send_after(?INTERVAL, self(), check),
     {ok, Timer}.
 
 -spec handle_info(atom(), any()) -> tuple().
 handle_info(check, OldTimer) ->
     erlang:cancel_timer(OldTimer),
-    node_graph_manager:rebuild_graph(),
+    heartbeat_monitor:remove_inactive_clients(round(?INTERVAL/1000)),
     Timer = erlang:send_after(?INTERVAL, self(), check),
     {noreply, Timer}.
 

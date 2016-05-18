@@ -1,15 +1,27 @@
 {application, master,
- [{description, "An OTP application"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {mod, {master_app, []}},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[]},
-  {modules, [node_service]},
-  {maintainers, []},
-  {licenses, []},
-  {links, []}
- ]}.
+    [{description, "An OTP application"},
+        {vsn, "0.1.0"},
+        {registered, []},
+        {mod, {master_app, []}},
+        {applications,
+            [
+                kernel,
+                stdlib,
+                protobuffs,
+                eredis,
+                crypto,
+                lager,
+                mnesia
+            ]},
+        {env,
+            [
+                {client_heartbeat_interval, 5000},
+                {node_heartbeat_interval, 10000},
+                {graph_rebuild_interval, 30000}
+            ]
+        },
+        {modules, [node_service]},
+        {maintainers, []},
+        {licenses, []},
+        {links, []}
+    ]}.

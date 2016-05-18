@@ -1,20 +1,20 @@
-%%%-------------------------------------------------------------------
+%%%===================================================================
 %% @doc master public API
 %% @end
-%%%-------------------------------------------------------------------
+%%%===================================================================
 -module(node_service).
--export([node_register/3, 
-         node_unregister/1, node_unregister/2, 
-         node_verify/2,
-         node_update/5
+-export([node_register/3,
+    node_unregister/1, node_unregister/2,
+    node_verify/2,
+    node_update/5
 ]).
 
 %% @doc Register your node in the graph
 %% @end
--spec node_register(list(), integer(), list()) -> tuple().
+-spec node_register(list(), integer(), binary()) -> tuple().
 node_register(IPaddress, Port, PublicKey)
     when
-        is_list(IPaddress), is_integer(Port), Port > 0, Port < 65536, is_list(PublicKey)
+        is_list(IPaddress), is_integer(Port), Port > 0, Port < 65536, is_binary(PublicKey)
     ->
     {NodeId, SecretHash} = node_graph_manager:add_node(IPaddress, Port, PublicKey),
     heartbeat_monitor:add_node(NodeId),
@@ -49,14 +49,14 @@ node_verify(NodeId, SecretHash)
 
 %% @doc Update a node
 %% @end
--spec node_update(list(), list(), list(), integer(), list()) -> any().
+-spec node_update(list(), list(), list(), integer(), binary()) -> any().
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
-    when 
+    when
         is_list(NodeId)
         andalso is_list(SecretHash)
         andalso (undefined == IPaddress orelse is_list(IPaddress))
         andalso (undefined == Port orelse (is_integer(Port) andalso Port > 0 andalso Port < 65536))
-        andalso (is_list(PublicKey) orelse undefined == PublicKey)
+        andalso (is_binary(PublicKey) orelse undefined == PublicKey)
     ->
     node_verify(NodeId, SecretHash),
     node_graph_manager:update_node(NodeId, IPaddress, Port, PublicKey).

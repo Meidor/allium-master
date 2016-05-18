@@ -15,7 +15,7 @@ all() -> [node_register_test_valid_node, node_unregister_test_valid_node,
 init_per_suite(Config) ->
     IPaddress = "192.168.4.4",
     Port = 1337,
-    PublicKey = "MyPublicKey",
+    PublicKey = <<"MyPublicKey">>,
     ValidNode = {IPaddress, Port, PublicKey, "ValideId"},
     InvalidNode = {42, "Harry", 42, "InvalideId"},
     [

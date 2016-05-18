@@ -24,10 +24,25 @@ start_link() ->
 
 -spec init(list()) -> tuple().
 init([]) ->
-    {ok, {{one_for_one, 0, 1},
-        [{heartbeat_monitor_app, {heartbeat_monitor_app, start_link, []}, permanent, brutal_kill,
-            worker, [heartbeat_monitor_app]}]}}.
-
-%%====================================================================
-%% Internal functions
-%%====================================================================
+    {ok, {
+            {one_for_one, 0, 1},
+            [
+                {
+                    heartbeat_monitor_clients_app,
+                    {heartbeat_monitor_clients_app, start_link, []},
+                    permanent,
+                    brutal_kill,
+                    worker,
+                    [heartbeat_monitor_clients_app]
+                },
+                {
+                    heartbeat_monitor_nodes_app,
+                    {heartbeat_monitor_nodes_app, start_link, []},
+                    permanent,
+                    brutal_kill,
+                    worker,
+                    [heartbeat_monitor_nodes_app]
+                }
+            ]
+        }
+    }.
