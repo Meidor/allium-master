@@ -14,8 +14,12 @@
     get_list/1,
     set_randmember/2,
     set_add/2,
-    set_remove/2
-]).
+    set_remove/2,
+    execute_command_on_all_nodes/1,
+    init/0]).
+
+init() ->
+    sharded_eredis:start().
 
 -spec get(list()) -> list().
 get(Key) ->
@@ -65,3 +69,11 @@ get_connection() ->
         Pid ->
             Pid
     end.
+
+execute_command_on_all_nodes(Command) ->
+    {ok, NodeList} = application:get_env(sharded_eredis, ring),
+    Nodes = [Node || {_, Node} <- NodeList],
+    lists:map(
+        fun(Node) -> {ok, Response} = sharded_eredis:q2(Node, Command), Response end,
+        Nodes
+    ).
