@@ -24,9 +24,7 @@ start_link() ->
 
 -spec init(list()) -> tuple().
 init([]) ->
-    {ok, {
-            {one_for_one, 0, 1},
-            [
+    {ok, {{one_for_one, 0, 1}, [
                 {
                     heartbeat_monitor_clients_app,
                     {heartbeat_monitor_clients_app, start_link, []},
@@ -44,5 +42,4 @@ init([]) ->
                     [heartbeat_monitor_nodes_app]
                 }
             ]
-        }
-    }.
+    }}.
