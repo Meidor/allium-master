@@ -12,6 +12,7 @@
     remove_node/1,
     get_node_secret_hash/1,
     update_node/4,
+    update_node/5,
     get_random_dedicated_nodes/1
     ]).
 
@@ -208,6 +209,10 @@ get_node_secret_hash(NodeId) ->
 
 -spec update_node(list(), list(), integer(), binary()) -> atom().
 update_node(NodeId, IPaddress, Port, PublicKey) ->
+    update_node(NodeId, IPaddress, Port, PublicKey, undefined).
+
+-spec update_node(list(), list(), integer(), binary(), list()) -> atom().
+update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     DeleteVersion = get_max_version() + 1,
     AddVersion = DeleteVersion + 1,
     set_max_version(AddVersion),
@@ -215,14 +220,14 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
         "version_" ++ integer_to_list(DeleteVersion),
         hrp_pb:encode(
             {graphupdate, DeleteVersion, false, [], [
-                {node, NodeId, "", 0, "", []}
+                {node, NodeId, "", 0, "", Edges}
             ]}
         )
     ),
     GraphUpdate = hrp_pb:encode(
-            {graphupdate, AddVersion, false, [
-                {node, NodeId, IPaddress, Port, PublicKey, []}
-            ], []}
+        {graphupdate, AddVersion, false, [
+            {node, NodeId, IPaddress, Port, PublicKey, []}
+        ], []}
     ),
     redis:set(
         "version_" ++ integer_to_list(AddVersion),
