@@ -125,7 +125,7 @@ $(function () {
         edges = new vis.DataSet();
         /* Voorbeelddata, to remove */
         edges.add([
-            {id: '1', from: '1', to: '2', weight: '12'},
+            {from: '1', to: '2', weight1: '12', weight2: '177', arrows:'to, from'},
         ]);
 
         var container = document.getElementById('network');
@@ -141,10 +141,14 @@ $(function () {
 
         network.on("selectEdge", function (data) {
 
-                    $("#edgeData").html("from node " + edges._data[data.edges[0]].from + " to node " + edges._data[data.edges[0]].to);
+                    $("#edgeData1").html("from node " + edges._data[data.edges[0]].from + " to node " + edges._data[data.edges[0]].to);
+                    $("#edgeData2").html("from node " + edges._data[data.edges[0]].to + " to node " + edges._data[data.edges[0]].from);
 
-        			$("#weight").val(edges._data[data.edges[0]].weight);
-                    $("#edgeId").val(edges._data[data.edges[0]].id);
+        			$("#weight1").val(edges._data[data.edges[0]].weight1);
+        			$("#weight2").val(edges._data[data.edges[0]].weight2);
+
+                    $("#edgeId1").val(edges._data[data.edges[0]].from);
+                    $("#edgeId2").val(edges._data[data.edges[0]].to);
                 });
     }
 
