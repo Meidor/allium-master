@@ -87,7 +87,9 @@ client_register_valid_client_return_ok_test(_Config) ->
 client_register_invalid_client_username_taken_return_error_test(_Config) ->
     InvalidUsername = "TakenUsername",
     Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
-    meck:expect(persistence_service, select_client, fun(_InvalidUsername) -> error(usernametaken) end),
+    meck:expect(persistence_service, select_client, fun(_InvalidUsername) ->
+        {InvalidUsername, undefined, undefined, Password, []} end),
+    meck:expect(persistence_service, insert_client, fun(_ValidUsername, _Password) -> error(usernametaken) end),
 
     test_helpers:assert_fail(fun auth_service:client_register/2, [InvalidUsername, Password],
         error, usernametaken, failed_to_catch_invalid_username).

@@ -14,7 +14,7 @@
     client_register_unpredicted_error_return_error_test/1,
     client_verify_existing_user/1, client_verify_non_existing_user/1,
     client_logout_return_ok_test/1,
-    non_existing_client_logout_return_ok_test/1,
+    non_existing_client_logout_return_error_test/1,
     client_login_valid_user_return_user_test/1, 
     client_login_invalid_user_return_error_test/1,
     client_logout_with_valid_username_and_secrethash/1,
@@ -27,7 +27,7 @@ all() -> [
     client_register_unpredicted_error_return_error_test,
     client_verify_existing_user, client_verify_non_existing_user,
     client_logout_return_ok_test,
-    non_existing_client_logout_return_ok_test,
+    non_existing_client_logout_return_error_test,
     client_login_valid_user_return_user_test, 
     client_login_invalid_user_return_error_test,
     client_logout_with_valid_username_and_secrethash,
@@ -104,11 +104,13 @@ client_verify_non_existing_user(_Config) ->
 client_logout_return_ok_test(_Config) ->
     ValidUsername = "Username",
     meck:expect(auth_service, client_logout, fun(_ValidUsername) -> ok end),
+    meck:expect(heartbeat_monitor, remove_client, fun(_ValidUsername) -> ok end),
 
     ok = client_service:client_logout(ValidUsername),
-    true = test_helpers:check_function_called(auth_service, client_logout, [ValidUsername]).
+    true = test_helpers:check_function_called(auth_service, client_logout, [ValidUsername]),
+    true = test_helpers:check_function_called(heartbeat_monitor, remove_client, [ValidUsername]).
 
-non_existing_client_logout_return_ok_test(_Config) ->
+non_existing_client_logout_return_error_test(_Config) ->
     InvalidUsername = "TakenUsername",
     meck:expect(auth_service, client_logout, fun(_InvalidUsername) -> error(couldnotbeloggedout) end),
 
@@ -124,6 +126,7 @@ client_login_valid_user_return_user_test(_Config) ->
     Nodes = ["node1", "node2", "node3", "node4", "node5"],
     meck:expect(heartbeat_monitor, add_client, fun(_Username) -> ok end),
     meck:expect(auth_service, client_login, fun(_ValidUsername, _ValidPassword, _ValidPublicKey) -> {SecretHash, Nodes} end),
+
     {SecretHash, Nodes} = client_service:client_login(ValidUsername, ValidPassword , ValidPublicKey),
     true = test_helpers:check_function_called(auth_service, client_login, [ValidUsername, ValidPassword, ValidPublicKey]),
     true = test_helpers:check_function_called(heartbeat_monitor, add_client, [ValidUsername]).
@@ -144,15 +147,19 @@ client_logout_with_valid_username_and_secrethash(_Config) ->
     SecretHash = "SECRETHASH123",
     meck:expect(auth_service, client_verify, fun(_ValidUsername, _SecretHash) -> ok end),
     meck:expect(auth_service, client_logout, fun(_ValidUsername) -> ok end),
+    meck:expect(heartbeat_monitor, remove_client, fun(_ValidUsername) -> ok end),
+
     ok = client_service:client_logout(ValidUsername, SecretHash),
     true = test_helpers:check_function_called(auth_service, client_verify, [ValidUsername, SecretHash]),
-    true = test_helpers:check_function_called(auth_service, client_logout, [ValidUsername]).
+    true = test_helpers:check_function_called(auth_service, client_logout, [ValidUsername]),
+    true = test_helpers:check_function_called(heartbeat_monitor, remove_client, [ValidUsername]).
 
 non_existing_client_logout_invalid(_Config) ->
     InvalidUsername = "InvalidUsername",
     SecretHash = "asdadawdadsaHHJFB*H*W#(RHDHF",
     meck:expect(auth_service, client_verify, fun(_ValidUsername, _SecretHash) -> error(clientnotverified) end),
     meck:expect(auth_service, client_logout, fun(_ValidUsername) -> ok end),
+
     test_helpers:assert_fail(fun client_service:client_logout/2, [InvalidUsername, SecretHash],
         error, clientnotverified, failed_to_verify_client),
     true = test_helpers:check_function_called(auth_service, client_verify, [InvalidUsername, SecretHash]).
