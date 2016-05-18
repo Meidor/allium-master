@@ -16,7 +16,6 @@ $(function () {
     var GraphUpdateResponse = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdateResponse");
     var GraphUpdate = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdate");
 
-
     function initSocket() {
         console.log("Initializing socket");
         socket = new WebSocket(url);
@@ -151,6 +150,23 @@ $(function () {
         }
 
         findNode.val("");
+    });
+	
+	
+    $("#login").on('submit', function(event) {
+        event.preventDefault();
+        var username = $("#username").val();
+        var password = $("#password").val();
+        if (username !== undefined && password !== undefined) {
+
+            var response = network.focus(username, password);
+			if (response) {
+				window.location = "index.html";
+			}
+			else {
+				alert("You have submitted the wrong user credentials.");
+			}
+        }
     });
 
     drawGraph();
