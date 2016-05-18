@@ -5,7 +5,9 @@
     client_register/2,
     client_verify/2,
     client_logout/1,
-    client_login/3
+    client_login/3,
+    admin_verify/1,
+    admin_login/2
 ]).
 
 -define(AMOUNTOFDEDICATEDNODES, 5).
@@ -23,8 +25,17 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
             error(clientnotverified)
     end.
 
--spec client_checkpassword(list(), list()) -> any().
-client_checkpassword(Username, Password) when is_list(Username), is_list(Password) ->
+-spec admin_verify(list(), list()) -> any().
+admin_verify(Username) when is_list(Username) ->
+    try
+        {_, _, _, _, _} = persistence_service:select_client(Username)
+    catch
+        _:_ ->
+            error(adminnotverified)
+    end.
+
+-spec client_check_password(list(), list()) -> any().
+client_check_password(Username, Password) when is_list(Username), is_list(Password) ->
     try
         {_, _, _, Password, _} = persistence_service:select_client(Username)
     catch
@@ -46,9 +57,26 @@ client_login(Username, Password, PublicKey)
     when
         is_list(Username), is_list(Password), is_binary(PublicKey)
     ->
-    client_checkpassword(Username, Password),
+    client_check_password(Username, Password),
     AmountOfDedicatedNodes = ?AMOUNTOFDEDICATEDNODES,
     SecretHash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
     DedicatedNodes = node_graph_manager:get_random_dedicated_nodes(AmountOfDedicatedNodes),
     persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
     {SecretHash, DedicatedNodes}.
+
+-spec admin_login(list(), list())-> any().
+admin_login(Username, Password)
+    when
+    is_list(Username), is_list(Password) ->
+    admin_check_password(Username, Password),
+    ok.
+
+
+-spec admin_check_password(list(), list()) -> any().
+admin_check_password(Username, Password) when is_list(Username), is_list(Password) ->
+    try
+        {_, Password, _} = persistence_service:select_admin(Username)
+    catch
+        _:_ ->
+            error(admincredentialsnotvalid)
+    end.
