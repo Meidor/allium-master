@@ -95,7 +95,8 @@ $(function () {
                 edges.add({
                     id: node.id + edge.targetNodeId,
                     from: node.id,
-                    to: edge.targetNodeId
+                    to: edge.targetNodeId,
+                    weight: 1
                 });
             });
         } catch (error) {
@@ -115,7 +116,17 @@ $(function () {
 
     function drawGraph() {
         nodes = new vis.DataSet();
+        /* Voorbeelddata, to remove */
+        nodes.add([
+            {id: '1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
+            {id: '2', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 2'},
+        ]);
+
         edges = new vis.DataSet();
+        /* Voorbeelddata, to remove */
+        edges.add([
+            {id: '1', from: '1', to: '2', weight: '12'},
+        ]);
 
         var container = document.getElementById('network');
 
@@ -127,36 +138,70 @@ $(function () {
         var options = {interaction: {hover: true}};
 
         network = new vis.Network(container, data, options);
+
+        network.on("selectEdge", function (data) {
+
+                    $("#edgeData").html("from node " + edges._data[data.edges[0]].from + " to node " + edges._data[data.edges[0]].to);
+
+        			$("#weight").val(edges._data[data.edges[0]].weight);
+                    $("#edgeId").val(edges._data[data.edges[0]].id);
+                });
     }
 
     function clear() {
         nodes.clear();
     }
 
-    $("#finder").on('submit', function(event) {
-        event.preventDefault();
-        var findNode = $("#find_node");
-        var search = findNode.val();
-
-        var result;
-        nodes.forEach(function(node) {
-            if (node.id.lastIndexOf(search, 0) === 0) {
-                result = node;
-            }
-        });
-
-        if (result !== undefined) {
-            network.focus(result.id);
-            network.selectNodes([result.id]);
-        }
-
-        findNode.val("");
-    });
-
     drawGraph();
     initSocket();
 });
-    
 
+    function updateEdgeWeight(edgeId, newEdgeWeight) {
+        edge = edges.get(edgeId);
+        node = nodes.get(edge.from);
+        edge.weight = newEdgeWeight;
+        edges.update(edge);
+
+        currentEdges = [];
+
+        edges.forEach(function(edgeToAdd) {
+            if(edgeToAdd.from == node.id) {
+                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight});
+            }
+        });
+
+        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
+
+        alert(JSON.stringify(toSend));
+
+        // initSocket();
+        // socketSend(UPDATENODE, toSend);
+        // socketClose();
+    }
+
+
+
+
+    function deleteEdge(edgeId) {
+        edge = edges.get(edgeId);
+        node = nodes.get(edge.from);
+
+        edges.remove(edge);
+
+        currentEdges = [];
+        edges.forEach(function(edgeToAdd) {
+            if(edgeToAdd.from == node.id) {
+                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight});
+            }
+        });
+
+        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
+
+        alert(JSON.stringify(toSend));
+
+        // initSocket();
+        // socketSend(UPDATENODE, toSend);
+        // socketClose();
+    }
 
 

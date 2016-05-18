@@ -25,6 +25,20 @@
                 <input type="submit" name="ZOEK" />
             </form>
         </p>
+        <div id ="edgeRelated">
+            - - - - - - - - - - - - -
+            <h3>Alter node</h3>
+            <p>
+                Edge:
+                <span id = "edgeData"></span>
+                <br>Weight: <input type="number" id="weight" value="undef" />
+                <input type="hidden" id="edgeId" value="0" />
+            <p>
+                <input type="submit" value="Edge weight aanpassen" onclick="updateEdgeWeight($('#edgeId').val(), $('#weight').val())" name="ChangeWeight" />
+                <input type="submit" value="Verwijder edge" onclick="deleteEdge($('#edgeId').val())" />
+            </p>
+            </p>
+        </div>
 	</div>
 </body>
 </html>
