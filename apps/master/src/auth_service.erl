@@ -38,7 +38,7 @@ client_logout(Username) when is_list(Username) ->
         persistence_service:update_client_hash(Username, undefined)
     catch
         _:_ ->
-        error(couldnotbeloggedout)
+            error(couldnotbeloggedout)
     end.
 
 -spec client_login(list(), list(), binary())-> any().

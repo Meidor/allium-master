@@ -13,7 +13,13 @@
                 lager,
                 mnesia
             ]},
-        {env, []},
+        {env,
+            [
+                {client_heartbeat_interval, 5000},
+                {node_heartbeat_interval, 10000},
+                {graph_rebuild_interval, 30000}
+            ]
+        },
         {modules, [node_service]},
         {maintainers, []},
         {licenses, []},

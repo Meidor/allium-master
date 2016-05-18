@@ -14,7 +14,7 @@ erl_crash.dump
 logs
 _build
 *_pb.*
-
+tmp/
 #test reports Erlang
 jenkins_report.xml
 ct_logs_*.tgz
@@ -100,3 +100,6 @@ Session.vim
 *~
 # auto-generated tag files
 tags
+
+#### Mnesia ####
+Mnesia.*/
