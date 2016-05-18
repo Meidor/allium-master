@@ -220,13 +220,13 @@ update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
         "version_" ++ integer_to_list(DeleteVersion),
         hrp_pb:encode(
             {graphupdate, DeleteVersion, false, [], [
-                {node, NodeId, "", 0, "", Edges}
+                {node, NodeId, "", 0, "", []}
             ]}
         )
     ),
     GraphUpdate = hrp_pb:encode(
         {graphupdate, AddVersion, false, [
-            {node, NodeId, IPaddress, Port, PublicKey, []}
+            {node, NodeId, IPaddress, Port, PublicKey, Edges}
         ], []}
     ),
     redis:set(

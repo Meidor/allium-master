@@ -557,7 +557,7 @@ update_node_with_edges_test(_) ->
                 {graphupdate, 13, false, [], [{node, "YWJjZGVmZ2hpamtsbW5vcA==", _, _, _, _}]}
                     = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
             "version_14" ->
-                {graphupdate, 14, false, [{node, "YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, <<"xyz">>, []}], []}
+                {graphupdate, 14, false, [{node, "YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, <<"xyz">>, [{edge, "node5", 10.0}, {edge, "node6", 55.0}]}], []}
                     = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
             "max_version" ->
                 true = lists:any(
@@ -567,4 +567,4 @@ update_node_with_edges_test(_) ->
         end
                             end),
 
-    ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz").
+    ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz", [{edge, "node5", 10.0}, {edge, "node6", 55.0}]).
