@@ -23,7 +23,7 @@
 init() ->
     sharded_eredis:start().
 
--spec get(list()) -> list().
+-spec get(list()) -> binary().
 get(Key) ->
     {ok, Value} = sharded_eredis:q(["GET", ?prefix ++ Key]),
     Value.
@@ -40,24 +40,24 @@ get_list(ListOfKeys) ->
     {ok, ListOfValues} = eredis:q(get_connection(), ["MGET" | ListOfKeys]),
     ListOfValues.
 
--spec set(list(), list()) -> any().
+-spec set(list(), list()) -> tuple().
 set(Key, Value) ->
     sharded_eredis:q(["SET", ?prefix ++ Key, Value]).
 
--spec remove(list()) -> any().
+-spec remove(list()) -> tuple().
 remove(Key) ->
     sharded_eredis:q(["DEL", ?prefix ++ Key]).
 
--spec set_randmember(list(), integer()) -> any().
+-spec set_randmember(list(), integer()) -> list().
 set_randmember(Set, Amount) ->
     {ok, Keys} = sharded_eredis:q(["SRANDMEMBER", ?prefix ++ Set,  Amount]),
     Keys.
 
--spec set_add(list(), list()) -> any().
+-spec set_add(list(), list()) -> tuple().
 set_add(Set, Value) ->
     sharded_eredis:q(["SADD", ?prefix ++ Set, Value]).
 
--spec set_remove(list(), list()) -> any().
+-spec set_remove(list(), list()) -> tuple().
 set_remove(Set, Value) ->
     sharded_eredis:q(["SREM", ?prefix ++ Set, Value]).
 
@@ -72,6 +72,7 @@ get_connection() ->
             Pid
     end.
 
+-spec execute_command_on_all_nodes(list()) -> list().
 execute_command_on_all_nodes(Command) ->
     {ok, NodeList} = application:get_env(sharded_eredis, ring),
     Nodes = [Node || {_, Node} <- NodeList],
