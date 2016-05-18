@@ -11,7 +11,8 @@
 -export([
     start/2,
     stop/1,
-    start/1]).
+    start/1,
+    handle_message/1]).
 
 %%====================================================================
 %% API
@@ -156,7 +157,7 @@ handle_message(Msg) ->
             get_wrapped_message(
                 'CLIENTRESPONSE',
                 hrp_pb:encode(
-                    {clientresponse, client_manager:return_all_clients_by_hash(ClientGroup)}
+                    {clientresponse, client_manager:return_all_clients_by_clientgroup(ClientGroup)}
                 )
             );
         'CLIENTHEARTBEAT' ->
@@ -205,19 +206,19 @@ handle_message(Msg) ->
                     )
                 )
             catch
-                error:invalidclient ->
+                error:clientcredentialsnotvalid ->
                     get_wrapped_message(
                         'CLIENTLOGINRESPONSE',
                         hrp_pb:encode(
-                            {noderegisterresponse, 'INVALID_COMBINATION', undefined, undefined}
+                            {clientloginresponse, 'INVALID_COMBINATION', undefined, []}
                         )
                     );
                 _:Error ->
                     lager:error("Error in client login request: ~p", [Error]),
                     get_wrapped_message(
-                        'NODEREGISTERRESPONSE',
+                        'CLIENTLOGINRESPONSE',
                         hrp_pb:encode(
-                            {noderegisterresponse, 'FAILED', undefined, undefined}
+                            {clientloginresponse, 'FAILED', undefined, []}
                         )
                     )
             end;
@@ -233,11 +234,12 @@ handle_message(Msg) ->
                     )
                 )
             catch
-                error:clientnotverified ->
+                _:Error ->
+                    lager:error("Error in client logout request: ~p", [Error]),
                     get_wrapped_message(
                         'CLIENTLOGOUTRESPONSE',
                         hrp_pb:encode(
-                            {clientlogoutresponse, 'UNVERIFIEDUSER'}
+                            {clientlogoutresponse, 'FAILED'}
                         )
                     )
             end

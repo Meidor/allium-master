@@ -29,21 +29,22 @@ init() ->
 -spec insert_client(list(), list()) -> atom().
 insert_client(Username, Password) when is_list(Username), is_list(Password) ->
     try
-        case mnesia:transaction(fun() ->
-            undefined = select_client(Username),
-            mnesia:write(
-                #client{username = Username,
-                    password = Password})
-            end) of
-                {atomic, ok} ->
-                    ok;
-                _ ->
-                    error(couldnotbeinserted)
-        end
+        undefined = select_client(Username)
     catch
-        _:_ ->
+        _:{badmatch,_} ->
             error(usernametaken)
-    end.
+    end,
+
+    case mnesia:transaction(fun() ->
+        mnesia:write(
+            #client{username = Username,
+            password = Password})
+        end) of
+            {atomic, ok} ->
+                ok;
+            _ ->
+                error(couldnotbeinserted)
+        end.
 
 -spec update_client(list(), list(), binary(), list()) -> atom().
 update_client(Username, SecretHash, PublicKey, DedicatedNodes) when is_list(Username)
@@ -64,7 +65,7 @@ update_client(Username, SecretHash, PublicKey, DedicatedNodes) when is_list(User
             error(couldnotbeupdated)
     end.
 
--spec update_client_hash(list(), list()) -> atom().
+-spec update_client_hash(list(), any()) -> atom().
 update_client_hash(Username, SecretHash) when
     is_list(Username)
     andalso (undefined == SecretHash orelse is_list(SecretHash)) ->

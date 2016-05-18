@@ -39,6 +39,8 @@ get_min_version() ->
     try
         binary_to_integer(redis:get("min_version"))
     catch _:_ ->
+        update_min_version(1),
+        redis:set("version_1", hrp_pb:encode({graphupdate, 1, true, [], []})),
         1
     end.
 
@@ -61,16 +63,10 @@ get_graph_updates_for_versions(Versions) ->
 get_graph_updates_for_version(Version) ->
     redis:get("version_" ++ integer_to_list(Version)).
 
-
 -spec rebuild_graph() -> atom().
 rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
-    case NewMinVersion of
-        1 ->
-            Graph = {graphupdate, 1, true, [], []};
-        _ ->
-            Graph = build_graph(NewMinVersion)
-    end,
+    Graph = build_graph(NewMinVersion),
     save_graph(Graph, NewMinVersion),
     remove_old_versions(NewMinVersion),
     update_min_version(NewMinVersion),
