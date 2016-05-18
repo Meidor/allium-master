@@ -5,7 +5,7 @@
 %%% @end
 %%% Created : 15. Apr 2016 13:36
 %%%-------------------------------------------------------------------
--module(graph_SUITE).
+-module(node_graph_manager_SUITE).
 
 %%Commontest lib
 -include_lib("common_test/include/ct.hrl").
