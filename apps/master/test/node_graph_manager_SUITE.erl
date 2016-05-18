@@ -31,7 +31,8 @@
     get_node_secret_hash_test/1,
     update_node_test/1,
     get_random_dedicated_nodes_return_random_nodes_test/1,
-    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test/1
+    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test/1,
+    update_node_with_edges_test/1
 ]).
 
 all() -> [
@@ -48,7 +49,8 @@ all() -> [
     get_node_secret_hash_test,
     update_node_test,
     get_random_dedicated_nodes_return_random_nodes_test,
-    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test
+    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test,
+    update_node_with_edges_test
 ].
 
 init_per_suite(Config) ->
@@ -536,3 +538,33 @@ get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test(_) ->
     AmountOfDedicatedNodes = 5,
     DedicatedNodes = node_graph_manager:get_random_dedicated_nodes(AmountOfDedicatedNodes),
     true = test_helpers:check_function_called(redis, set_randmember, ["active_nodes", AmountOfDedicatedNodes]).
+
+update_node_with_edges_test(_) ->
+    meck:expect(redis, get, fun(Key) ->
+        case Key of
+            "min_version" ->
+                <<"10">>;
+            "max_version" ->
+                <<"12">>
+        end
+                            end),
+
+    meck:expect(redis, set, fun(Key, Value) ->
+        case Key of
+            "node_hash_" ++ _ ->
+                ok;
+            "version_13" ->
+                {graphupdate, 13, false, [], [{node, "YWJjZGVmZ2hpamtsbW5vcA==", _, _, _, _}]}
+                    = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
+            "version_14" ->
+                {graphupdate, 14, false, [{node, "YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, <<"xyz">>, []}], []}
+                    = hrp_pb:decode_graphupdate(iolist_to_binary(Value));
+            "max_version" ->
+                true = lists:any(
+                    fun(X) -> X =:= Value end,
+                    [13, 14]
+                )
+        end
+                            end),
+
+    ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz").
