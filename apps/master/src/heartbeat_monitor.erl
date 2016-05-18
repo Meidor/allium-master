@@ -87,7 +87,7 @@ apply_to_expired_heartbeats(Label, TimeBetweenHeartbeats, Fun) ->
             LengthOfLabel = length("onion_") + length(Label),
             lists:foreach(
                 Fun,
-                [string:substr(Key, LengthOfLabel + 1) ||
+                [string:substr(binary_to_list(Key), LengthOfLabel + 1) ||
                     {Key, Value} <- lists:zip(Keys, AllValues),
                     Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)]
             )

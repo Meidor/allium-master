@@ -15,7 +15,8 @@
     empty_database/0,
     get_connection/0,
     register_client/2,
-    login_client/3
+    login_client/3,
+    init_sharded_eredis/0
 ]).
 
 -spec get_data_encrypted_response(binary(), atom(), atom()) -> tuple().
@@ -122,3 +123,23 @@ get_connection() ->
         Pid ->
             Pid
     end.
+
+init_sharded_eredis() ->
+    application:set_env(sharded_eredis, pools,
+        [
+            {pool0, [
+                {size, 10},
+                {max_overflow, 20},
+                {host, "127.0.0.1"},
+                {port, 6379}
+            ]},
+            {pool1, [
+                {size, 10},
+                {max_overflow, 20},
+                {host, "192.168.0.104"},
+                {port, 6379}
+            ]}
+        ]
+    ),
+    application:set_env(sharded_eredis, global_or_local, local),
+    sharded_eredis:start().

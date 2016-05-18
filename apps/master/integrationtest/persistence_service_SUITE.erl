@@ -46,6 +46,7 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
+    test_helpers_int:init_sharded_eredis(),
     persistence_service:init(),
     Config.
 

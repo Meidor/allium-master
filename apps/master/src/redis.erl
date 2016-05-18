@@ -16,7 +16,8 @@
     set_add/2,
     set_remove/2,
     init/0,
-    apply_to_matching_keys/2]).
+    apply_to_matching_keys/2,
+    apply_to_execute_command_on_all_nodes/2]).
 
 -define(prefix, "onion_").
 

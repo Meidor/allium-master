@@ -32,6 +32,7 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
+    test_helpers_int:init_sharded_eredis(),
     application:load(master),
     application:load(websocket),
     application:ensure_all_started(websocket),

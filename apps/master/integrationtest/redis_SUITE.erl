@@ -68,6 +68,7 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
+    test_helpers_int:init_sharded_eredis(),
     Config.
 
 init_per_testcase(_, Config) ->
@@ -189,20 +190,9 @@ remove_value_from_set_return_ok_test(_Config) ->
 
 -spec empty_database() -> any().
 empty_database() ->
-    eredis:q(get_connection(), ["FLUSHALL"]).
-
--spec get_connection() -> pid().
-get_connection() ->
-    case whereis(redis) of
-        undefined ->
-            {ok, Connection} = eredis:start_link(),
-            register(redis, Connection),
-            Connection;
-        Pid ->
-            Pid
-    end.
+    redis:apply_to_execute_command_on_all_nodes(["FLUSHALL"], fun(_) -> ok end).
 
 -spec set_members(list()) -> list().
 set_members(Set) ->
-    {ok, Keys} = eredis:q(get_connection(), ["SMEMBERS", "onion_" ++ Set]),
+    {ok, Keys} = sharded_eredis:q(["SMEMBERS", "onion_" ++ Set]),
     Keys.
