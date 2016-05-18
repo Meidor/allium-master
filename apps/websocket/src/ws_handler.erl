@@ -32,9 +32,20 @@ websocket_handle({text, Msg}, Req, State) ->
     {reply, {text, Msg}, Req, State};
 websocket_handle({binary, Msg}, _Req, _State) ->
     lager:info("Received binary message"),
-    hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg));
+   messageWrapper =  hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
+    {[{wrapper, Type, Data} | _], _} = messageWrapper,
+    case Type of
+        'updateNode' ->
+            {updatenode, Node} = hrp_pb:decode_updatenode(Data),
+            {Id, IPaddress, Port, PublicKey, Edges} = Node,
+            node_graph_manager:update_node(Id, IPaddress, Port, PublicKey, Edges)
+
+    end;
+
+
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
+
 
 -spec websocket_info(tuple(), any(), any()) -> tuple().
 websocket_info({?MODULE, _, Msg}, Req, State) ->
