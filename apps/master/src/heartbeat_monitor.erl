@@ -48,8 +48,10 @@ remove_inactive_nodes(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbea
 
 -spec remove_inactive_clients(integer()) -> list().
 remove_inactive_clients(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbeats) ->
-    ExperidClientUsernames =
-        get_identifiers_expired_heartbeats("heartbeat_client_", TimeBetweenHeartbeats),
+    ExperidClientUsernames = get_identifiers_expired_heartbeats(
+        "heartbeat_client_",
+        TimeBetweenHeartbeats
+    ),
     lists:foreach(
         fun(Client) ->
             client_service:client_logout(Client)
