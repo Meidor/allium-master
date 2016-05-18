@@ -111,7 +111,7 @@ valid_id(Id) ->
 
 -spec empty_database() -> any().
 empty_database() ->
-    eredis:q(get_connection(), ["FLUSHALL"]).
+    redis:apply_to_execute_command_on_all_nodes(["FLUSHALL"], fun(_) -> ok end).
 
 -spec get_connection() -> pid().
 get_connection() ->

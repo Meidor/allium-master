@@ -72,7 +72,7 @@ init_per_suite(Config) ->
     Config.
 
 init_per_testcase(_, Config) ->
-    empty_database(),
+    test_helpers_int:empty_database(),
     Config.
 
 end_per_testcase(_, Config) ->
@@ -187,10 +187,6 @@ remove_value_from_non_existing_set_return_ok_test(_Config) ->
 remove_value_from_set_return_ok_test(_Config) ->
     redis:set_add("random_nodes", "Value1"),
     {ok, <<"1">>} = redis:set_remove("random_nodes", "Value1").
-
--spec empty_database() -> any().
-empty_database() ->
-    redis:apply_to_execute_command_on_all_nodes(["FLUSHALL"], fun(_) -> ok end).
 
 -spec set_members(list()) -> list().
 set_members(Set) ->
