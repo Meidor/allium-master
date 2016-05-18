@@ -31,14 +31,13 @@ get(Key) ->
 
 -spec get_matching_keys(list()) -> list().
 get_matching_keys(Key) ->
-    {ok, Keys} = eredis:q(get_connection(), ["KEYS", ?prefix ++ Key ++ "*"]),
-    Keys.
+    accumulate_command_on_all_nodes(["KEYS", ?prefix ++ Key ++ "*"]).
 
 -spec get_list(list()) -> list().
 get_list([])->
     [];
 get_list(ListOfKeys) ->
-    {ok, ListOfValues} = eredis:q(get_connection(), ["MGET" | ListOfKeys]),
+    {ok, ListOfValues} = sharded_eredis:q(["MGET" | ListOfKeys]),
     ListOfValues.
 
 -spec set(list(), list()) -> tuple().
@@ -62,17 +61,6 @@ set_add(Set, Value) ->
 set_remove(Set, Value) ->
     sharded_eredis:q(["SREM", ?prefix ++ Set, Value]).
 
--spec get_connection() -> pid().
-get_connection() ->
-    case whereis(redis) of
-        undefined ->
-            {ok, Connection} = eredis:start_link(),
-            register(redis, Connection),
-            Connection;
-        Pid ->
-            Pid
-    end.
-
 apply_to_matching_keys(Filter, Fun) ->
     apply_to_execute_command_on_all_nodes(["KEYS", ?prefix ++ Filter ++ "*"], Fun).
 
@@ -88,3 +76,15 @@ apply_to_execute_command_on_all_nodes(Command, Fun) ->
         Nodes
     ),
     ok.
+
+accumulate_command_on_all_nodes(Command) ->
+    {ok, NodeList} = application:get_env(sharded_eredis, ring),
+    Nodes = [Node || {_, Node} <- NodeList],
+    lists:foldl(
+        fun(Node, ResponseAcc) ->
+            {ok, Response} = sharded_eredis:q2(Node, Command),
+            ResponseAcc ++ Response
+        end,
+        [],
+        Nodes
+    ).
