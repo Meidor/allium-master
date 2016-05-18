@@ -177,7 +177,7 @@ remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
-    GraphUpdate =  hrp_pb:encode(
+    GraphUpdate = hrp_pb:encode(
             {graphupdate, Version, false, [], [{node, NodeId, "", 0, "", []}]}
     ),
     redis:set_remove("active_nodes", NodeId),
@@ -210,24 +210,20 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
     redis:set(
         "version_" ++ integer_to_list(DeleteVersion),
         hrp_pb:encode(
-            {graphupdate, DeleteVersion, false, [], [
-                {node, NodeId, "", 0, "", []}
-            ]}
+            {graphupdate, DeleteVersion, false, [],
+                [{node, NodeId, "", 0, "", []}]}
         )
     ),
     GraphUpdate = hrp_pb:encode(
-            {graphupdate, AddVersion, false, [
-                {node, NodeId, IPaddress, Port, PublicKey, []}
-            ], []}
+            {graphupdate, AddVersion, false,
+                [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
     ),
-    redis:set(
-        "version_" ++ integer_to_list(AddVersion),
-        GraphUpdate
-    ),
+    redis:set("version_" ++ integer_to_list(AddVersion), GraphUpdate),
     UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
     publish(node_update, UpdateMessage),
     ok.
 
+-spec publish(any(), any()) -> any().
 publish(Event, Data) ->
     gproc:send({p, l, {ws_handler, Event}}, {ws_handler, Event, Data}).
 

@@ -53,14 +53,19 @@ register_node_return_id(IP, PublicKey) ->
 register_client(Username, Password) ->
     Request = {clientregisterrequest, Username, Password},
     {clientregisterresponse, 'SUCCES'} = hrp_pb:decode_clientregisterresponse(
-        test_helpers_int:get_data_encrypted_response(Request, 'CLIENTREGISTERREQUEST', 'CLIENTREGISTERRESPONSE')).
+        test_helpers_int:get_data_encrypted_response(
+            Request, 'CLIENTREGISTERREQUEST', 'CLIENTREGISTERRESPONSE'
+        )
+    ).
 
 -spec login_client(list(), list(), binary()) -> tuple().
 login_client(Username, Password, PublicKey) ->
     Request = {clientloginrequest, Username, Password, PublicKey},
-    {clientloginresponse, 'SUCCES', SecretHash, DedicatedNodes} =
-        hrp_pb:decode_clientloginresponse(
-            test_helpers_int:get_data_encrypted_response(Request, 'CLIENTLOGINREQUEST', 'CLIENTLOGINRESPONSE')
+    {clientloginresponse,
+        'SUCCES', SecretHash, DedicatedNodes} = hrp_pb:decode_clientloginresponse(
+            test_helpers_int:get_data_encrypted_response(
+                Request, 'CLIENTLOGINREQUEST', 'CLIENTLOGINRESPONSE'
+            )
         ),
     {Username, Password, PublicKey, SecretHash, DedicatedNodes}.
 
@@ -69,7 +74,10 @@ register_node(IP, Port, PublicKey) ->
     Request = {noderegisterrequest, IP, Port, PublicKey},
 
     {noderegisterresponse, 'SUCCES', NodeId, SecretHash} = hrp_pb:decode_noderegisterresponse(
-        test_helpers_int:get_data_encrypted_response(Request, 'NODEREGISTERREQUEST', 'NODEREGISTERRESPONSE')),
+        test_helpers_int:get_data_encrypted_response(
+            Request, 'NODEREGISTERREQUEST', 'NODEREGISTERRESPONSE'
+        )
+    ),
     {NodeId, SecretHash, IP, Port, PublicKey}.
 
 -spec update_node(list(), list(), list(), integer(), binary()) -> any().
@@ -77,14 +85,20 @@ update_node(NodeId, SecretHash, IP, Port, PublicKey) ->
     Request = {nodeupdaterequest, NodeId, SecretHash, IP, Port, PublicKey},
 
     {nodeupdateresponse, 'SUCCES'} = hrp_pb:decode_nodeupdateresponse(
-        test_helpers_int:get_data_encrypted_response(Request, 'NODEUPDATEREQUEST', 'NODEUPDATERESPONSE')),
+        test_helpers_int:get_data_encrypted_response(
+            Request, 'NODEUPDATEREQUEST', 'NODEUPDATERESPONSE'
+        )
+    ),
     {NodeId, SecretHash, IP, Port, PublicKey}.
 
 -spec delete_node(list(), list()) -> any().
 delete_node(NodeId, SecretHash) ->
     Request = {nodedeleterequest, NodeId, SecretHash},
     {nodedeleteresponse, 'SUCCES'} = hrp_pb:decode_nodedeleteresponse(
-        test_helpers_int:get_data_encrypted_response(Request, 'NODEDELETEREQUEST', 'NODEDELETERESPONSE')).
+        test_helpers_int:get_data_encrypted_response(
+            Request, 'NODEDELETEREQUEST', 'NODEDELETERESPONSE'
+        )
+    ).
 
 -spec valid_secret_hash(list()) -> any().
 valid_secret_hash(SecretHash) ->

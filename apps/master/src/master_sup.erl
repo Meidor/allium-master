@@ -59,5 +59,4 @@ init_full() ->
                 [graph_monitor_sup]
             }
         ]
-    }
-    }.
+    }}.
