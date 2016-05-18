@@ -18,17 +18,19 @@
     execute_command_on_all_nodes/1,
     init/0]).
 
+-define(prefix, "onion_").
+
 init() ->
     sharded_eredis:start().
 
 -spec get(list()) -> list().
 get(Key) ->
-    {ok, Value} = eredis:q(get_connection(), ["GET", "onion_" ++ Key]),
+    {ok, Value} = eredis:q(get_connection(), ["GET", ?prefix ++ Key]),
     Value.
 
 -spec get_matching_keys(list()) -> list().
 get_matching_keys(Key) ->
-    {ok, Keys} = eredis:q(get_connection(), ["KEYS", "onion_" ++ Key ++ "*"]),
+    {ok, Keys} = eredis:q(get_connection(), ["KEYS", ?prefix ++ Key ++ "*"]),
     Keys.
 
 -spec get_list(list()) -> list().
@@ -40,24 +42,24 @@ get_list(ListOfKeys) ->
 
 -spec set(list(), list()) -> any().
 set(Key, Value) ->
-    eredis:q(get_connection(), ["SET", "onion_" ++ Key, Value]).
+    eredis:q(get_connection(), ["SET", ?prefix ++ Key, Value]).
 
 -spec remove(list()) -> any().
 remove(Key) ->
-    eredis:q(get_connection(), ["DEL", "onion_" ++ Key]).
+    eredis:q(get_connection(), ["DEL", ?prefix ++ Key]).
 
 -spec set_randmember(list(), integer()) -> any().
 set_randmember(Set, Amount) ->
-    {ok, Keys} = eredis:q(get_connection(), ["SRANDMEMBER", "onion_" ++ Set,  Amount]),
+    {ok, Keys} = eredis:q(get_connection(), ["SRANDMEMBER", ?prefix ++ Set,  Amount]),
     Keys.
 
 -spec set_add(list(), list()) -> any().
 set_add(Set, Value) ->
-    eredis:q(get_connection(), ["SADD", "onion_" ++ Set, Value]).
+    eredis:q(get_connection(), ["SADD", ?prefix ++ Set, Value]).
 
 -spec set_remove(list(), list()) -> any().
 set_remove(Set, Value) ->
-    eredis:q(get_connection(), ["SREM", "onion_" ++ Set, Value]).
+    eredis:q(get_connection(), ["SREM", ?prefix ++ Set, Value]).
 
 -spec get_connection() -> pid().
 get_connection() ->
