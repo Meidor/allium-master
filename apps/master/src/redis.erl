@@ -15,8 +15,8 @@
     set_randmember/2,
     set_add/2,
     set_remove/2,
-    execute_command_on_all_nodes/1,
-    init/0]).
+    init/0,
+    apply_to_matching_keys/2]).
 
 -define(prefix, "onion_").
 
@@ -72,12 +72,18 @@ get_connection() ->
             Pid
     end.
 
--spec execute_command_on_all_nodes(list()) -> list().
-execute_command_on_all_nodes(Command) ->
+apply_to_matching_keys(Filter, Fun) ->
+    apply_to_execute_command_on_all_nodes(["KEYS", ?prefix ++ Filter ++ "*"], Fun).
+
+-spec apply_to_execute_command_on_all_nodes(list(), fun()) -> atom().
+apply_to_execute_command_on_all_nodes(Command, Fun) ->
     {ok, NodeList} = application:get_env(sharded_eredis, ring),
     Nodes = [Node || {_, Node} <- NodeList],
-    lists:foldl(
-        fun(Node, AccNodes) -> {ok, Response} = sharded_eredis:q2(Node, Command), AccNodes ++ Response end,
-        [],
+    lists:foreach(
+        fun(Node) ->
+            {ok, Response} = sharded_eredis:q2(Node, Command),
+            Fun(Response)
+        end,
         Nodes
-    ).
+    ),
+    ok.
