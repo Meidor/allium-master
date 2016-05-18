@@ -75,7 +75,8 @@ get_connection() ->
 execute_command_on_all_nodes(Command) ->
     {ok, NodeList} = application:get_env(sharded_eredis, ring),
     Nodes = [Node || {_, Node} <- NodeList],
-    lists:map(
-        fun(Node) -> {ok, Response} = sharded_eredis:q2(Node, Command), Response end,
+    lists:foldl(
+        fun(Node, AccNodes) -> {ok, Response} = sharded_eredis:q2(Node, Command), AccNodes ++ Response end,
+        [],
         Nodes
     ).
