@@ -118,14 +118,15 @@ $(function () {
         nodes = new vis.DataSet();
         /* Voorbeelddata, to remove */
         nodes.add([
-            {id: '1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
-            {id: '2', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 2'},
+            {id: 'Node 1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
+            {id: 'Node 2', IPaddress: "127.0.0.2", port: 1337, publicKey: "secret", label: 'Node 2'},
+            {id: 'Node 3', IPaddress: "127.0.0.3", port: 1337, publicKey: "secret", label: 'Node 3'},
         ]);
 
         edges = new vis.DataSet();
         /* Voorbeelddata, to remove */
         edges.add([
-            {from: '1', to: '2', weight1: '12', weight2: '177', arrows:'to, from'},
+            {from: 'Node 1', to: 'Node 2', weight1: '12', weight2: undefined, arrows:'to, from'},
         ]);
 
         var container = document.getElementById('network');
@@ -135,26 +136,64 @@ $(function () {
             edges: edges
         };
 
-        var options = {interaction: {hover: true}};
+        var options = {interaction: {hover: true, selectConnectedEdges: false, hoverConnectedEdges: false}};
 
         network = new vis.Network(container, data, options);
 
         network.on("selectEdge", function (data) {
-
                     $("#edgeData1").html("from node " + edges._data[data.edges[0]].from + " to node " + edges._data[data.edges[0]].to);
                     $("#edgeData2").html("from node " + edges._data[data.edges[0]].to + " to node " + edges._data[data.edges[0]].from);
 
-        			$("#weight1").val(edges._data[data.edges[0]].weight1);
-        			$("#weight2").val(edges._data[data.edges[0]].weight2);
+                    $("#weight1").val(edges._data[data.edges[0]].weight1);
+                    $("#weight2").val(edges._data[data.edges[0]].weight2);
 
                     $("#edgeId1").val(edges._data[data.edges[0]].from);
                     $("#edgeId2").val(edges._data[data.edges[0]].to);
+
+                    var div = document.getElementById("eddit from edge");
+                    div.style.display = 'block';
+                    div = document.getElementById("eddit from node");
+                    div.style.display = 'none';
+                    var div = document.getElementById("add edge from node");
+                    div.style.display = 'none';
+                });
+
+        network.on("selectNode", function (data) {
+
+                    $("#nodeId").val(nodes._data[data.nodes[0]].id);
+
+                    var div = document.getElementById("eddit from node");
+                    div.style.display = 'block';  
+                    div = document.getElementById("eddit from edge");
+                    div.style.display = 'none';
+                    var div = document.getElementById("add edge from node");
+                    div.style.display = 'none';
                 });
     }
 
     function clear() {
         nodes.clear();
     }
+
+    $("#finder").on('submit', function(event) {
+        event.preventDefault();
+        var findNode = $("#find_node");
+        var search = findNode.val();
+
+    var result = undefined;
+        nodes.forEach(function(node) {
+        if (node.id.lastIndexOf(search, 0) === 0) {
+            result = node;
+            }
+        });
+
+        if (result !== undefined) {
+            network.focus(result.id);
+            network.selectNodes([result.id]);
+        }
+
+        findNode.val("");
+    });
 
     drawGraph();
     initSocket();
@@ -206,6 +245,16 @@ $(function () {
         // initSocket();
         // socketSend(UPDATENODE, toSend);
         // socketClose();
+    }
+
+    function createEdgeForm(nodeId) {
+        node = nodes.get(nodeId);
+
+        $("#from").val(nodeId);
+        console.log(nodeId);
+
+        var div = document.getElementById("add edge from node");
+        div.style.display = 'block';
     }
 
 

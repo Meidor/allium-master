@@ -25,30 +25,46 @@
                 <input type="submit" name="ZOEK" />
             </form>
         </p>
-        <div id ="edgeRelated">
-            - - - - - - - - - - - - - - - - - - - - - 
-            <h3>Alter node</h3>
+
+        <div id ="eddit from edge" style="display: none";>
+        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            <h3>Alter edge</h3>
             <p>
                 Edge:
                 <span id = "edgeData1"></span>
-                <br>Weight: <input type="number" id="weight1" value="undef" />
-                <input type="hidden" id="edgeId" value="0" />
+                <input type="hidden" id="edgeId1" value="0"/> 
+                <br>Weight: <input type="number" id="weight1" value="undef" style="width:140px;" />
+                <input  style="float:right" type="submit" value="Verwijder edge" onclick="deleteEdge($('#from').val())" />
+            </p>
+            <br/>
             <p>
-                <input type="submit" value="Edge weight aanpassen" onclick="updateEdgeWeight($('#edgeId').val(), $('#weight').val())" name="ChangeWeight" />
-                <input type="submit" value="Verwijder edge" onclick="deleteEdge($('#from').val())" />
-            </p>
-            </p>
-	    <p>
                 Edge:
                 <span id = "edgeData2"></span>
-                <br>Weight: <input type="number" id="weight2" value="undef" />
-                <input type="hidden" id="edgeId" value="0" />
-            <p>
-                <input type="submit" value="Edge weight aanpassen" onclick="updateEdgeWeight($('#edgeId').val(), $('#weight').val())" name="ChangeWeight" />
-                <input type="submit" value="Verwijder edge" onclick="deleteEdge($('#to').val())" />
-            </p>
+                <input type="hidden" id="edgeId2" value="0"/> 
+                <br>Weight: <input type="number" id="weight2" value="undef" style="width:140px;" />
+                <input type="submit" value="Verwijder edge" style="float:right" onclick="deleteEdge($('#to').val())" />
             </p>
         </div>
+
+        <div id ="eddit from node" style="display: none";>
+        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            <h3>Alter node</h3>
+            <p>
+                <input type="text" id="nodeId" name="nodeId" disabled>
+                <input type="submit" value="edge toevoegen" style="float:right" onclick="createEdgeForm($('#nodeId').val())" />
+            </p>
+        </div>
+
+        <div id ="add edge from node" style="display: none";>
+        <br/>
+            <span id = "NodeEdgeData"></span>
+            <input type="hidden" id="edgeId" value="0"/> 
+            <br>From: <input type="text" id="from" disabled value="undef"/>
+            <br>To: <input type="text" id="to" placeholder="Zoek hier op een node"/>
+            <br>Weight: <input type="number" id="weight" value="undef" style="width:180px;" />
+            <input  style="float:right" type="submit" value="opslaan" onclick="addEdge($('#from').val())" />
+        </div>
+
 	</div>
 </body>
 </html>
