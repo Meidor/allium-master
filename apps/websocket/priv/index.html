@@ -58,11 +58,20 @@
         <div id ="add edge from node" style="display: none";>
         <br/>
             <span id = "NodeEdgeData"></span>
-            <input type="hidden" id="edgeId" value="0"/> 
-            <br>From: <input type="text" id="from" disabled value="undef"/>
-            <br>To: <input type="text" id="to" placeholder="Zoek hier op een node"/>
-            <br>Weight: <input type="number" id="weight" value="undef" style="width:180px;" />
-            <input  style="float:right" type="submit" value="opslaan" onclick="addEdge($('#from').val())" />
+            <input type="hidden" id="edgeId" value="0"/>
+            <div style="float: left; padding-right: 10px">
+                From: <br>
+                To: <br>
+                Weight: <br>
+            </div>
+            <div style="float: left">
+                <input type="text" id="from" disabled value="undef"/> <br>
+                <input type="text" id="to" placeholder="Zoek hier op een node"/> <br>
+                <input type="number" id="weight" value="undef" /> <br>
+            </div>
+
+            <br><br><input  style="float:right" type="submit" value="opslaan" onclick="addEdge($('#from').val(), $('#to').val(), $('#weight').val() )" />
+
         </div>
 
 	</div>

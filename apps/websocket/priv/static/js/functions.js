@@ -120,13 +120,14 @@ $(function () {
         nodes.add([
             {id: 'Node 1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
             {id: 'Node 2', IPaddress: "127.0.0.2", port: 1337, publicKey: "secret", label: 'Node 2'},
+            {id: 'Node 31', IPaddress: "127.0.0.3", port: 1337, publicKey: "secret", label: 'Node 31'},
             {id: 'Node 3', IPaddress: "127.0.0.3", port: 1337, publicKey: "secret", label: 'Node 3'},
         ]);
 
         edges = new vis.DataSet();
         /* Voorbeelddata, to remove */
         edges.add([
-            {from: 'Node 1', to: 'Node 2', weight1: '12', weight2: undefined, arrows:'to, from'},
+            {id: 'Node 1Node 2', from: 'Node 1', to: 'Node 2', weight1: '12', weight2: undefined, arrows:'to'},
         ]);
 
         var container = document.getElementById('network');
@@ -251,10 +252,52 @@ $(function () {
         node = nodes.get(nodeId);
 
         $("#from").val(nodeId);
-        console.log(nodeId);
 
         var div = document.getElementById("add edge from node");
         div.style.display = 'block';
     }
+
+    function addEdge(fromId, toId, weight) {
+        if(checkEdge(fromId, toId)) {
+
+            if(edges.get(toId + fromId)) {
+                existingEdge = edges.get(toId + fromId);
+                edges.remove(toId+fromId);
+                edges.add([
+                            {id: fromId + toId, from: fromId, to: toId, weight1: weight, weight2: undefined, arrows:'from to'},
+                           ]);
+            }
+            else {
+                edges.add([
+                            {id: fromId + toId, from: fromId, to: toId, weight1: weight, weight2: undefined, arrows:'to'},
+                           ]);
+            }
+            createAddEdgeMessage(fromId);
+        }
+    }
+
+    function checkEdge (fromId, toId) {
+        if(fromId == toId) {
+            return false;
+        }
+
+        var node = nodes.get(toId);
+        if(!node) {
+            return false;
+        }
+
+        if(edges.get(fromId + toId)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function createAddEdgeMessage(Id) {
+    }
+
+
+
+
 
 
