@@ -12,9 +12,14 @@ $(function () {
 
     // Initialize ProtoBuf.js
     var ProtoBuf = dcodeIO.ProtoBuf;
-    var Wrapper = ProtoBuf.loadProtoFile("js/hrp.proto").build("Wrapper");
-    var GraphUpdateResponse = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdateResponse");
-    var GraphUpdate = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdate");
+    var builder = ProtoBuf.loadProtoFile("js/hrp.proto");
+    var Wrapper = builder.build("Wrapper");
+    var Node = builder.build("Node");
+    var NodeDeleteRequest = builder.build("NodeDeleteRequest");
+    var NodeRegisterRequest = builder.build("NodeRegisterRequest");
+    var UpdateNode = builder.build("UpdateNode");
+    var GraphUpdateResponse = builder.build("GraphUpdateResponse");
+    var GraphUpdate = builder.build("GraphUpdate");
 
 
     function initSocket() {
@@ -29,10 +34,10 @@ $(function () {
 
     function socketSend(type, data) {
         if (socket.readyState == WebSocket.OPEN) {
-            var wrapper = new Wrapper();
-            wrapper.setType(type);
-            wrapper.setData(data);
-            socket.send(wrapper.toArrayBuffer());
+            var message = new Wrapper({type: type, data: data});
+            response = message.encodeDelimited();
+            alert(JSON.stringify(response));
+            socket.send(response.toArrayBuffer());
         } else {
             console.log("Not connected while sending: " + data);
         }
@@ -151,11 +156,11 @@ $(function () {
                     $("#edgeFrom").val(edges._data[data.edges[0]].from);
                     $("#edgeTo").val(edges._data[data.edges[0]].to);
 
-                    var div = document.getElementById("eddit from edge");
+                    var div = document.getElementById("edit-from-edge");
                     div.style.display = 'block';
-                    div = document.getElementById("eddit from node");
+                    div = document.getElementById("edit-from-node");
                     div.style.display = 'none';
-                    var div = document.getElementById("add edge from node");
+                    var div = document.getElementById("add-edge-from-node");
                     div.style.display = 'none';
                 });
 
@@ -163,11 +168,11 @@ $(function () {
 
                     $("#nodeId").val(nodes._data[data.nodes[0]].id);
 
-                    var div = document.getElementById("eddit from node");
+                    var div = document.getElementById("edit-from-node");
                     div.style.display = 'block';  
-                    div = document.getElementById("eddit from edge");
+                    div = document.getElementById("edit-from-edge");
                     div.style.display = 'none';
-                    var div = document.getElementById("add edge from node");
+                    var div = document.getElementById("add-edge-from-node");
                     div.style.display = 'none';
                 });
     }
@@ -213,11 +218,6 @@ $(function () {
                 currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight});
             }
         });
-
-        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
-
-        alert(JSON.stringify(toSend));
-
         // initSocket();
         // socketSend(UPDATENODE, toSend);
         // socketClose();
@@ -231,65 +231,46 @@ $(function () {
          console.log(nodeId2);
          console.log(nodeId1 + nodeId2);
 
-         var edge1 = edges.get(nodeId1 + nodeId2)
+         var edge1 = edges.get(nodeId1 + nodeId2);
          if(edge1) {
             if(edge1.weight_to_from == undefined) {
-                console.log('case zelf source enkel');
-                edges.remove(nodeId1 + nodeId2);
+                removeEdge(nodeId1, nodeId2);
             }
             else {
-                console.log('case zelf source dubbel');
-                edges.remove(nodeId1 + nodeId2);
-                edges.add([
-                    // {id: edge1.id, from: edge1.from, to: edge1.to, weight_from_to: undefined, weight_to_from: edge1.weight_to_from, arrows:'from'},
-                    {id: nodeId2 + nodeId1, from: nodeId2, to: nodeId1, weight_from_to: edge1.weight_to_from, weight_to_from: undefined, arrows:'to'},
-                ]);
+                updateEdge(nodeId1, nodeId2, edge1);
             }
          } 
          else {
             var edge2 = edges.get(nodeId2 + nodeId1)
             if(edge2) {
                 if(edge2.weight_to_from == undefined) {
-                    console.log('case ander source enkel');
-                    edges.remove(nodeId2 + nodeId1);
+                    removeEdge(nodeId2, nodeId1);
                 }
                 else {
-                    console.log('case ander source dubbel');
-                    edges.remove(nodeId2 + nodeId1);
-                    edges.add([
-                        {id: edge2.id, from: edge2.from, to: edge2.to, weight_from_to: edge2.weight_from_to, weight_to_from: undefined, arrows:'to'},
-                    ]);
-                    $("#weight2").val(undefined);
+                    updateEdge(nodeId2, nodeId1, edge);
                 }
             }
          }
-        // edge = edges.get(edgeId);
-        // console.log(edgeId);
-        // node = nodes.get(edge.from);
-        // edges.remove(edge);
-
-        // currentEdges = getEdges(node.id);
-
-        // toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
-
-        // alert(JSON.stringify(toSend));
-
-        // initSocket();
-        // socketSend(UPDATENODE, toSend);
-        // socketClose();
+         createUpdateNodeMessage(nodeId1);
     }
 
-    function getEdges(NodeId){
-        currentEdges = [];
-        edges.forEach(function(edgeToAdd) {
-            if(edgeToAdd.from == NodeId && edgeToAdd.weight_from_to != undefined) {
-                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight_from_to});
-            }
-            if(edgeToAdd.to == NodeId && edgeToAdd.weight_to_from != undefined) {
-                currentEdges.push({targetNodeId: edgeToAdd.from, weight: edgeToAdd.weight_to_from});
-            }
-        });
-        return currentEdges;
+    function updateEdge(nodeId1, nodeId2, edge) {
+        edges.remove(nodeId1 + nodeId2);
+        edges.add([
+            {id: nodeId2 + nodeId1, from: nodeId2, to: nodeId1, weight_from_to: edge.weight_to_from, weight_to_from: undefined, arrows:'to'},
+        ]);
+        $("#edgeFrom").val(nodeId2);
+        $("#edgeTo").val(nodeId1);
+        $("#edgeData1").html("from node " + nodeId2 + " to node " + nodeId1);
+        $("#edgeData2").html("from node " + nodeId1 + " to node " + nodeId2);
+        $("#weight1").val(edge.weight_to_from);
+        $("#weight2").val(undefined);
+    }
+
+    function removeEdge(nodeId1, nodeId2) {
+        edges.remove(nodeId1 + nodeId2);
+        div = document.getElementById("edit-from-edge");
+        div.style.display = 'none';
     }
 
     function createEdgeForm(nodeId) {
@@ -297,26 +278,17 @@ $(function () {
 
         $("#from").val(nodeId);
 
-        var div = document.getElementById("add edge from node");
+        var div = document.getElementById("add-edge-from-node");
         div.style.display = 'block';
     }
 
     function addEdge(fromId, toId, weight) {
+        var node = nodes.get(fromId);
+        var currentEdges = getEdges(fromId);
         if(checkEdge(fromId, toId)) {
-
-            if(edges.get(toId + fromId)) {
-                previousEdge = edges.get(toId + fromId);
-                edges.remove(previousEdge.id);
-                edges.add([
-                            {id: previousEdge.id, from: previousEdge.from, to: previousEdge.to, weight_from_to: previousEdge.weight_from_to, weight_to_from: weight, arrows:'from to'},
-                           ]);
-            }
-            else {
-                edges.add([
-                            {id: fromId + toId, from: fromId, to: toId, weight_from_to: weight, weight_to_from: undefined, arrows:'to'},
-                           ]);
-            }
-            createAddEdgeMessage(fromId);
+            currentEdges.push({targetNodeId: toId, weight: weight});
+            toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
+            alert(JSON.stringify(toSend));
         }
     }
 
@@ -332,9 +304,7 @@ $(function () {
 
         var edge = edges.get(fromId + toId)
         if(edge) {
-            if(edge.weight_from_to != undefined) {
-                return false;
-            }
+            return false;
         }
 
         var otherEdge = edges.get(toId + fromId)
@@ -346,16 +316,33 @@ $(function () {
         return true;
     }
 
-    function createAddEdgeMessage(Id) {
+    function createUpdateNodeMessage(Id) {
         var node = nodes.get(Id);
+        alert(JSON.stringify(node));
         var currentEdges = getEdges(Id);
-
-        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
+        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
 
         alert(JSON.stringify(toSend));
-
+        var newNode = new Node({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
+        alert("ops");
+        //node = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
+        var message = new UpdateNode({node: newNode});
+        alert("peer");
+        socketSend("UPDATENODE", message.encode());
     }
 
+    function getEdges(NodeId){
+        currentEdges = [];
+        edges.forEach(function(edgeToAdd) {
+            if(edgeToAdd.from == NodeId && edgeToAdd.weight_from_to != undefined) {
+                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight_from_to});
+            }
+            if(edgeToAdd.to == NodeId && edgeToAdd.weight_to_from != undefined) {
+                currentEdges.push({targetNodeId: edgeToAdd.from, weight: edgeToAdd.weight_to_from});
+            }
+        });
+        return currentEdges;
+    }
 
 
 

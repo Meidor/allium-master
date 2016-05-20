@@ -26,37 +26,37 @@
             </form>
         </p>
 
-        <div id ="eddit from edge" style="display: none";>
+        <div id ="edit-from-edge" style="display: none">
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             <h3>Alter edge</h3>
 
-                <input  id="edgeFrom" value="0"/>
-                <input  id="edgeTo" value="0"/>
+                <input hidden id="edgeFrom" value="0"/>
+                <input hidden id="edgeTo" value="0"/>
             <p>
                 Edge:
                 <span id = "edgeData1"></span>
-                <br>Weight: <input type="number" id="weight1" value="undef" style="width:140px;" />
-                <input  style="float:right" type="submit" value="Verwijder edge" onclick="deleteEdge($('#edgeFrom').val(), $('#edgeTo').val())" />
+                <br>Weight: <input type="number" id="weight1" value="undef" style="width:140px" placeholder="not defined"/>
+                <input style="float:right" type="submit" value="Delete edge" onclick="deleteEdge($('#edgeFrom').val(), $('#edgeTo').val())" />
             </p>
             <br/>
             <p>
                 Edge:
                 <span id = "edgeData2"></span>
-                <br>Weight: <input type="number" id="weight2" value="undef" style="width:140px;" />
-                <input type="submit" value="Verwijder edge" style="float:right" onclick="deleteEdge($('#edgeTo').val(), $('#edgeFrom').val())" />
+                <br>Weight: <input type="number" id="weight2" value="undef" style="width:140px" placeholder="not defined"/>
+                <input style="float:right" type="submit" value="Delete edge" onclick="deleteEdge($('#edgeTo').val(), $('#edgeFrom').val())" />
             </p>
         </div>
 
-        <div id ="eddit from node" style="display: none";>
+        <div id ="edit-from-node" style="display: none">
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             <h3>Alter node</h3>
             <p>
                 <input type="text" id="nodeId" name="nodeId" disabled>
-                <input type="submit" value="edge toevoegen" style="float:right" onclick="createEdgeForm($('#nodeId').val())" />
+                <input type="submit" value="Edge toevoegen" style="float:right" onclick="createEdgeForm($('#nodeId').val())" />
             </p>
         </div>
 
-        <div id ="add edge from node" style="display: none";>
+        <div id ="add-edge-from-node" style="display: none">
         <br/>
             <span id = "NodeEdgeData"></span>
             <input type="hidden" id="edgeId" value="0"/>
@@ -71,7 +71,7 @@
                 <input type="number" id="weight" value="undef" /> <br>
             </div>
 
-            <br><br><input  style="float:right" type="submit" value="opslaan" onclick="addEdge($('#from').val(), $('#to').val(), $('#weight').val() )" />
+            <br><br><input  style="float:right" type="submit" value="Opslaan" onclick="addEdge($('#from').val(), $('#to').val(), $('#weight').val() )" />
 
         </div>
 
