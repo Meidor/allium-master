@@ -9,8 +9,6 @@
     websocket_terminate/3
 ]).
 
--define(AUTHORIZESTATE, notloggedin).
-
 -spec subscribe(any()) -> any().
 subscribe(Event) ->
     gproc:reg({p, l, {?MODULE, Event}}),
