@@ -10,15 +10,16 @@
         <script type="text/javascript" src="js/protobuf.js"></script>
 
         <link href="css/main.css" rel="stylesheet" type="text/css"/>
-        <script type="text/javascript" src="js/functions_map.js"></script>
+        <script type="text/javascript" src="js/functions.js"></script>
     </head>
     <body>
-        <div class="main">
+        <div id="network"></div>
+        <div class="main" id="main">
             <h2>OnionMessenger</h2>
             <form id="login" method="post">
                 <input type="text" name="username" placeholder="Username" id="username"/>
                 <input type="password" name="password" placeholder="Password" id="password"/>
-                <input type="button" value="Log in" id="submit"/>
+                <input type="submit" id="submitlogin" value="Log in"/>
             </form>
         </div>
     </body>
