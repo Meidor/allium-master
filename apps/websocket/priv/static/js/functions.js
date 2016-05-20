@@ -4,7 +4,6 @@ var socket;
 var counter = 10;
 var edgeCounter = 10;
 
-
 $(function () {
     if (typeof dcodeIO === 'undefined' || !dcodeIO.ProtoBuf) {
         throw(new Error("ProtoBuf.js is not present."));
@@ -19,8 +18,11 @@ $(function () {
     var GraphUpdateResponse = builder.build("GraphUpdateResponse");
     var GraphUpdate = builder.build("GraphUpdate");
 	var AdminLoginRequest = builder.build("AdminLoginRequest");
+	var AdminLoginResponse = builder.build("AdminLoginResponse");
 
     function initSocket() {
+        dashboarddiv = document.getElementById("dashboard");
+        dashboarddiv.style.display = 'none';
         console.log("Initializing socket");
         socket = new WebSocket(url);
         socket.binaryType = "arraybuffer";
@@ -33,9 +35,7 @@ $(function () {
 	function socketSend(type, data) {
         if (socket.readyState == WebSocket.OPEN) {
             var message = new Wrapper({type: type, data: data});
-            response = message.encodeDelimited();
-			alert(JSON.stringify(response));
-            socket.send(response.toArrayBuffer());
+            socket.send(message.encodeDelimited().toArrayBuffer());
         } else {
             console.log("Not connected while sending: " + data);
         }
@@ -53,11 +53,12 @@ $(function () {
         console.log("Received message: " + event.data);
         try {
             var wrapper = Wrapper.decode(event.data);
-
+            console.log(wrapper.type);
             switch (wrapper.type) {
                 case Wrapper.Type.GRAPHUPDATERESPONSE:
                     console.log("Received GraphUpdateResponse...");
                     var graphUpdateResponse = GraphUpdateResponse.decode(wrapper.data);
+
                     graphUpdateResponse.graphUpdates.forEach(function (update) {
                         var graphUpdate = GraphUpdate.decode(update);
 
@@ -76,6 +77,22 @@ $(function () {
                             });
                         }
                     });
+                    break;
+                case Wrapper.Type.ADMINLOGINRESPONSE:
+                    console.log("Received AdminLoginResponse...");
+                    var adminLoginResponse = AdminLoginResponse.decode(wrapper.data);
+                    console.log(adminLoginResponse);
+                    if(adminLoginResponse.status === 1) {
+                      logindiv = document.getElementById("main");
+                      logindiv.style.display = 'none';
+                      drawGraph();
+                      dashboarddiv = document.getElementById("dashboard");
+                      dashboarddiv.style.display = 'block';
+                      alert("Login successful.");
+                    }
+                    else {
+                      alert("Wrong usercredentials have been entered.");
+                    }
                     break;
             }
         } catch (error) {
@@ -155,7 +172,7 @@ $(function () {
 
         findNode.val("");
     });
-	
+
     $("#login").on('submit', function(event) {
         event.preventDefault();
         var username = $("#username").val();
@@ -163,12 +180,9 @@ $(function () {
         if (username !== undefined && password !== undefined) {
 			var message = new AdminLoginRequest({username : username, password: password});
             socketSend("ADMINLOGINREQUEST", message.encode());
-			
-
         }
     });
 
-    drawGraph();
     initSocket();
 });
     
