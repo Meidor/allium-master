@@ -113,3 +113,10 @@ center{
 #submitlogin:hover{
     background: linear-gradient(#ffdd7f 5%, #ffbc00 100%);
 }
+
+#error {
+    position: absolute;
+    color: red;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+}
