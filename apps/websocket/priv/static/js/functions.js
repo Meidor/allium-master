@@ -127,7 +127,7 @@ $(function () {
         edges = new vis.DataSet();
         /* Voorbeelddata, to remove */
         edges.add([
-            {id: 'Node 1Node 2', from: 'Node 1', to: 'Node 2', weight1: '12', weight2: undefined, arrows:'to'},
+            {id: 'Node 1Node 2', from: 'Node 1', to: 'Node 2', weight_from_to: '12', weight_to_from: undefined, arrows:'to'},
         ]);
 
         var container = document.getElementById('network');
@@ -145,11 +145,11 @@ $(function () {
                     $("#edgeData1").html("from node " + edges._data[data.edges[0]].from + " to node " + edges._data[data.edges[0]].to);
                     $("#edgeData2").html("from node " + edges._data[data.edges[0]].to + " to node " + edges._data[data.edges[0]].from);
 
-                    $("#weight1").val(edges._data[data.edges[0]].weight1);
-                    $("#weight2").val(edges._data[data.edges[0]].weight2);
+                    $("#weight1").val(edges._data[data.edges[0]].weight_from_to);
+                    $("#weight2").val(edges._data[data.edges[0]].weight_to_from);
 
-                    $("#edgeId1").val(edges._data[data.edges[0]].from);
-                    $("#edgeId2").val(edges._data[data.edges[0]].to);
+                    $("#edgeFrom").val(edges._data[data.edges[0]].from);
+                    $("#edgeTo").val(edges._data[data.edges[0]].to);
 
                     var div = document.getElementById("eddit from edge");
                     div.style.display = 'block';
@@ -226,26 +226,70 @@ $(function () {
 
 
 
-    function deleteEdge(edgeId) {
-        edge = edges.get(edgeId);
-        node = nodes.get(edge.from);
+    function deleteEdge(nodeId1, nodeId2) {
+         console.log(nodeId1);
+         console.log(nodeId2);
+         console.log(nodeId1 + nodeId2);
 
-        edges.remove(edge);
-
-        currentEdges = [];
-        edges.forEach(function(edgeToAdd) {
-            if(edgeToAdd.from == node.id) {
-                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight});
+         var edge1 = edges.get(nodeId1 + nodeId2)
+         if(edge1) {
+            if(edge1.weight_to_from == undefined) {
+                console.log('case zelf source enkel');
+                edges.remove(nodeId1 + nodeId2);
             }
-        });
+            else {
+                console.log('case zelf source dubbel');
+                edges.remove(nodeId1 + nodeId2);
+                edges.add([
+                    // {id: edge1.id, from: edge1.from, to: edge1.to, weight_from_to: undefined, weight_to_from: edge1.weight_to_from, arrows:'from'},
+                    {id: nodeId2 + nodeId1, from: nodeId2, to: nodeId1, weight_from_to: edge1.weight_to_from, weight_to_from: undefined, arrows:'to'},
+                ]);
+            }
+         } 
+         else {
+            var edge2 = edges.get(nodeId2 + nodeId1)
+            if(edge2) {
+                if(edge2.weight_to_from == undefined) {
+                    console.log('case ander source enkel');
+                    edges.remove(nodeId2 + nodeId1);
+                }
+                else {
+                    console.log('case ander source dubbel');
+                    edges.remove(nodeId2 + nodeId1);
+                    edges.add([
+                        {id: edge2.id, from: edge2.from, to: edge2.to, weight_from_to: edge2.weight_from_to, weight_to_from: undefined, arrows:'to'},
+                    ]);
+                    $("#weight2").val(undefined);
+                }
+            }
+         }
+        // edge = edges.get(edgeId);
+        // console.log(edgeId);
+        // node = nodes.get(edge.from);
+        // edges.remove(edge);
 
-        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
+        // currentEdges = getEdges(node.id);
 
-        alert(JSON.stringify(toSend));
+        // toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
+
+        // alert(JSON.stringify(toSend));
 
         // initSocket();
         // socketSend(UPDATENODE, toSend);
         // socketClose();
+    }
+
+    function getEdges(NodeId){
+        currentEdges = [];
+        edges.forEach(function(edgeToAdd) {
+            if(edgeToAdd.from == NodeId && edgeToAdd.weight_from_to != undefined) {
+                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight_from_to});
+            }
+            if(edgeToAdd.to == NodeId && edgeToAdd.weight_to_from != undefined) {
+                currentEdges.push({targetNodeId: edgeToAdd.from, weight: edgeToAdd.weight_to_from});
+            }
+        });
+        return currentEdges;
     }
 
     function createEdgeForm(nodeId) {
@@ -261,15 +305,15 @@ $(function () {
         if(checkEdge(fromId, toId)) {
 
             if(edges.get(toId + fromId)) {
-                existingEdge = edges.get(toId + fromId);
-                edges.remove(toId+fromId);
+                previousEdge = edges.get(toId + fromId);
+                edges.remove(previousEdge.id);
                 edges.add([
-                            {id: fromId + toId, from: fromId, to: toId, weight1: weight, weight2: undefined, arrows:'from to'},
+                            {id: previousEdge.id, from: previousEdge.from, to: previousEdge.to, weight_from_to: previousEdge.weight_from_to, weight_to_from: weight, arrows:'from to'},
                            ]);
             }
             else {
                 edges.add([
-                            {id: fromId + toId, from: fromId, to: toId, weight1: weight, weight2: undefined, arrows:'to'},
+                            {id: fromId + toId, from: fromId, to: toId, weight_from_to: weight, weight_to_from: undefined, arrows:'to'},
                            ]);
             }
             createAddEdgeMessage(fromId);
@@ -286,14 +330,30 @@ $(function () {
             return false;
         }
 
-        if(edges.get(fromId + toId)) {
-            return false;
+        var edge = edges.get(fromId + toId)
+        if(edge) {
+            if(edge.weight_from_to != undefined) {
+                return false;
+            }
         }
 
+        var otherEdge = edges.get(toId + fromId)
+        if(otherEdge) {
+            if(otherEdge.weight_to_from != undefined) {
+                return false;
+            }
+        }
         return true;
     }
 
     function createAddEdgeMessage(Id) {
+        var node = nodes.get(Id);
+        var currentEdges = getEdges(Id);
+
+        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges };
+
+        alert(JSON.stringify(toSend));
+
     }
 
 

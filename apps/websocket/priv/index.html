@@ -29,20 +29,21 @@
         <div id ="eddit from edge" style="display: none";>
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             <h3>Alter edge</h3>
+
+                <input  id="edgeFrom" value="0"/>
+                <input  id="edgeTo" value="0"/>
             <p>
                 Edge:
                 <span id = "edgeData1"></span>
-                <input type="hidden" id="edgeId1" value="0"/> 
                 <br>Weight: <input type="number" id="weight1" value="undef" style="width:140px;" />
-                <input  style="float:right" type="submit" value="Verwijder edge" onclick="deleteEdge($('#from').val())" />
+                <input  style="float:right" type="submit" value="Verwijder edge" onclick="deleteEdge($('#edgeFrom').val(), $('#edgeTo').val())" />
             </p>
             <br/>
             <p>
                 Edge:
                 <span id = "edgeData2"></span>
-                <input type="hidden" id="edgeId2" value="0"/> 
                 <br>Weight: <input type="number" id="weight2" value="undef" style="width:140px;" />
-                <input type="submit" value="Verwijder edge" style="float:right" onclick="deleteEdge($('#to').val())" />
+                <input type="submit" value="Verwijder edge" style="float:right" onclick="deleteEdge($('#edgeTo').val(), $('#edgeFrom').val())" />
             </p>
         </div>
 
