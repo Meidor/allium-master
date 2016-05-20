@@ -23,6 +23,8 @@ $(function () {
     function initSocket() {
         dashboarddiv = document.getElementById("dashboard");
         dashboarddiv.style.display = 'none';
+        errordiv = document.getElementById("error");
+        errordiv.style.display = 'none';
         console.log("Initializing socket");
         socket = new WebSocket(url);
         socket.binaryType = "arraybuffer";
@@ -81,13 +83,15 @@ $(function () {
                     if(adminLoginResponse.status === 1) {
                       logindiv = document.getElementById("main");
                       logindiv.style.display = 'none';
+                      errordiv = document.getElementById("error");
+                      errordiv.style.display = 'none';
                       drawGraph();
                       dashboarddiv = document.getElementById("dashboard");
                       dashboarddiv.style.display = 'block';
-                      alert("Login successful.");
                     }
                     else {
-                      alert("Wrong user credentials have been entered.");
+                      errordiv = document.getElementById("error");
+                      errordiv.style.display = 'block';
                     }
                     break;
             }
