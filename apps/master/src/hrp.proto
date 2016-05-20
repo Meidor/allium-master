@@ -1,5 +1,5 @@
 //----------------------------------------
-// VERSION: 0.4.1
+// VERSION: 0.4.2
 //----------------------------------------
 
 syntax = "proto2";
@@ -287,9 +287,22 @@ message UpdateNode {
 }
 
 // Message used in the admin panel to login as an admin
-message AdminLogin {
+message AdminLoginRequest {
     required string username = 1;
     required string password = 2;
+}
+
+// Response to AdminLoginRequest
+message AdminLoginResponse {
+    enum Status {
+        // SUCCES: Request succesfully processed.
+        SUCCES = 1;
+
+        // FAILED: Request failed to process.
+        FAILED = 2;
+    }
+
+    required Status status = 1;
 }
 
 // Wrapper for all communication
@@ -333,6 +346,9 @@ message Wrapper {
         UPDATENODE = 22;
 
         MESSAGE = 23;
+
+        ADMINLOGINREQUEST = 24;
+        ADMINLOGINRESPONSE = 25;
     }
 	// The type field contains a message type which corresponds to the data in the data field.
     required Type type = 1;
