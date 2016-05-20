@@ -216,25 +216,29 @@ update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     DeleteVersion = get_max_version() + 1,
     AddVersion = DeleteVersion + 1,
     set_max_version(AddVersion),
-    redis:set(
-        "version_" ++ integer_to_list(DeleteVersion),
-        hrp_pb:encode(
+    GraphDelete = hrp_pb:encode(
             {graphupdate, DeleteVersion, false, [], [
                 {node, NodeId, "", 0, "", []}
             ]}
-        )
+        ),
+    redis:set(
+        "version_" ++ integer_to_list(DeleteVersion),
+        GraphDelete
     ),
-    GraphUpdate = hrp_pb:encode(
+    DeleteMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphDelete),
+    publish(node_update, DeleteMessage),
+    GraphAdd = hrp_pb:encode(
         {graphupdate, AddVersion, false, [
             {node, NodeId, IPaddress, Port, PublicKey, Edges}
         ], []}
     ),
+        io:format("~n~p", [GraphAdd]),
     redis:set(
         "version_" ++ integer_to_list(AddVersion),
-        GraphUpdate
+        GraphAdd
     ),
-    UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
-    publish(node_update, UpdateMessage),
+    AddMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphAdd),
+    publish(node_update, AddMessage),
     ok.
 
 publish(Event, Data) ->

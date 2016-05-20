@@ -30,19 +30,17 @@ websocket_init(_TransportName, Req, _Opts) ->
 -spec websocket_handle(tuple(), any(), any()) -> tuple().
 websocket_handle({text, Msg}, Req, State) ->
     {reply, {text, Msg}, Req, State};
-websocket_handle({binary, Msg}, _Req, _State) ->
-    lager:info("Received binary message"),
-   messageWrapper =  hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
-    {[{wrapper, Type, Data} | _], _} = messageWrapper,
+websocket_handle({binary, Msg}, Req, State) ->
+    MessageWrapper =  hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
+    {[{wrapper, Type, Data} | _], _} = MessageWrapper,
     case Type of
-        'updateNode' ->
+        'UPDATENODE' ->
             {updatenode, Node} = hrp_pb:decode_updatenode(Data),
-            {Id, IPaddress, Port, PublicKey, Edges} = Node,
+            {node, Id, IPaddress, Port, PublicKey, Edges} = Node,
+            io:format("~n~p", [Edges]),
             node_graph_manager:update_node(Id, IPaddress, Port, PublicKey, Edges)
-
-    end;
-
-
+    end,
+    {ok, Req, State};
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
 

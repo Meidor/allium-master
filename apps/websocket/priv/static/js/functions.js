@@ -3,24 +3,21 @@ var url = "ws://localhost:8080/websocket";
 var socket;
 var counter = 10;
 var edgeCounter = 10;
+var ProtoBuf = dcodeIO.ProtoBuf;
+var builder = ProtoBuf.loadProtoFile("js/hrp.proto");
+var Wrapper = builder.build("Wrapper");
+var OnionNode = builder.build("Node");
+var NodeDeleteRequest = builder.build("NodeDeleteRequest");
+var NodeRegisterRequest = builder.build("NodeRegisterRequest");
+var UpdateNode = builder.build("UpdateNode");
+var GraphUpdateResponse = builder.build("GraphUpdateResponse");
+var GraphUpdate = builder.build("GraphUpdate");
 
 
 $(function () {
     if (typeof dcodeIO === 'undefined' || !dcodeIO.ProtoBuf) {
         throw(new Error("ProtoBuf.js is not present."));
     }
-
-    // Initialize ProtoBuf.js
-    var ProtoBuf = dcodeIO.ProtoBuf;
-    var builder = ProtoBuf.loadProtoFile("js/hrp.proto");
-    var Wrapper = builder.build("Wrapper");
-    var Node = builder.build("Node");
-    var NodeDeleteRequest = builder.build("NodeDeleteRequest");
-    var NodeRegisterRequest = builder.build("NodeRegisterRequest");
-    var UpdateNode = builder.build("UpdateNode");
-    var GraphUpdateResponse = builder.build("GraphUpdateResponse");
-    var GraphUpdate = builder.build("GraphUpdate");
-
 
     function initSocket() {
         console.log("Initializing socket");
@@ -30,17 +27,6 @@ $(function () {
         socket.onopen = socketOpen;
         socket.onclose = socketClose;
         socket.onmessage = socketMessage;
-    }
-
-    function socketSend(type, data) {
-        if (socket.readyState == WebSocket.OPEN) {
-            var message = new Wrapper({type: type, data: data});
-            response = message.encodeDelimited();
-            alert(JSON.stringify(response));
-            socket.send(response.toArrayBuffer());
-        } else {
-            console.log("Not connected while sending: " + data);
-        }
     }
 
     function socketOpen() {
@@ -95,9 +81,10 @@ $(function () {
                 publicKey: node.publicKey,
                 label: node.id
             });
-            if(!node.edges) return;
+            if(!node.edge) return;
             
-            node.edges.forEach(function (edge) {
+            node.edge.forEach(function (edge) {
+                console.log(JSON.stringify(edge));
                 edges.add({
                     id: node.id + edge.targetNodeId,
                     from: node.id,
@@ -124,18 +111,18 @@ $(function () {
     function drawGraph() {
         nodes = new vis.DataSet();
         /* Voorbeelddata, to remove */
-        nodes.add([
-            {id: 'Node 1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
-            {id: 'Node 2', IPaddress: "127.0.0.2", port: 1337, publicKey: "secret", label: 'Node 2'},
-            {id: 'Node 31', IPaddress: "127.0.0.3", port: 1337, publicKey: "secret", label: 'Node 31'},
-            {id: 'Node 3', IPaddress: "127.0.0.3", port: 1337, publicKey: "secret", label: 'Node 3'},
-        ]);
+        // nodes.add([
+        //     {id: 'Node 1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
+        //     {id: 'Node 2', IPaddress: "127.0.0.2", port: 1337, publicKey: "secret", label: 'Node 2'},
+        //     {id: 'Node 31', IPaddress: "127.0.0.3", port: 1337, publicKey: "secret", label: 'Node 31'},
+        //     {id: 'Node 3', IPaddress: "127.0.0.3", port: 1337, publicKey: "secret", label: 'Node 3'},
+        // ]);
 
         edges = new vis.DataSet();
-        /* Voorbeelddata, to remove */
-        edges.add([
-            {id: 'Node 1Node 2', from: 'Node 1', to: 'Node 2', weight_from_to: '12', weight_to_from: undefined, arrows:'to'},
-        ]);
+        // /* Voorbeelddata, to remove */
+        // edges.add([
+        //     {id: 'Node 1Node 2', from: 'Node 1', to: 'Node 2', weight_from_to: '12', weight_to_from: undefined, arrows:'to'},
+        // ]);
 
         var container = document.getElementById('network');
 
@@ -188,10 +175,10 @@ $(function () {
         var findNode = $("#find_node");
         var search = findNode.val();
 
-    var result = undefined;
+        var result = undefined;
         nodes.forEach(function(node) {
-        if (node.id.lastIndexOf(search, 0) === 0) {
-            result = node;
+            if (node.id.lastIndexOf(search, 0) === 0) {
+                result = node;
             }
         });
 
@@ -205,7 +192,55 @@ $(function () {
 
     drawGraph();
     initSocket();
+
 });
+
+    function addEdge(fromId, toId, weight) {
+        weight = parseInt(weight);
+        var node = nodes.get(fromId);
+        var currentEdges = getEdges(fromId);
+        if(checkEdge(fromId, toId)) {
+            console.log(toId);
+            console.log(weight);
+            currentEdges.push({targetNodeId: toId, weight: weight});
+
+            console.log(JSON.stringify(currentEdges));
+            toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
+            console.log(JSON.stringify(toSend));
+            newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
+            var message = new UpdateNode({node: newNode});
+            socketSend("UPDATENODE", message.encode());
+        }
+    }
+
+    function createEdgeForm(nodeId) {
+        node = nodes.get(nodeId);
+
+        $("#from").val(nodeId);
+
+        var div = document.getElementById("add-edge-from-node");
+        div.style.display = 'block';
+    }
+
+    function deleteEdge(nodeId1, nodeId2) {
+        var node = nodes.get(nodeId1);
+        var currentEdges = getEdges(nodeId1);
+        currentEdges.forEach(function(edge){
+            if(edge.targetNodeId == nodeId2) {
+                console.log("trying to remove edge");
+                var index = currentEdges.indexOf(edge);
+                if (index > -1) {
+                    currentEdges.splice(index, 1);
+                }
+            }
+        });
+        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
+        alert(JSON.stringify(toSend));
+        var newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
+        var message = new UpdateNode({node: newNode});
+        console.log("predecode message: " + JSON.stringify(message));
+        socketSend("UPDATENODE", message.encode());
+    }
 
     function updateEdge(nodeId1, nodeId2, weight) {
         console.log(nodeId1);
@@ -226,48 +261,6 @@ $(function () {
         currentEdges.push({targetNodeId: nodeId2, weight: weight});
         toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
         alert(JSON.stringify(toSend));
-    }
-
-    function deleteEdge(nodeId1, nodeId2) {
-        var node = nodes.get(nodeId1);
-        var currentEdges = getEdges(nodeId1);
-        currentEdges.forEach(function(edge){
-            if(edge.targetNodeId == nodeId2) {
-                console.log("trying to remove edge");
-                var index = currentEdges.indexOf(edge);
-                if (index > -1) {
-                    currentEdges.splice(index, 1);
-                }
-            }
-        });
-        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
-        alert(JSON.stringify(toSend));
-        var test = new NodeDeleteRequest();
-        var newNode = new Node();
-        var message = new UpdateNode({node: newNode});
-        socketSend("UPDATENODE", message.encode());
-    }
-
-    function createEdgeForm(nodeId) {
-        node = nodes.get(nodeId);
-
-        $("#from").val(nodeId);
-
-        var div = document.getElementById("add-edge-from-node");
-        div.style.display = 'block';
-    }
-
-    function addEdge(fromId, toId, weight) {
-        var node = nodes.get(fromId);
-        var currentEdges = getEdges(fromId);
-        if(checkEdge(fromId, toId)) {
-            currentEdges.push({targetNodeId: toId, weight: weight});
-            toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
-            alert(JSON.stringify(toSend));
-            newNode = new Node({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
-            var message = new UpdateNode({node: newNode});
-            socketSend("UPDATENODE", message.encode());
-        }
     }
 
     function checkEdge (fromId, toId) {
@@ -294,18 +287,6 @@ $(function () {
         return true;
     }
 
-    function createUpdateNodeMessage(Id) {
-        var node = nodes.get(Id);
-        alert(JSON.stringify(node));
-        var currentEdges = getEdges(Id);
-        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
-
-        alert(JSON.stringify(toSend));
-        var newNode = new Node({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
-        var message = new UpdateNode({node: newNode});
-        socketSend("UPDATENODE", message.encode());
-    }
-
     function getEdges(NodeId){
         currentEdges = [];
         edges.forEach(function(edgeToAdd) {
@@ -319,7 +300,28 @@ $(function () {
         return currentEdges;
     }
 
+    function socketSend(type, data) {
+        if (socket.readyState == WebSocket.OPEN) {
+            var message = new Wrapper({type: type, data: data});
+            var response = message.encodeDelimited();
+            socket.send(response.toArrayBuffer());
+        } else {
+            console.log("Not connected while sending: " + data);
+        }
+    }
 
 
 
+
+    // function createUpdateNodeMessage(Id) {
+    //     var node = nodes.get(Id);
+    //     alert(JSON.stringify(node));
+    //     var currentEdges = getEdges(Id);
+    //     toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
+
+    //     alert(JSON.stringify(toSend));
+    //     var newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
+    //     var message = new UpdateNode({node: newNode});
+    //     socketSend("UPDATENODE", message.encode());
+    // }
 
