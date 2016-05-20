@@ -1,5 +1,5 @@
 //----------------------------------------
-// VERSION: 0.3.4
+// VERSION: 0.4.2
 //----------------------------------------
 
 syntax = "proto2";
@@ -218,8 +218,8 @@ message ClientLoginResponse {
 	}
 
 	required Status status = 1;
-	required string secretHash = 2;
-	repeated Node connectedNodes = 3;
+	optional string secretHash = 2;
+	repeated string connectedNodes = 3;
 }
 
 // Client logout
@@ -286,7 +286,27 @@ message UpdateNode {
     required Node node = 1;
 }
 
+// Message used in the admin panel to login as an admin
+message AdminLoginRequest {
+    required string username = 1;
+    required string password = 2;
+}
+
+// Response to AdminLoginRequest
+message AdminLoginResponse {
+    enum Status {
+        // SUCCES: Request succesfully processed.
+        SUCCES = 1;
+
+        // FAILED: Request failed to process.
+        FAILED = 2;
+    }
+
+    required Status status = 1;
+}
+
 // Wrapper for all communication
+// This wrapper message is send un encrypted over the network.
 message Wrapper {
     enum Type {
         GRAPHUPDATEREQUEST = 1;
@@ -324,8 +344,15 @@ message Wrapper {
         CLIENTNODECONNECTION = 21;
 
         UPDATENODE = 22;
-    }
 
+        MESSAGE = 23;
+
+        ADMINLOGINREQUEST = 24;
+        ADMINLOGINRESPONSE = 25;
+    }
+	// The type field contains a message type which corresponds to the data in the data field.
     required Type type = 1;
+
+	// The data field contains encrypted data that needs to be send over the network.
 	required bytes data = 2;
 }

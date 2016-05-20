@@ -30,19 +30,19 @@
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             <h3>Alter edge</h3>
 
-                <input hidden id="edgeFrom" value="0"/>
-                <input hidden id="edgeTo" value="0"/>
+                <input hidden disabled id="edgeFrom" value="0"/>
+                <input hidden disabled id="edgeTo" value="0"/>
             <p>
                 Edge:
                 <span id = "edgeData1"></span>
-                <br>Weight: <input type="number" id="weight1" value="undef" style="width:140px" placeholder="not defined"/>
+                <br>Weight: <input type="number" id="weight1" value="undef" style="width:140px" placeholder="not defined" onchange="updateEdge($('#edgeFrom').val(), $('#edgeTo').val(), $('#weight1').val())"/>
                 <input style="float:right" type="submit" value="Delete edge" onclick="deleteEdge($('#edgeFrom').val(), $('#edgeTo').val())" />
             </p>
             <br/>
             <p>
                 Edge:
                 <span id = "edgeData2"></span>
-                <br>Weight: <input type="number" id="weight2" value="undef" style="width:140px" placeholder="not defined"/>
+                <br>Weight: <input type="number" id="weight2" value="undef" style="width:140px" placeholder="not defined" onchange="updateEdge($('#edgeTo').val(), $('#edgeFrom').val(), $('#weight2').val())"/>
                 <input style="float:right" type="submit" value="Delete edge" onclick="deleteEdge($('#edgeTo').val(), $('#edgeFrom').val())" />
             </p>
         </div>

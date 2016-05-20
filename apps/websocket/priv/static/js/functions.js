@@ -66,6 +66,7 @@ $(function () {
                         if (graphUpdate.isFullGraph) {
                             nodes.clear();
                         }
+
                         if(graphUpdate.addedNodes){
                             graphUpdate.addedNodes.forEach(function(node) {
                                 addNode(node);
@@ -206,22 +207,25 @@ $(function () {
     initSocket();
 });
 
-    function updateEdgeWeight(edgeId, newEdgeWeight) {
-        edge = edges.get(edgeId);
-        node = nodes.get(edge.from);
-        edge.weight = newEdgeWeight;
-        edges.update(edge);
-
-        currentEdges = [];
-
-        edges.forEach(function(edgeToAdd) {
-            if(edgeToAdd.from == node.id) {
-                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight});
+    function updateEdge(nodeId1, nodeId2, weight) {
+        console.log(nodeId1);
+        console.log(nodeId2);
+        console.log(weight);
+        var node = nodes.get(nodeId1);
+        var currentEdges = getEdges(nodeId1);
+        var targetEdgeIndex = -1;
+        currentEdges.forEach(function(edge){
+            if(edge.targetNodeId == nodeId2) {
+                console.log("trying to remove edge");
+                targetEdgeIndex = currentEdges.indexOf(edge);
             }
         });
-        // initSocket();
-        // socketSend(UPDATENODE, toSend);
-        // socketClose();
+        if (targetEdgeIndex > -1) {
+            currentEdges.splice(targetEdgeIndex, 1);
+        }
+        currentEdges.push({targetNodeId: nodeId2, weight: weight});
+        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
+        alert(JSON.stringify(toSend));
     }
 
     function deleteEdge(nodeId1, nodeId2) {
@@ -238,59 +242,11 @@ $(function () {
         });
         toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
         alert(JSON.stringify(toSend));
-        // var newNode = new Node({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
-        var newNode = null;
+        var test = new NodeDeleteRequest();
+        var newNode = new Node();
         var message = new UpdateNode({node: newNode});
         socketSend("UPDATENODE", message.encode());
     }
-
-
-    // function deleteEdge(nodeId1, nodeId2) {
-    //      console.log(nodeId1);
-    //      console.log(nodeId2);
-    //      console.log(nodeId1 + nodeId2);
-
-    //      var edge1 = edges.get(nodeId1 + nodeId2);
-    //      if(edge1) {
-    //         if(edge1.weight_to_from == undefined) {
-    //             removeEdge(nodeId1, nodeId2);
-    //         }
-    //         else {
-    //             updateEdge(nodeId1, nodeId2, edge1);
-    //         }
-    //      } 
-    //      else {
-    //         var edge2 = edges.get(nodeId2 + nodeId1)
-    //         if(edge2) {
-    //             if(edge2.weight_to_from == undefined) {
-    //                 removeEdge(nodeId2, nodeId1);
-    //             }
-    //             else {
-    //                 updateEdge(nodeId2, nodeId1, edge);
-    //             }
-    //         }
-    //      }
-    //      createUpdateNodeMessage(nodeId1);
-    // }
-
-    // function updateEdge(nodeId1, nodeId2, edge) {
-    //     edges.remove(nodeId1 + nodeId2);
-    //     edges.add([
-    //         {id: nodeId2 + nodeId1, from: nodeId2, to: nodeId1, weight_from_to: edge.weight_to_from, weight_to_from: undefined, arrows:'to'},
-    //     ]);
-    //     $("#edgeFrom").val(nodeId2);
-    //     $("#edgeTo").val(nodeId1);
-    //     $("#edgeData1").html("from node " + nodeId2 + " to node " + nodeId1);
-    //     $("#edgeData2").html("from node " + nodeId1 + " to node " + nodeId2);
-    //     $("#weight1").val(edge.weight_to_from);
-    //     $("#weight2").val(undefined);
-    // }
-
-    // function removeEdge(nodeId1, nodeId2) {
-    //     edges.remove(nodeId1 + nodeId2);
-    //     div = document.getElementById("edit-from-edge");
-    //     div.style.display = 'none';
-    // }
 
     function createEdgeForm(nodeId) {
         node = nodes.get(nodeId);
@@ -308,8 +264,7 @@ $(function () {
             currentEdges.push({targetNodeId: toId, weight: weight});
             toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
             alert(JSON.stringify(toSend));
-            // var newNode = new Node({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
-            var newNode = undefined;
+            newNode = new Node({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
             var message = new UpdateNode({node: newNode});
             socketSend("UPDATENODE", message.encode());
         }
