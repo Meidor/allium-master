@@ -30,26 +30,26 @@ websocket_init(_TransportName, Req, _Opts) ->
     {ok, Req, undefined_state, hibernate}.
 
 -spec websocket_handle(tuple(), any(), any()) -> tuple().
-websocket_handle({text, Msg}, Req, State) ->
-    lager:info(State),
+websocket_handle({text, _Msg}, Req, State) ->
+    {ok, Req, State};
+websocket_handle({binary, Msg}, Req, State) ->
     DecodedMsg = hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
     {[{wrapper, Type, Data} | _], _} = DecodedMsg,
     case Type of
         'ADMINLOGINREQUEST' ->
-            {adminlogin, Username, Password} = hrp_pb:decode_nodedeleterequest(Data),
-            ok = auth_service:admin_login(Username, Password)
+        {adminloginrequest, Username, Password} = hrp_pb:decode_adminloginrequest(Data),
+        try auth_service:admin_login(Username, Password) of
+            _ ->
+                {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
+                    hrp_pb:encode({adminloginresponse, 'SUCCES'}))}, Req, logged_in}
+        catch
+            _:_ ->
+                {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
+                    hrp_pb:encode({adminloginresponse, 'FAILED'}))}, Req, State}
+        end
     end;
-%%    LoggedIn = check_admin_credentials(Username, Password),
-%%    case LoggedIn of
-%%        ok ->
-%%            {reply, {text, Msg}, Req, loggedIn};
-%%        _ ->
-%%            {reply, {text, Msg}, Req, notLoggedIn}
-%%    end;
-websocket_handle({binary, Msg}, _Req, _State) ->
-    lager:info("Received binary message"),
-    hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg));
 websocket_handle(_Data, Req, State) ->
+    io:format("wtf2~n"),
     {ok, Req, State}.
 
 -spec websocket_info(tuple(), any(), any()) -> tuple().
@@ -73,15 +73,3 @@ get_full_graph() ->
             {graphupdateresponse, node_graph_manager:get_graph_updates(0)}
         )
     ).
-
--spec check_admin_credentials(list()) -> ok.
-check_admin_credentials(Msg) ->
-    ok.
-
-%%     [_, ?AUTHORIZESTATE] = State.
-
-
-
-
-
-
