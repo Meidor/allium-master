@@ -75,8 +75,8 @@ remove_client(Username) when is_list(Username) ->
 
 -spec get_current_time() -> integer().
 get_current_time() ->
-    {_, CurrentTime, _} = erlang:timestamp(),
-    CurrentTime.
+    {Mega, Secs, _} = erlang:timestamp(),
+    Mega * 1000000 + Secs.
 
 -spec apply_to_expired_heartbeats(list(), integer(), fun()) -> list().
 apply_to_expired_heartbeats(Label, TimeBetweenHeartbeats, Fun) ->
