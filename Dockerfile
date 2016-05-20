@@ -14,6 +14,8 @@ MAINTAINER Rik Harink <rikharink@gmail.com>
 RUN apt-get update
 RUN apt-get -y install git
 
+RUN apt-get install -y redis-server
+
 RUN mkdir /build
 WORKDIR /build/
 

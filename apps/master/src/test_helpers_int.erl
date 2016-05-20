@@ -136,7 +136,7 @@ init_sharded_eredis() ->
             {pool1, [
                 {size, 10},
                 {max_overflow, 20},
-                {host, "192.168.0.104"},
+                {host, "tumma.nl"},
                 {port, 6379}
             ]}
         ]
