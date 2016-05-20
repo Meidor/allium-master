@@ -11,10 +11,14 @@ $(function () {
     }
 
     // Initialize ProtoBuf.js
-    var ProtoBuf = dcodeIO.ProtoBuf;
-    var Wrapper = ProtoBuf.loadProtoFile("js/hrp.proto").build("Wrapper");
-    var GraphUpdateResponse = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdateResponse");
-    var GraphUpdate = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdate");
+	var ProtoBuf = dcodeIO.ProtoBuf;
+    var builder = ProtoBuf.loadProtoFile("js/hrp.proto");
+    var Wrapper = builder.build("Wrapper");
+    var NodeDeleteRequest = builder.build("NodeDeleteRequest");
+    var NodeRegisterRequest = builder.build("NodeRegisterRequest");
+    var GraphUpdateResponse = builder.build("GraphUpdateResponse");
+    var GraphUpdate = builder.build("GraphUpdate");
+	var AdminLoginRequest = builder.build("AdminLoginRequest");
 
     function initSocket() {
         console.log("Initializing socket");
@@ -26,12 +30,12 @@ $(function () {
         socket.onmessage = socketMessage;
     }
 
-    function socketSend(type, data) {
+	function socketSend(type, data) {
         if (socket.readyState == WebSocket.OPEN) {
-            var wrapper = new Wrapper();
-            wrapper.setType(type);
-            wrapper.setData(data);
-            socket.send(wrapper.toArrayBuffer());
+            var message = new Wrapper({type: type, data: data});
+            response = message.encodeDelimited();
+			alert(JSON.stringify(response));
+            socket.send(response.toArrayBuffer());
         } else {
             console.log("Not connected while sending: " + data);
         }
@@ -152,20 +156,15 @@ $(function () {
         findNode.val("");
     });
 	
-	
     $("#login").on('submit', function(event) {
         event.preventDefault();
         var username = $("#username").val();
         var password = $("#password").val();
         if (username !== undefined && password !== undefined) {
+			var message = new AdminLoginRequest({username : username, password: password});
+            socketSend("ADMINLOGINREQUEST", message.encode());
+			
 
-            var response = network.focus(username, password);
-			if (response) {
-				window.location = "index.html";
-			}
-			else {
-				alert("You have submitted the wrong user credentials.");
-			}
         }
     });
 
