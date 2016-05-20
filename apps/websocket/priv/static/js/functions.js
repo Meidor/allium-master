@@ -53,10 +53,8 @@ $(function () {
         console.log("Received message: " + event.data);
         try {
             var wrapper = Wrapper.decode(event.data);
-            console.log(wrapper.type);
             switch (wrapper.type) {
                 case Wrapper.Type.GRAPHUPDATERESPONSE:
-                    console.log("Received GraphUpdateResponse...");
                     var graphUpdateResponse = GraphUpdateResponse.decode(wrapper.data);
 
                     graphUpdateResponse.graphUpdates.forEach(function (update) {
@@ -79,9 +77,7 @@ $(function () {
                     });
                     break;
                 case Wrapper.Type.ADMINLOGINRESPONSE:
-                    console.log("Received AdminLoginResponse...");
                     var adminLoginResponse = AdminLoginResponse.decode(wrapper.data);
-                    console.log(adminLoginResponse);
                     if(adminLoginResponse.status === 1) {
                       logindiv = document.getElementById("main");
                       logindiv.style.display = 'none';
@@ -91,7 +87,7 @@ $(function () {
                       alert("Login successful.");
                     }
                     else {
-                      alert("Wrong usercredentials have been entered.");
+                      alert("Wrong user credentials have been entered.");
                     }
                     break;
             }
