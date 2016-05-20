@@ -39,6 +39,8 @@ get_min_version() ->
     try
         binary_to_integer(redis:get("min_version"))
     catch _:_ ->
+        update_min_version(1),
+        redis:set("version_1", hrp_pb:encode({graphupdate, 1, true, [], []})),
         1
     end.
 
@@ -61,16 +63,10 @@ get_graph_updates_for_versions(Versions) ->
 get_graph_updates_for_version(Version) ->
     redis:get("version_" ++ integer_to_list(Version)).
 
-
 -spec rebuild_graph() -> atom().
 rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
-    case NewMinVersion of
-        1 ->
-            Graph = {graphupdate, 1, true, [], []};
-        _ ->
-            Graph = build_graph(NewMinVersion)
-    end,
+    Graph = build_graph(NewMinVersion),
     save_graph(Graph, NewMinVersion),
     remove_old_versions(NewMinVersion),
     update_min_version(NewMinVersion),
@@ -181,7 +177,7 @@ remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
-    GraphUpdate =  hrp_pb:encode(
+    GraphUpdate = hrp_pb:encode(
             {graphupdate, Version, false, [], [{node, NodeId, "", 0, "", []}]}
     ),
     redis:set_remove("active_nodes", NodeId),
@@ -214,24 +210,20 @@ update_node(NodeId, IPaddress, Port, PublicKey) ->
     redis:set(
         "version_" ++ integer_to_list(DeleteVersion),
         hrp_pb:encode(
-            {graphupdate, DeleteVersion, false, [], [
-                {node, NodeId, "", 0, "", []}
-            ]}
+            {graphupdate, DeleteVersion, false, [],
+                [{node, NodeId, "", 0, "", []}]}
         )
     ),
     GraphUpdate = hrp_pb:encode(
-            {graphupdate, AddVersion, false, [
-                {node, NodeId, IPaddress, Port, PublicKey, []}
-            ], []}
+            {graphupdate, AddVersion, false,
+                [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
     ),
-    redis:set(
-        "version_" ++ integer_to_list(AddVersion),
-        GraphUpdate
-    ),
+    redis:set("version_" ++ integer_to_list(AddVersion), GraphUpdate),
     UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
     publish(node_update, UpdateMessage),
     ok.
 
+-spec publish(any(), any()) -> any().
 publish(Event, Data) ->
     gproc:send({p, l, {ws_handler, Event}}, {ws_handler, Event, Data}).
 

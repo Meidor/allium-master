@@ -48,12 +48,13 @@ remove_inactive_nodes(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbea
 
 -spec remove_inactive_clients(integer()) -> list().
 remove_inactive_clients(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbeats) ->
-    ExperidClientUsernames =
-        get_identifiers_expired_heartbeats("heartbeat_client_", TimeBetweenHeartbeats),
+    ExperidClientUsernames = get_identifiers_expired_heartbeats(
+        "heartbeat_client_",
+        TimeBetweenHeartbeats
+    ),
     lists:foreach(
         fun(Client) ->
-            client_service:client_logout(Client),
-            remove_client(Client)
+            client_service:client_logout(Client)
         end,
         ExperidClientUsernames),
     ExperidClientUsernames.
@@ -76,8 +77,8 @@ remove_client(Username) when is_list(Username) ->
 
 -spec get_current_time() -> integer().
 get_current_time() ->
-    {_, CurrentTime, _} = erlang:timestamp(),
-    CurrentTime.
+    {Mega, Secs, _} = erlang:timestamp(),
+    Mega * 1000000 + Secs.
 
 -spec get_identifiers_expired_heartbeats(list(), integer()) -> list().
 get_identifiers_expired_heartbeats(Label, TimeBetweenHeartbeats) ->
