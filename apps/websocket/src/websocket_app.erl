@@ -14,6 +14,7 @@ start(_Type, _Args) ->
     {'_', [
       {"/", cowboy_static, {priv_file, websocket, "index.html"}},
       {"/map.html", cowboy_static, {priv_file, websocket, "map.html"}},
+      {"/login.html", cowboy_static, {priv_file, websocket, "login.html"}},
       {"/websocket", ws_handler, []},
       {
           "/static/js/hrp.proto", cowboy_static,
