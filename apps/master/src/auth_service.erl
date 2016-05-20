@@ -25,7 +25,7 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
             error(clientnotverified)
     end.
 
--spec admin_verify(list(), list()) -> any().
+-spec admin_verify(list()) -> any().
 admin_verify(Username) when is_list(Username) ->
     try
         {_, _, _, _, _} = persistence_service:select_client(Username)
