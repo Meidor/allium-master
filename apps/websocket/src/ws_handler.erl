@@ -47,7 +47,6 @@ websocket_handle({binary, Msg}, Req, State) ->
         end
     end;
 websocket_handle(_Data, Req, State) ->
-    io:format("wtf2~n"),
     {ok, Req, State}.
 
 -spec websocket_info(tuple(), any(), any()) -> tuple().
