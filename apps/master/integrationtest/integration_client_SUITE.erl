@@ -33,6 +33,8 @@ all() -> [
 
 init_per_suite(Config) ->
     application:load(master),
+    application:load(websocket),
+    application:ensure_all_started(websocket),
     persistence_service:init(),
 
     NodeIPsAndKeys = [
@@ -60,6 +62,7 @@ init_per_testcase(_, Config) ->
 
 end_per_suite(Config) ->
     application:unload(master),
+    application:load(master),
     Config.
 
 login_non_existing_client_return_error_test(Config) ->
