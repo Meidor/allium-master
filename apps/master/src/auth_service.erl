@@ -28,7 +28,7 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
 -spec admin_verify(list()) -> any().
 admin_verify(Username) when is_list(Username) ->
     try
-        {_, _, _, _, _} = persistence_service:select_client(Username)
+        {Username, _, _} = persistence_service:select_admin(Username)
     catch
         _:_ ->
             error(adminnotverified)
@@ -64,7 +64,7 @@ client_login(Username, Password, PublicKey)
     persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
     {SecretHash, DedicatedNodes}.
 
--spec admin_login(list(), list())-> any().
+-spec admin_login(list(), list())-> ok.
 admin_login(Username, Password)
     when
     is_list(Username), is_list(Password) ->
@@ -75,7 +75,7 @@ admin_login(Username, Password)
 -spec admin_check_password(list(), list()) -> any().
 admin_check_password(Username, Password) when is_list(Username), is_list(Password) ->
     try
-        {_, Password, _} = persistence_service:select_admin(Username)
+        {Username, Password, _} = persistence_service:select_admin(Username)
     catch
         _:_ ->
             error(admincredentialsnotvalid)
