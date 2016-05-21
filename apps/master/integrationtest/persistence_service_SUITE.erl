@@ -11,38 +11,60 @@
 
 -export([
     insert_new_client_return_ok_test/1,
-    insert_existing_client__return_error_test/1,
+    insert_new_admin_return_ok_test/1,
+    insert_existing_client_return_error_test/1,
+insert_existing_admin_return_error_test/1,
     update_existing_client_hash_return_ok_test/1,
     update_non_existing_client_hash_return_error_test/1,
     update_existing_client_return_ok_test/1,
+    update_existing_admin_return_ok_test/1,
     update_non_existing_client_return_error_test/1,
+    update_non_existing_admin_return_error_test/1,
     select_existing_client_return_client_test/1,
+    select_existing_admin_return_client_test/1,
     select_non_existing_client_return_undefined_test/1,
+    select_non_existing_admin_return_undefined_test/1,
     select_all_existing_clients_while_two_clients_return_clients_test/1,
+    select_all_existing_admins_while_two_admins_return_admins_test/1,
     select_all_existing_clients_while_no_existing_clients_return_empty_list_test/1,
+    select_all_existing_admins_while_no_existing_admins_return_empty_list_test/1,
     select_all_existing_clients_with_given_hash_two_matches_return_clients_test/1,
     select_all_existing_clients_with_given_hash_no_matches_return_empty_test/1,
     delete_existing_client_return_ok_test/1,
+    delete_existing_admin_return_ok_test/1,
     delete_non_existing_client_return_ok_test/1,
-    delete_all_clients_return_ok_test/1
+    delete_non_existing_admin_return_ok_test/1,
+    delete_all_clients_return_ok_test/1,
+    delete_all_admins_return_ok_test/1
 ]).
 
 all() -> [
     insert_new_client_return_ok_test,
-    insert_existing_client__return_error_test,
+    insert_new_admin_return_ok_test,
+    insert_existing_client_return_error_test,
+    insert_existing_admin_return_error_test,
     update_existing_client_hash_return_ok_test,
     update_non_existing_client_hash_return_error_test,
     update_existing_client_return_ok_test,
+    update_existing_admin_return_ok_test,
     update_non_existing_client_return_error_test,
+    update_non_existing_admin_return_error_test,
     select_existing_client_return_client_test,
+    select_existing_admin_return_client_test,
     select_non_existing_client_return_undefined_test,
+    select_non_existing_admin_return_undefined_test,
     select_all_existing_clients_while_two_clients_return_clients_test,
+    select_all_existing_admins_while_two_admins_return_admins_test,
     select_all_existing_clients_while_no_existing_clients_return_empty_list_test,
+    select_all_existing_admins_while_no_existing_admins_return_empty_list_test,
     select_all_existing_clients_with_given_hash_two_matches_return_clients_test,
     select_all_existing_clients_with_given_hash_no_matches_return_empty_test,
     delete_existing_client_return_ok_test,
+    delete_existing_admin_return_ok_test,
     delete_non_existing_client_return_ok_test,
-    delete_all_clients_return_ok_test
+    delete_non_existing_admin_return_ok_test,
+    delete_all_clients_return_ok_test,
+    delete_all_admins_return_ok_test
 ].
 
 init_per_suite(Config) ->
@@ -54,6 +76,7 @@ init_per_testcase(_, Config) ->
 
 end_per_testcase(_, Config) ->
     persistence_service:delete_all_clients(),
+    persistence_service:delete_all_admins(),
     Config.
 
 insert_new_client_return_ok_test(_Config) ->
@@ -61,12 +84,24 @@ insert_new_client_return_ok_test(_Config) ->
 
     {"Username", undefined, undefined, "Password", []} = persistence_service:select_client("Username").
 
-insert_existing_client__return_error_test(_Config) ->
+insert_new_admin_return_ok_test(_Config) ->
+    ok = persistence_service:insert_admin("Username", "Password"),
+
+    {"Username", "Password", undefined} = persistence_service:select_admin("Username").
+
+insert_existing_client_return_error_test(_Config) ->
     persistence_service:insert_client("Username", "Password"),
 
     test_helpers:assert_fail(fun persistence_service:insert_client/2, ["Username", "Pass"],
         error, usernametaken, failed_to_catch_taken_username),
     {"Username", undefined, undefined, "Password", []} = persistence_service:select_client("Username").
+
+insert_existing_admin_return_error_test(_Config) ->
+    persistence_service:insert_admin("Username", "Password"),
+
+    test_helpers:assert_fail(fun persistence_service:insert_admin/2, ["Username", "Pass"],
+        error, usernametaken, failed_to_catch_taken_username),
+    {"Username", "Password", undefined} = persistence_service:select_admin("Username").
 
 update_existing_client_hash_return_ok_test(_Config) ->
     persistence_service:insert_client("Username", "Password"),
@@ -88,27 +123,59 @@ update_existing_client_return_ok_test(_Config) ->
     [{"Username2", undefined, undefined, "Password", []}, {"Username", "NewHash", <<"PublicKey">>,
         "Password", ["1", "11", "111"]}] = persistence_service:select_all_clients().
 
+update_existing_admin_return_ok_test(_Config) ->
+    persistence_service:insert_admin("Username", "Password"),
+    persistence_service:insert_admin("Username2", "Password"),
+
+    ok = persistence_service:update_admin("Username", "NewPassword", undefined),
+    [{"Username2", "Password", undefined}, {"Username", "NewPassword", undefined}]
+        = persistence_service:select_all_clients().
+
 update_non_existing_client_return_error_test(_Config) ->
     test_helpers:assert_fail(fun persistence_service:update_client/4, ["Username", "SecretHash", <<"PublicKey">>, ["1", "11", "111"]],
         error, couldnotbeupdated, client_does_not_exist).
+
+update_non_existing_admin_return_error_test(_Config) ->
+    test_helpers:assert_fail(fun persistence_service:update_admin/3, ["Username", "SecretHash",undefined],
+        error, couldnotbeupdated, admin_does_not_exist).
 
 select_existing_client_return_client_test(_Config) ->
     persistence_service:insert_client("Username", "Password"),
 
     {"Username", undefined, undefined, "Password", []} = persistence_service:select_client("Username").
 
+select_existing_admin_return_client_test(_Config) ->
+    persistence_service:insert_admin("Username", "Password"),
+
+    {"Username", "Password", undefined} = persistence_service:select_admin("Username").
+
 select_non_existing_client_return_undefined_test(_Config) ->
     undefined = persistence_service:select_client("Username").
+
+
+select_non_existing_admin_return_undefined_test(_Config) ->
+    undefined = persistence_service:select_admin("Username").
 
 select_all_existing_clients_while_two_clients_return_clients_test(_Config) ->
     persistence_service:insert_client("Username", "Password"),
     persistence_service:insert_client("Username2", "Password"),
 
     [{"Username2", undefined, undefined, "Password", []},
-        {"Username", undefined, undefined,"Password", []}] = persistence_service:select_all_clients().
+        {"UUsername", undefined, undefined, "Password", []}] = persistence_service:select_all_clients().
+
+select_all_existing_admins_while_two_admins_return_admins_test(_Config) ->
+    persistence_service:insert_admin("Username", "Password"),
+    persistence_service:insert_admin("Username2", "Password"),
+
+    [{"Username2", "Password", undefined},
+        {"Username", "Password", undefined}] = persistence_service:select_all_admins().
 
 select_all_existing_clients_while_no_existing_clients_return_empty_list_test(_Config) ->
     [] = persistence_service:select_all_clients().
+
+
+select_all_existing_admins_while_no_existing_admins_return_empty_list_test(_Config) ->
+    [] = persistence_service:select_all_admins().
 
 select_all_existing_clients_with_given_hash_two_matches_return_clients_test(_Config) ->
     persistence_service:insert_client("Username","Password"),
@@ -129,8 +196,17 @@ delete_existing_client_return_ok_test(_Config) ->
     ok = persistence_service:delete_client("Username"),
     undefined = persistence_service:select_client("Username").
 
+delete_existing_admin_return_ok_test(_Config) ->
+    persistence_service:insert_admin("Username", "Password"),
+
+    ok = persistence_service:delete_admin("Username"),
+    undefined = persistence_service:select_admin("Username").
+
 delete_non_existing_client_return_ok_test(_Config) ->
     ok = persistence_service:delete_client("Username").
+
+delete_non_existing_admin_return_ok_test(_Config) ->
+    ok = persistence_service:delete_admin("Username").
 
 delete_all_clients_return_ok_test(_Config) ->
     persistence_service:insert_client("Username", "Password"),
@@ -138,3 +214,10 @@ delete_all_clients_return_ok_test(_Config) ->
 
     ok = persistence_service:delete_all_clients(),
     [] = persistence_service:select_all_clients().
+
+delete_all_admins_return_ok_test(_Config) ->
+    persistence_service:insert_admin("Username", "Password"),
+    persistence_service:insert_admin("Username2",  "Password"),
+
+    ok = persistence_service:delete_all_admins(),
+    [] = persistence_service:select_all_admins().
