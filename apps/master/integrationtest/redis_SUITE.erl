@@ -103,21 +103,21 @@ set_value_to_atom_return_ok_test(_Config) ->
     <<"undefined">> = redis:get("Key").
 
 get_list_with_empty_list_return_empty_list_test(_Config) ->
-    [] = redis:get_list([]).
+    [] = redis:get_list_failsafe([]).
 
 get_list_with_list_all_non_existing_keys_return_empty_list_test(_Config) ->
-    [undefined, undefined, undefined]  = redis:get_list(["onion_Key1", "onion_Key2", "onion_Key3"]).
+    [undefined, undefined, undefined]  = redis:get_list_failsafe(["onion_Key1", "onion_Key2", "onion_Key3"]).
 
 get_list_with_list_partly_non_existing_keys_return_only_existing_keyvalues_test(_Config) ->
     redis:set("Key1", "Value1"),
     redis:set("Key3", "Value3"),
-    [<<"Value1">>, undefined, <<"Value3">>]  = redis:get_list(["onion_Key1", "onion_Key2", "onion_Key3"]).
+    [<<"Value1">>, undefined, <<"Value3">>]  = redis:get_list_failsafe(["onion_Key1", "onion_Key2", "onion_Key3"]).
 
 get_list_with_list_all_existing_keys_return_all_values_test(_Config) ->
     redis:set("Key1", "Value1"),
     redis:set("Key2", "Value2"),
     redis:set("Key3", "Value3"),
-    [<<"Value1">>, <<"Value2">>, <<"Value3">>]  = redis:get_list(["onion_Key1", "onion_Key2", "onion_Key3"]).
+    [<<"Value1">>, <<"Value2">>, <<"Value3">>]  = redis:get_list_failsafe(["onion_Key1", "onion_Key2", "onion_Key3"]).
 
 get_matching_key_with_no_existing_keys_return_empty_list(_Config) ->
     [] = redis:get_matching_keys("non_existing").

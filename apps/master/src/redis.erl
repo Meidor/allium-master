@@ -12,12 +12,14 @@
     remove/1,
     get_matching_keys/1,
     get_list/1,
+    get_list_failsafe/1,
     set_randmember/2,
     set_add/2,
     set_remove/2,
     init/0,
     apply_to_matching_keys/2,
-    apply_to_execute_command_on_all_nodes/2]).
+    apply_to_execute_command_on_all_nodes/2
+]).
 
 -define(prefix, "onion_").
 
@@ -39,6 +41,12 @@ get_list([])->
 get_list(ListOfKeys) ->
     {ok, ListOfValues} = sharded_eredis:q(["MGET" | ListOfKeys]),
     ListOfValues.
+
+get_list_failsafe(ListOfKeys) ->
+    lists:map(
+        fun(Key) -> {ok, Value} = sharded_eredis:q(["GET", Key]), Value end,
+        ListOfKeys
+    ).
 
 -spec set(list(), list()) -> tuple().
 set(Key, Value) ->
