@@ -38,7 +38,7 @@ recv(Pid) ->
             Message
     after
         5000 ->
-            {error, noresponse}
+            noresponse
     end.
 
 websocket_handle({text, _Msg}, _Req, State) ->
@@ -48,7 +48,7 @@ websocket_handle({binary, Msg}, _Req, State) ->
     {[{wrapper, Type, Data} | _], _} = MessageWrapper,
     case Type of
         'ADMINLOGINRESPONSE' ->
-            State ! logged_in,
+            State ! hrp_pb:decode_adminloginresponse(Data),
             {ok, State};
         'GRAPHUPDATERESPONSE' ->
             State ! hrp_pb:decode_graphupdateresponse(Data),
