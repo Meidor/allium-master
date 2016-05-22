@@ -69,6 +69,7 @@ set_add(Set, Value) ->
 set_remove(Set, Value) ->
     sharded_eredis:q(["SREM", ?prefix ++ Set, Value]).
 
+-spec apply_to_matching_keys(list(), fun()) -> atom().
 apply_to_matching_keys(Filter, Fun) ->
     apply_to_execute_command_on_all_nodes(["KEYS", ?prefix ++ Filter ++ "*"], Fun).
 
@@ -85,6 +86,7 @@ apply_to_execute_command_on_all_nodes(Command, Fun) ->
     ),
     ok.
 
+-spec accumulate_command_on_all_nodes(list()) -> list().
 accumulate_command_on_all_nodes(Command) ->
     {ok, NodeList} = application:get_env(sharded_eredis, ring),
     Nodes = [Node || {_, Node} <- NodeList],

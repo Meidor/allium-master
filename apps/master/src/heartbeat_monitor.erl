@@ -52,8 +52,7 @@ remove_inactive_clients(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartb
         "heartbeat_client_",
         TimeBetweenHeartbeats,
         fun(Client) ->
-            client_service:client_logout(Client),
-            remove_client(Client)
+            client_service:client_logout(Client)
         end
     ).
 
