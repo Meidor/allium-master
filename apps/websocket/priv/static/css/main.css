@@ -7,7 +7,7 @@ html, body {
     font: 11pt arial;
     height: 100%;
     overflow: hidden;
-    background-color: #D1D1D1;
+    background-color: white;
 }
 
 #network {
@@ -21,8 +21,46 @@ html, body {
     position: fixed;
     top: 30px;
     left: 30px;
-    width: 300px;
-    background-color: cornsilk;
+    width: 400px;
+    background-color: white;
     padding: 15px;
-    box-shadow: 10px 10px 10px grey;
+    border: 1px solid grey;
+    box-shadow: 5px 5px 5px grey;
+    border-radius: 3px;
+}
+
+.hide-display {
+    display: none;
+}
+
+.edge-weight {
+    width: 140px;
+}
+
+.edge-information {
+    float: left;
+    padding-right: 10px;
+}
+
+#padding-save {
+    padding: 11px;
+}
+
+.padding-button {
+    padding: 5px;
+    width: 80px;
+}
+
+.padding-input {
+    padding: 5px;
+    width: 300px;
+}
+
+.padding-input-edge {
+    padding: 5px;
+    width: 246px;
+}
+
+.padding-table-data {
+    padding-left:2px;
 }
