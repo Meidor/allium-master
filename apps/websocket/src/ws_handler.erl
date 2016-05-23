@@ -30,6 +30,113 @@ websocket_init(_TransportName, Req, _Opts) ->
 -spec websocket_handle(tuple(), any(), any()) -> tuple().
 websocket_handle({text, _Msg}, Req, State) ->
     {ok, Req, State};
+    websocket_handle({binary, Msg}, Req, loggged_in) ->
+    DecodedMsg = hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
+    {[{wrapper, Type, Data} | _], _} = DecodedMsg,
+    case Type of
+        'ADMINREGISTERREQUEST' ->
+            {adminregisterrequest, Username, Password, Superadmin} = hrp_pb:decode_adminregisterrequest(Data),
+            try persistence_service:insert_admin(Username, Password, Superadmin) of
+                ok ->
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, persistence_service:select_all_admins()}
+                        )
+                    )
+            catch
+                error:usernametaken ->
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, []}
+                        )
+                    );
+                _:Error ->
+                    lager:error("Error in admin register request: ~p", [Error]),
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, []}
+                        )
+                    )
+            end;
+        'ADMINUPDATEREQUEST' ->
+            {adminupdaterequest, Username, Password, Superadmin} = hrp_pb:decode_adminupdaterequest(Data),
+            try persistence_service:update_admin(Username, Password, Superadmin) of
+                ok ->
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, persistence_service:select_all_admins()}
+                        )
+                    )
+            catch
+                error:usernametaken ->
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, []}
+                        )
+                    );
+                _:Error ->
+                    lager:error("Error in admin update request: ~p", [Error]),
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, []}
+                        )
+                    )
+            end;
+        'ADMINDELETEREQUEST' ->
+            {admindeleterequest, Username} = hrp_pb:decode_admindeleterequest(Data),
+            try persistence_service:delete_admin(Username) of
+                ok ->
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, persistence_service:select_all_admins()}
+                        )
+                    )
+            catch
+                error:usernametaken ->
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, []}
+                        )
+                    );
+                _:Error ->
+                    lager:error("Error in admin delete request: ~p", [Error]),
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, []}
+                        )
+                    )
+            end;
+        'ADMINLISTREQUEST' ->
+            {adminlistrequest} = hrp_pb:decode_adminlistrequest(Data),
+            try persistence_service:select_all_admins() of
+                ok ->
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, persistence_service:select_all_admins()}
+                        )
+                    )
+            catch
+                _:Error ->
+                    lager:error("Error in admin list request: ~p", [Error]),
+                    get_wrapped_message(
+                        'ADMINLISTRESPONSE',
+                        hrp_pb:encode(
+                            {adminlistresponse, []}
+                        )
+                    )
+            end
+    end;
+
 websocket_handle({binary, Msg}, Req, State) ->
     DecodedMsg = hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
     {[{wrapper, Type, Data} | _], _} = DecodedMsg,

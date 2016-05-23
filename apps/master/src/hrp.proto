@@ -1,5 +1,5 @@
 //----------------------------------------
-// VERSION: 0.4.2
+// VERSION: 0.4.5
 //----------------------------------------
 
 syntax = "proto2";
@@ -252,8 +252,8 @@ message MessageWrapper {
 
 	optional string username = 3;
 
-	// This will contain either a new MessageWrapper or a Message/MessageConfirmation after decryption
-	required bytes encryptedData = 4;
+	// This will contain a Wrapper which will contain either a new MessageWrapper or a Message/MessageConfirmation after decryption
+	required bytes data = 4;
 }
 
 // Actual message, wrapped by several MessageWrapper's while sending
@@ -305,6 +305,42 @@ message AdminLoginResponse {
     required Status status = 1;
 }
 
+// Request a list of all currently known admins
+message AdminListRequest {
+}
+
+// Register an admin
+message AdminRegisterRequest {
+    required string username = 1;
+}
+
+// Update an admin
+message AdminUpdateRequest {
+    required string username = 1;
+    required string password = 2;
+    required bool superadmin = 3;
+}
+
+// Delete an admin
+message AdminDeleteRequest {
+    required string username = 1;
+}
+
+// Response to AdminListRequest
+// Response to AdminRegisterRequest
+// Response to AdminUpdateRequest
+// Response to AdminDeleteRequest
+// Contains a list of all admins currently known
+message AdminListResponse {
+    repeated Admin admins = 1;
+}
+
+// Contains all Admin data
+message Admin {
+    required string username = 1;
+    required bool superadmin = 2;
+}
+
 // Wrapper for all communication
 // This wrapper message is send un encrypted over the network.
 message Wrapper {
@@ -349,6 +385,12 @@ message Wrapper {
 
         ADMINLOGINREQUEST = 24;
         ADMINLOGINRESPONSE = 25;
+
+        ADMINLISTREQUEST = 26;
+        ADMINREGISTERREQUEST = 27;
+        ADMINUPDATEREQUEST = 28;
+        ADMINDELETEREQUEST = 29;
+        ADMINLISTRESPONSE = 30;
     }
 	// The type field contains a message type which corresponds to the data in the data field.
     required Type type = 1;

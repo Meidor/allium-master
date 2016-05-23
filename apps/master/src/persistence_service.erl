@@ -11,9 +11,10 @@
     select_clients_by_hash/1,
     update_client/4,
     select_admin/1,
-    insert_admin/3,
+    insert_admin/1,
     update_admin/3,
-    delete_admin/1
+    delete_admin/1,
+    select_all_admins/0
 ]).
 
 -include_lib("stdlib/include/qlc.hrl").
@@ -108,8 +109,14 @@ select_admin(Username) when is_list(Username) ->
             {Username, Password, SuperAdmin}
     end.
 
--spec insert_admin(list(), list(), atom()) -> any().
-insert_admin(Username, Password, Superadmin) when is_list(Username), is_list(Password), is_atom(Superadmin) ->
+-spec select_all_admins() -> list().
+select_all_admins() ->
+    {_, Result} = get_all_records_from_table(admin),
+    [{Username, Superadmin} ||
+        {_, Username, _, Superadmin} <- Result].
+
+-spec insert_admin(list()) -> any().
+insert_admin(Username) when is_list(Username) ->
     try
         undefined = select_admin(Username)
     catch
@@ -120,8 +127,8 @@ insert_admin(Username, Password, Superadmin) when is_list(Username), is_list(Pas
     case mnesia:transaction(fun() ->
         mnesia:write(
             #admin{username = Username,
-                password = Password,
-                superadmin = Superadmin})
+                password = generate_password(),
+                superadmin = false})
                             end) of
         {atomic, ok} ->
             ok;
@@ -176,3 +183,7 @@ get_all_records_from_table(Table) when is_atom(Table) ->
             [ X || X <- mnesia:table(Table) ]
         ))
     end).
+
+-spec generate_password() -> list().
+generate_password() ->
+    binary_to_list(base64:encode(crypto:strong_rand_bytes(8))).
