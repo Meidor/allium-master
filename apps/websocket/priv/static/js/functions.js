@@ -78,7 +78,7 @@ $(function () {
                     break;
                 case Wrapper.Type.ADMINLOGINRESPONSE:
                     var adminLoginResponse = AdminLoginResponse.decode(wrapper.data);
-                    if(adminLoginResponse.status === 1) {
+                    if(adminLoginResponse.status === AdminLoginResponse.Status.SUCCES) {
                       $( "#main" ).hide();
                       $( "#error" ).hide();
                       drawGraph();
