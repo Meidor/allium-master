@@ -21,10 +21,8 @@ $(function () {
 	var AdminLoginResponse = builder.build("AdminLoginResponse");
 
     function initSocket() {
-        dashboarddiv = document.getElementById("dashboard");
-        dashboarddiv.style.display = 'none';
-        errordiv = document.getElementById("error");
-        errordiv.style.display = 'none';
+        $( "#dashboard" ).hide();
+        $( "#error" ).hide();
         console.log("Initializing socket");
         socket = new WebSocket(url);
         socket.binaryType = "arraybuffer";
@@ -81,17 +79,13 @@ $(function () {
                 case Wrapper.Type.ADMINLOGINRESPONSE:
                     var adminLoginResponse = AdminLoginResponse.decode(wrapper.data);
                     if(adminLoginResponse.status === 1) {
-                      logindiv = document.getElementById("main");
-                      logindiv.style.display = 'none';
-                      errordiv = document.getElementById("error");
-                      errordiv.style.display = 'none';
+                      $( "#main" ).hide();
+                      $( "#error" ).hide();
                       drawGraph();
-                      dashboarddiv = document.getElementById("dashboard");
-                      dashboarddiv.style.display = 'block';
+                      $( "#dashboard" ).show();
                     }
                     else {
-                      errordiv = document.getElementById("error");
-                      errordiv.style.display = 'block';
+                      $( "#error" ).show();
                     }
                     break;
             }
