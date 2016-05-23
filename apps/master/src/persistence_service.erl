@@ -107,8 +107,8 @@ select_admin(Username) when is_list(Username) ->
             {Username, Password, SuperAdmin}
     end.
 
--spec insert_admin(list(), list(), list()) -> any().
-insert_admin(Username, Password, Superadmin) when is_list(Username), is_list(Password) ->
+-spec insert_admin(list(), list(), atom()) -> any().
+insert_admin(Username, Password, Superadmin) when is_list(Username), is_list(Password), is_atom(Superadmin) ->
     try
         undefined = select_admin(Username)
     catch
@@ -128,8 +128,8 @@ insert_admin(Username, Password, Superadmin) when is_list(Username), is_list(Pas
             error(couldnotbeinserted)
     end.
 
--spec update_admin(list(), list(), list()) -> any().
-update_admin(Username, Password, Superadmin) when is_list(Username), is_list(Password) ->
+-spec update_admin(list(), list(), atom()) -> any().
+update_admin(Username, Password, Superadmin) when is_list(Username), is_list(Password), is_atom(Superadmin) ->
     case mnesia:transaction(fun() ->
         [Admin] = mnesia:wread({client, Username}),
         mnesia:write(
