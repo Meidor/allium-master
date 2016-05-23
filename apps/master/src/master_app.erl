@@ -43,14 +43,14 @@ start(Port) ->
 
 -spec server(integer()) -> any().
 server(Port) ->
-    {ok, Socket} = gen_tcp:listen(Port, [{active, true}, {packet, raw}]),
+    {ok, Socket} = gen_tcp:listen(Port, [{active, true}, {packet, raw}, {reuseaddr, true}]),
     listen(Socket).
 
 -spec listen(any()) -> any().
 listen(Socket) ->
     {ok, Active_socket} = gen_tcp:accept(Socket),
     Handler = spawn(fun() -> handle_messages(Active_socket) end),
-    ok = gen_tcp:controlling_process(Active_socket, Handler),
+    gen_tcp:controlling_process(Active_socket, Handler),
     listen(Socket).
 
 -spec handle_messages(any()) -> any().
@@ -59,9 +59,9 @@ handle_messages(Socket) ->
         {tcp, error, closed} ->
             done;
         {tcp, Socket, Data} ->
-            lager:info("~p", [Data]),
+%%             lager:info("~p", [Data]),
             Response = handle_message(Data),
-            lager:info("RESPONSE: ~p", [Response]),
+%%             lager:info("RESPONSE: ~p", [Response]),
             gen_tcp:send(Socket, Response),
             handle_messages(Socket);
         _ ->
@@ -71,7 +71,7 @@ handle_messages(Socket) ->
 -spec handle_message(list()) -> list().
 handle_message(Msg) ->
     DecodedMsg = hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
-    lager:info("MSG: ~p DECODED: ~p", [Msg, DecodedMsg]),
+%%     lager:info("MSG: ~p DECODED: ~p", [Msg, DecodedMsg]),
     {[{wrapper, Type, Data} | _], _} = DecodedMsg,
     case Type of
         'GRAPHUPDATEREQUEST' ->
@@ -85,6 +85,7 @@ handle_message(Msg) ->
         'NODEREGISTERREQUEST' ->
             {noderegisterrequest, IPaddress, Port, PublicKey}
                 = hrp_pb:decode_noderegisterrequest(Data),
+%%             lager:info("IP ~p PORT ~p KEY ~p", [IPaddress, Port, PublicKey]),
             try
                 node_service:node_register(IPaddress, Port, PublicKey)
             of {NodeId, SecretHash} ->
