@@ -150,19 +150,8 @@ $(function () {
 
     function drawGraph() {
         nodes = new vis.DataSet();
-        /* Voorbeelddata, to remove */
-        // nodes.add([
-        //     {id: 'Node 1', IPaddress: "127.0.0.1", port: 1337, publicKey: "secret", label: 'Node 1'},
-        //     {id: 'Node 2', IPaddress: "127.0.0.2", port: 1337, publicKey: "secret", label: 'Node 2'},
-        //     {id: 'Node 31', IPaddress: "127.0.0.3", port: 1337, publicKey: "secret", label: 'Node 31'},
-        //     {id: 'Node 3', IPaddress: "127.0.0.3", port: 1337, publicKey: "secret", label: 'Node 3'},
-        // ]);
 
         edges = new vis.DataSet();
-        // /* Voorbeelddata, to remove */
-        // edges.add([
-        //     {id: 'Node 1Node 2', from: 'Node 1', to: 'Node 2', weight_from_to: '12', weight_to_from: undefined, arrows:'to'},
-        // ]);
 
         var container = document.getElementById('network');
 
@@ -242,22 +231,17 @@ $(function () {
         if(filter.length == 0) {
             return;
         }
-        console.log("creating new suggestions.");
         var options = getOptions(filter);
         document.getElementById('suggestions').innerHTML = options;
     }
 
     function getOptions(filter) {
         var options = "";
-            console.log(filter);
         nodes.forEach(function(node) {
-            console.log(node.id);
-            console.log(node.id.indexOf(filter));
             if(node.id.indexOf(filter) == 0) {
                 options += '<option value="' + node.id + '">';
             }
         });
-        console.log(options);
         return options;
     }
 
@@ -296,12 +280,10 @@ $(function () {
     }
 
     function updateEdge(nodeId1, nodeId2, weight) {
-        console.log("test");
         weight = parseInt(weight);
         var node = nodes.get(nodeId1);
         var currentEdges = getEdges(nodeId1);
         var targetEdgeIndex = -1;
-        console.log("test2");
         currentEdges.forEach(function(edge){
             if(edge.targetNodeId == nodeId2) {
                 targetEdgeIndex = currentEdges.indexOf(edge);
@@ -313,7 +295,6 @@ $(function () {
         currentEdges.push({targetNodeId: nodeId2, weight: weight});
         var newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
         var message = new UpdateNode({node: newNode});
-        console.log(message);
         socketSend("UPDATENODE", message.encode());
     }
 
@@ -363,19 +344,3 @@ $(function () {
             console.log("Not connected while sending: " + data);
         }
     }
-
-
-
-
-    // function createUpdateNodeMessage(Id) {
-    //     var node = nodes.get(Id);
-    //     alert(JSON.stringify(node));
-    //     var currentEdges = getEdges(Id);
-    //     toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
-
-    //     alert(JSON.stringify(toSend));
-    //     var newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
-    //     var message = new UpdateNode({node: newNode});
-    //     socketSend("UPDATENODE", message.encode());
-    // }
-
