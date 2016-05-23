@@ -182,8 +182,11 @@ $(function () {
                     $("#weight1").val(edges._data[data.edges[0]].weight_from_to);
                     $("#weight2").val(edges._data[data.edges[0]].weight_to_from);
 
-                    $("#edgeFrom").val(edges._data[data.edges[0]].from);
-                    $("#edgeTo").val(edges._data[data.edges[0]].to);
+                    $("#edge-from1").val(edges._data[data.edges[0]].from);
+                    $("#edge-to1").val(edges._data[data.edges[0]].to);
+
+                    $("#edge-from2").val(edges._data[data.edges[0]].to);
+                    $("#edge-to2").val(edges._data[data.edges[0]].from);
 
                     var div = document.getElementById("edit-from-edge");
                     div.style.display = 'block';
@@ -235,11 +238,11 @@ $(function () {
 
 });
 
-    function createSugestions(filter) {
+    function createSuggestions(filter) {
         if(filter.length == 0) {
             return;
         }
-        console.log("creating new sugestions.");
+        console.log("creating new suggestions.");
         var options = getOptions(filter);
         document.getElementById('suggestions').innerHTML = options;
     }
