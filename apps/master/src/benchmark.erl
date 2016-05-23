@@ -6,8 +6,11 @@
 ]).
 
 benchmark(Count) ->
-    benchmark_node_register(Count).
-%%     benchmark_graph().
+    test_helpers_int:empty_database(),
+    benchmark_node_register(Count),
+    benchmark_graph_updates_small(Count),
+    benchmark_graph_updates_large(Count),
+    benchmark_graph_updates_all(round(Count / 10)).
 
 
 benchmark_node_register(Count) ->
@@ -20,13 +23,35 @@ benchmark_node_register(Count) ->
     Time = benchmark_message(Message, Count),
     lager:info("Registered ~p nodes in ~p ms on average per node.~n", [Count, Time / Count]).
 
-benchmark_graph() ->
+benchmark_graph_updates_small(Count) ->
+    Message = get_wrapped_message(
+        'GRAPHUPDATEREQUEST',
+        hrp_pb:encode(
+            {graphupdaterequest, Count - 10}
+        )
+    ),
+    Time = benchmark_message(Message, Count),
+    lager:info("Fetched 10 graph updates ~p times in ~p ms on average per request.~n", [Count, Time / Count]).
+
+benchmark_graph_updates_large(Count) ->
+    Message = get_wrapped_message(
+        'GRAPHUPDATEREQUEST',
+        hrp_pb:encode(
+            {graphupdaterequest, Count - 100}
+        )
+    ),
+    Time = benchmark_message(Message, Count),
+    lager:info("Fetched 100 graph updates ~p times in ~p ms on average per request.~n", [Count, Time / Count]).
+
+benchmark_graph_updates_all(Count) ->
     Message = get_wrapped_message(
         'GRAPHUPDATEREQUEST',
         hrp_pb:encode(
             {graphupdaterequest, 0}
         )
-    ).
+    ),
+    Time = benchmark_message(Message, Count),
+    lager:info("Fetched ~p graph updates ~p times in ~p ms on average per request.~n", [Count * 10, Count, Time / Count]).
 
 benchmark_message(Message, Count) ->
     send_message_multiple_times(Message, 1),
@@ -52,11 +77,9 @@ send_message_multiple_times(Message, Count)->
     Self = self(),
     spawn(fun() ->
         {ok, Socket} = gen_tcp:connect("127.0.0.1", 1337, [{packet, 0}, {active, false}, {reuseaddr, true}]),
-        lists:map(
-            fun(_) -> gen_tcp:send(Socket, Message) end,
-            lists:seq(1, 10)
-        ),
-        gen_tcp:shutdown(Socket, read_write),
+        gen_tcp:send(Socket, Message),
+        gen_tcp:recv(Socket, 0),
+        gen_tcp:close(Socket),
         Self ! Count - 1
     end).
 
