@@ -42,6 +42,7 @@ get_list(ListOfKeys) ->
     {ok, ListOfValues} = sharded_eredis:q(["MGET" | ListOfKeys]),
     ListOfValues.
 
+-spec get_list_failsafe(list()) -> list().
 get_list_failsafe(ListOfKeys) ->
     lists:map(
         fun(Key) -> {ok, Value} = sharded_eredis:q(["GET", Key]), Value end,
