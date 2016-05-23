@@ -67,7 +67,10 @@
             </div>
             <div style="float: left">
                 <input type="text" id="from" disabled value="undef"/> <br>
-                <input type="text" id="to" placeholder="Zoek hier op een node"/> <br>
+                <input id="to" list="suggestions" onkeyup="createSugestions($('#to').val())">
+                <datalist id="suggestions">
+                    <option value="test">
+                </datalist> <br>
                 <input type="number" id="weight" value="undef" /> <br>
             </div>
 

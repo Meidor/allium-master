@@ -82,16 +82,29 @@ $(function () {
                 label: node.id
             });
             if(!node.edge) return;
-            
             node.edge.forEach(function (edge) {
-                console.log(JSON.stringify(edge));
-                edges.add({
-                    id: node.id + edge.targetNodeId,
-                    from: node.id,
-                    to: edge.targetNodeId,
-                    weight: 1,
-                    arrows: 'to'
-                });
+                var currentEdge = edges.get(edge.targetNodeId + node.id);
+                if (currentEdge) {
+                    edges.remove(currentEdge.id);
+                    edges.add({
+                        id: currentEdge.id,
+                        from: currentEdge.from,
+                        to: currentEdge.to,
+                        weight_from_to: currentEdge.weight_from_to,
+                        weight_to_from: edge.weight,
+                        arrows: 'from, to'
+                    });
+                } else {
+                    edges.add({
+                        id: node.id + edge.targetNodeId,
+                        from: node.id,
+                        to: edge.targetNodeId,
+                        weight_from_to: edge.weight,
+                        weight_to_from: undefined,
+                        arrows: 'to'
+                    });
+                }
+
             });
         } catch (error) {
             alert(error);
@@ -99,6 +112,33 @@ $(function () {
     }
 
     function removeNode(node) {
+        edges.forEach(function(edge) {
+            if(edge.from == node.id) {
+                if(edge.weight_to_from == undefined) {
+                    edges.remove(edge.id);
+                } else {
+                    edges.remove(edge.id);
+                    edges.add({
+                        id: edge.to + edge.from,
+                        from: edge.to,
+                        to: edge.from,
+                        weight_from_to: edge.weight_to_from,
+                        weight_to_from: undefined,
+                        arrows: 'to'
+                    });
+                }
+            } else if(edge.to == node.id) {
+                edges.remove(edge.id);
+                edges.add({
+                    id: edge.id,
+                    from: edge.from,
+                    to: edge.to,
+                    weight_from_to: edge.weight_from_to,
+                    weight_to_from: undefined,
+                    arrows: 'to'
+                });
+            }
+        });
         try {
             nodes.remove({
                 id: node.id
@@ -131,7 +171,7 @@ $(function () {
             edges: edges
         };
 
-        var options = {interaction: {hover: true, selectConnectedEdges: false, hoverConnectedEdges: false}};
+        var options = {interaction: {hover: true, selectConnectedEdges: false, hoverConnectedEdges: false}, edges: {length:200}};
 
         network = new vis.Network(container, data, options);
 
@@ -195,29 +235,43 @@ $(function () {
 
 });
 
+    function createSugestions(filter) {
+        if(filter.length == 0) {
+            return;
+        }
+        console.log("creating new sugestions.");
+        var options = getOptions(filter);
+        document.getElementById('suggestions').innerHTML = options;
+    }
+
+    function getOptions(filter) {
+        var options = "";
+            console.log(filter);
+        nodes.forEach(function(node) {
+            console.log(node.id);
+            console.log(node.id.indexOf(filter));
+            if(node.id.indexOf(filter) == 0) {
+                options += '<option value="' + node.id + '">';
+            }
+        });
+        console.log(options);
+        return options;
+    }
+
     function addEdge(fromId, toId, weight) {
         weight = parseInt(weight);
         var node = nodes.get(fromId);
         var currentEdges = getEdges(fromId);
         if(checkEdge(fromId, toId)) {
-            console.log(toId);
-            console.log(weight);
             currentEdges.push({targetNodeId: toId, weight: weight});
-
-            console.log(JSON.stringify(currentEdges));
-            toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
-            console.log(JSON.stringify(toSend));
-            newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
+            var newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
             var message = new UpdateNode({node: newNode});
             socketSend("UPDATENODE", message.encode());
         }
     }
 
     function createEdgeForm(nodeId) {
-        node = nodes.get(nodeId);
-
         $("#from").val(nodeId);
-
         var div = document.getElementById("add-edge-from-node");
         div.style.display = 'block';
     }
@@ -227,31 +281,26 @@ $(function () {
         var currentEdges = getEdges(nodeId1);
         currentEdges.forEach(function(edge){
             if(edge.targetNodeId == nodeId2) {
-                console.log("trying to remove edge");
                 var index = currentEdges.indexOf(edge);
                 if (index > -1) {
                     currentEdges.splice(index, 1);
                 }
             }
         });
-        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
-        alert(JSON.stringify(toSend));
         var newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
         var message = new UpdateNode({node: newNode});
-        console.log("predecode message: " + JSON.stringify(message));
         socketSend("UPDATENODE", message.encode());
     }
 
     function updateEdge(nodeId1, nodeId2, weight) {
-        console.log(nodeId1);
-        console.log(nodeId2);
-        console.log(weight);
+        console.log("test");
+        weight = parseInt(weight);
         var node = nodes.get(nodeId1);
         var currentEdges = getEdges(nodeId1);
         var targetEdgeIndex = -1;
+        console.log("test2");
         currentEdges.forEach(function(edge){
             if(edge.targetNodeId == nodeId2) {
-                console.log("trying to remove edge");
                 targetEdgeIndex = currentEdges.indexOf(edge);
             }
         });
@@ -259,8 +308,10 @@ $(function () {
             currentEdges.splice(targetEdgeIndex, 1);
         }
         currentEdges.push({targetNodeId: nodeId2, weight: weight});
-        toSend = {id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges};
-        alert(JSON.stringify(toSend));
+        var newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
+        var message = new UpdateNode({node: newNode});
+        console.log(message);
+        socketSend("UPDATENODE", message.encode());
     }
 
     function checkEdge (fromId, toId) {
@@ -289,12 +340,12 @@ $(function () {
 
     function getEdges(NodeId){
         currentEdges = [];
-        edges.forEach(function(edgeToAdd) {
-            if(edgeToAdd.from == NodeId && edgeToAdd.weight_from_to != undefined) {
-                currentEdges.push({targetNodeId: edgeToAdd.to, weight: edgeToAdd.weight_from_to});
+        edges.forEach(function(edge) {
+            if(edge.from == NodeId && edge.weight_from_to != undefined) {
+                currentEdges.push({targetNodeId: edge.to, weight: edge.weight_from_to});
             }
-            if(edgeToAdd.to == NodeId && edgeToAdd.weight_to_from != undefined) {
-                currentEdges.push({targetNodeId: edgeToAdd.from, weight: edgeToAdd.weight_to_from});
+            if(edge.to == NodeId && edge.weight_to_from != undefined) {
+                currentEdges.push({targetNodeId: edge.from, weight: edge.weight_to_from});
             }
         });
         return currentEdges;
