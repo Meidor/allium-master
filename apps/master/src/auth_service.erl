@@ -6,7 +6,6 @@
     client_verify/2,
     client_logout/1,
     client_login/3,
-    admin_verify/1,
     admin_login/2
 ]).
 
@@ -23,15 +22,6 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
     catch
         _:_ ->
             error(clientnotverified)
-    end.
-
--spec admin_verify(list()) -> any().
-admin_verify(Username) when is_list(Username) ->
-    try
-        {Username, _, _} = persistence_service:select_admin(Username)
-    catch
-        _:_ ->
-            error(adminnotverified)
     end.
 
 -spec client_check_password(list(), list()) -> any().
