@@ -46,6 +46,7 @@ websocket_handle({binary, Msg}, Req, State) ->
                         hrp_pb:encode({adminloginresponse, 'FAILED'}))}, Req, State}
             end
     end;
+
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
 

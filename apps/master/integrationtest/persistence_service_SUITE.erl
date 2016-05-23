@@ -13,7 +13,7 @@
     insert_new_client_return_ok_test/1,
     insert_new_admin_return_ok_test/1,
     insert_existing_client_return_error_test/1,
-insert_existing_admin_return_error_test/1,
+    insert_existing_admin_return_error_test/1,
     update_existing_client_hash_return_ok_test/1,
     update_non_existing_client_hash_return_error_test/1,
     update_existing_client_return_ok_test/1,
@@ -35,7 +35,8 @@ insert_existing_admin_return_error_test/1,
     delete_non_existing_client_return_ok_test/1,
     delete_non_existing_admin_return_ok_test/1,
     delete_all_clients_return_ok_test/1,
-    delete_all_admins_return_ok_test/1
+    delete_all_admins_return_ok_test/1,
+    select_admin_return_empty_test/1
 ]).
 
 all() -> [
@@ -63,8 +64,9 @@ all() -> [
     delete_existing_admin_return_ok_test,
     delete_non_existing_client_return_ok_test,
     delete_non_existing_admin_return_ok_test,
+    delete_all_admins_return_ok_test,
     delete_all_clients_return_ok_test,
-    delete_all_admins_return_ok_test
+    select_admin_return_empty_test
 ].
 
 init_per_suite(Config) ->
@@ -221,3 +223,7 @@ delete_all_admins_return_ok_test(_Config) ->
 
     ok = persistence_service:delete_all_admins(),
     [] = persistence_service:select_all_admins().
+
+select_admin_return_empty_test(_Config) ->
+    Username = "Username",
+    undefined = persistence_service:select_admin(Username).

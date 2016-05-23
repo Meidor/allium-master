@@ -13,7 +13,8 @@
     select_admin/1,
     insert_admin/3,
     update_admin/3,
-    delete_admin/1]).
+    delete_admin/1
+]).
 
 -include_lib("stdlib/include/qlc.hrl").
 
@@ -146,7 +147,6 @@ update_admin(Username, Password, Superadmin) when is_list(Username), is_list(Pas
 -spec delete_admin(list()) -> atom().
 delete_admin(Username) when is_list(Username) ->
     mnesia:dirty_delete({admin, Username}).
-
 
 -spec select_clients_by_hash(list()) -> list().
 select_clients_by_hash(SecretHash) when (undefined == SecretHash orelse is_list(SecretHash)) ->
