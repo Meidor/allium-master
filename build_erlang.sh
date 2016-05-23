@@ -14,6 +14,8 @@ if [ -e "/erlang_app/jenkins_report.xml" ]
   rm -f "/erlang_app/jenkins_report.xml"
 fi
 
+/usr/bin/redis-server --daemonize yes
+
 cp -a "/erlang_app" "/build/tmp"
 cd "/build/tmp"
 

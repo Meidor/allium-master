@@ -17,6 +17,8 @@ RUN apt-get -y install git
 RUN mkdir /build
 WORKDIR /build/
 
+RUN apt-get install -y redis-server
+
 ADD build_erlang.sh /build/
 ADD https://s3.amazonaws.com/rebar3/rebar3 /build/
 RUN chmod a+x /build/rebar3
