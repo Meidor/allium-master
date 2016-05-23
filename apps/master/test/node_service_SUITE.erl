@@ -140,7 +140,7 @@ node_update_test_valid_node(Config) ->
 
 node_update_test_invalid_node(Config) ->
     {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
-    {InvIPaddress, InvPort, InvPublicKey, _} = ?config(invalidnode, Config),
+    {_InvIPaddress, InvPort, InvPublicKey, _} = ?config(invalidnode, Config),
     {ValidNodeId, ValidHash} = ?config(validnodeverify, Config),
     {NodeId, SecretHash} = ?config(invalidnodeverify1, Config),
     {NodeId2, SecretHash2} = ?config(invalidnodeverify2, Config),
