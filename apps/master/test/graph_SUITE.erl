@@ -31,7 +31,8 @@
     get_node_secret_hash_test/1,
     update_node_test/1,
     get_random_dedicated_nodes_return_random_nodes_test/1,
-    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test/1
+    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test/1,
+    add_node_double_registration_test/1
 ]).
 
 all() -> [
@@ -48,7 +49,8 @@ all() -> [
     get_node_secret_hash_test,
     update_node_test,
     get_random_dedicated_nodes_return_random_nodes_test,
-    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test
+    get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test,
+    add_node_double_registration_test
 ].
 
 init_per_suite(Config) ->
@@ -439,6 +441,13 @@ add_node_test(_) ->
     true = test_helpers:check_function_called(redis, set_add, ["active_nodes", NodeId]),
     HashedNewGraphUpdate = (["version_" ++ NewMaxVersion, hrp_pb:encode({graphupdate, list_to_integer(NewMaxVersion), false, [{node, NodeId, NewNodeIP, NewNodePort, NewPublicKey, []}], []})]),
     true = test_helpers:check_function_called(redis, set, HashedNewGraphUpdate).
+
+add_node_double_registration_test(_) ->
+    NewNodeIP = "123.0.0.1",
+    NewNodePort = 1234,
+    NewPublicKey = "abcdefghijklmnop",
+    meck:expect(redis, get, fun(_) -> ok end),
+    test_helpers:assert_fail(fun node_graph_manager:add_node/3, [NewNodeIP, NewNodePort, NewPublicKey], error, node_already_exists, failed_to_catch_invalid_argument).
 
 remove_node_test(_) ->
     RemovableNodeId = "YWJjZGVmZ2hpamtsbW4=",

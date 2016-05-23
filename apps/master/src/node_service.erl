@@ -16,9 +16,18 @@ node_register(IPaddress, Port, PublicKey)
     when
         is_list(IPaddress), is_integer(Port), Port > 0, Port < 65536, is_binary(PublicKey)
     ->
+    verify_ip(IPaddress),
     {NodeId, SecretHash} = node_graph_manager:add_node(IPaddress, Port, PublicKey),
     heartbeat_monitor:add_node(NodeId),
     {NodeId, SecretHash}.
+
+-spec verify_ip(list()) -> tuple().
+verify_ip(IPaddress) ->
+    {Type, Response} = inet:parse_strict_address(IPaddress),
+    case Type of
+        ok -> ok;
+        error -> error(Response)
+    end.
 
 %% @doc Unregister your node in the graph
 %% @end
@@ -58,5 +67,6 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
         andalso (undefined == Port orelse (is_integer(Port) andalso Port > 0 andalso Port < 65536))
         andalso (is_binary(PublicKey) orelse undefined == PublicKey)
     ->
+    verify_ip(IPaddress),
     node_verify(NodeId, SecretHash),
     node_graph_manager:update_node(NodeId, IPaddress, Port, PublicKey).

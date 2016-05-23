@@ -3,14 +3,18 @@
 
 -export([all/0, init_per_testcase/2, end_per_testcase/2, init_per_suite/1]).
 -export([node_register_test_valid_node/1, node_register_test_invalid_node/1, 
-    node_unregister_test_valid_node/1, node_unregister_test_invalid_node/1, 
+    node_register_test_invalid_ip/1, node_register_test_double_registration/1, 
+    node_unregister_test_valid_node/1, node_unregister_test_invalid_node/1,
     node_verify_test_valid_node/1, node_verify_test_invalid_node/1,
-    node_update_test_valid_node/1, node_update_test_invalid_node/1]).
+    node_update_test_valid_node/1, node_update_test_invalid_node/1,
+    node_update_test_invalid_ip/1]).
 
 all() -> [node_register_test_valid_node, node_unregister_test_valid_node, 
-          node_register_test_invalid_node, node_unregister_test_invalid_node,
+          node_register_test_invalid_node, node_unregister_test_invalid_node, 
+          node_register_test_invalid_ip, node_register_test_double_registration,
           node_verify_test_valid_node, node_verify_test_invalid_node,
-          node_update_test_valid_node, node_update_test_invalid_node].
+          node_update_test_valid_node, node_update_test_invalid_node,
+          node_update_test_invalid_ip].
 
 init_per_suite(Config) ->
     IPaddress = "192.168.4.4",
@@ -73,12 +77,29 @@ node_register_test_valid_node(Config) ->
 
 node_register_test_invalid_node(Config) ->
     {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
-    {InvIPaddress, InvPort, InvPublicKey, _} = ?config(invalidnode, Config),
-    test_helpers:assert_fail(fun node_service:node_register/3, [InvIPaddress, Port, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
+    {_InvIPaddress, InvPort, InvPublicKey, _} = ?config(invalidnode, Config),    
     test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, InvPort,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, Port, InvPublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, -1,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, 65537,PublicKey], error, function_clause, failed_to_catch_invalid_argument).
+
+node_register_test_invalid_ip(Config) ->
+    {_IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
+    InvalidIp1 = "192.168.10.10.10",
+    InvalidIp2 = "192",
+    InvalidIp3 = "257.257.257.257",
+    InvalidIp4 = "hallowereld",
+    InvalidIp5 = 42,  
+    test_helpers:assert_fail(fun node_service:node_register/3, [InvalidIp1, Port, PublicKey], error, einval, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_register/3, [InvalidIp2, Port, PublicKey], error, einval, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_register/3, [InvalidIp3, Port, PublicKey], error, einval, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_register/3, [InvalidIp4, Port, PublicKey], error, einval, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_register/3, [InvalidIp5, Port, PublicKey], error, function_clause, failed_to_catch_invalid_argument).
+
+node_register_test_double_registration(Config) ->
+    {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
+    meck:expect(node_graph_manager, add_node, fun(_,_,_) -> error(node_already_exists) end),
+    test_helpers:assert_fail(fun node_service:node_register/3, [IPaddress, Port, PublicKey], error, node_already_exists, failed_to_catch_invalid_argument).
 
 node_unregister_test_valid_node(Config) ->
     {NodeId, SecretHash} = ?config(validnodeverify, Config),
@@ -129,9 +150,22 @@ node_update_test_invalid_node(Config) ->
     test_helpers:assert_fail(fun node_service:node_update/5, [NodeId, SecretHash, IPaddress, Port, PublicKey], error, ExpectedBadMatch, failed_to_catch_invalid_hash),
     test_helpers:assert_fail(fun node_service:node_update/5, [NodeId2, SecretHash2, IPaddress, Port, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_update/5, [NodeId3, SecretHash3, IPaddress, Port, PublicKey], error, nodenotfound, failed_to_catch_invalid_nodeid),
-    %% Verify the ip, port ,publickey part of the function
-    test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, InvIPaddress, Port, PublicKey], error, function_clause, failed_to_catch_invalid_argument),
+    %% Verify the port and publickey part of the function
     test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, IPaddress, InvPort,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, IPaddress, Port, InvPublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, IPaddress, -1,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, IPaddress, 65537,PublicKey], error, function_clause, failed_to_catch_invalid_argument).
+
+node_update_test_invalid_ip(Config) ->
+    {_IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
+    {ValidNodeId, ValidHash} = ?config(validnodeverify, Config),
+    InvalidIp1 = "192.168.10.10.10",
+    InvalidIp2 = "192",
+    InvalidIp3 = "257.257.257.257",
+    InvalidIp4 = "hallowereld",
+    InvalidIp5 = 42,
+    test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, InvalidIp1, Port, PublicKey], error, einval, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, InvalidIp2, Port, PublicKey], error, einval, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, InvalidIp3, Port, PublicKey], error, einval, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, InvalidIp4, Port, PublicKey], error, einval, failed_to_catch_invalid_argument),
+    test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, InvalidIp5, Port, PublicKey], error, function_clause, failed_to_catch_invalid_argument).
