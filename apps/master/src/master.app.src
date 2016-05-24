@@ -12,7 +12,8 @@
                 crypto,
                 lager,
                 websocket,
-                mnesia
+                mnesia,
+                sharded_eredis
             ]},
         {env,
             [

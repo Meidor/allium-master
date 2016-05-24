@@ -116,51 +116,14 @@ receive_heartbeat_client_invalid_client_test(_Config) ->
     true = test_helpers:check_function_called(client_service, client_verify, [Username, Password]).
 
 remove_nodes_with_inactive_heartbeats_test(Config) ->
-    Time = ?config(time, Config),
     HeartbeatTime = ?config(timebetweenheartbeats, Config),
-    {HeartbeatNodeLabel, NodeLabel} = ?config(nodelabels, Config),
-    NodesWithTimes = [{activenode1, "10", Time - HeartbeatTime}, {activenode2, "13", Time},
-        {inactivenode1, "11", Time - HeartbeatTime - 1}, {inactivenode2, "14", Time - HeartbeatTime * 2}],
-    [ActiveNodeIdOne, ActiveNodeIdTwo, InactiveNodeIdOne, InactiveNodeIdTwo] = [element(2, X) || X <- NodesWithTimes],
-
-    MonitoredNodes = [list_to_binary(NodeLabel ++ NodeId) || {_, NodeId, _} <- NodesWithTimes],
-    MonitoredTimes = [integer_to_binary(TimeHeartbeat) || {_, _, TimeHeartbeat} <- NodesWithTimes],
-    meck:expect(redis, get_matching_keys, fun(_HeartbeatNodeLabel) -> MonitoredNodes end),
-    meck:expect(redis, get_list, fun(_) -> MonitoredTimes end),
-
-    [InactiveNodeIdOne, InactiveNodeIdTwo] = heartbeat_monitor:remove_inactive_nodes(HeartbeatTime),
-    true = test_helpers:check_function_called(redis, get_matching_keys, [HeartbeatNodeLabel]),
-    true = test_helpers:check_function_called(redis, get_list, [[NodeLabel ++ ActiveNodeIdOne, NodeLabel ++
-        ActiveNodeIdTwo, NodeLabel ++ InactiveNodeIdOne, NodeLabel ++ InactiveNodeIdTwo]]),
-    true = test_helpers:check_function_called(redis, remove, [HeartbeatNodeLabel ++ InactiveNodeIdOne]),
-    true = test_helpers:check_function_called(redis, remove, [HeartbeatNodeLabel ++ InactiveNodeIdTwo]),
-    true = test_helpers:check_function_called(heartbeat_monitor, get_current_time, []),
-    true = test_helpers:check_function_called(node_service, node_unregister, [InactiveNodeIdOne]),
-    true = test_helpers:check_function_called(node_service, node_unregister, [InactiveNodeIdTwo]).
+    meck:expect(redis, apply_to_matching_keys, fun(_Filter, _Fun) -> ok end),
+    ok = heartbeat_monitor:remove_inactive_nodes(HeartbeatTime).
 
 remove_clients_with_inactive_heartbeats_test(Config) ->
-    Time = ?config(time, Config),
     HeartbeatTime = ?config(timebetweenheartbeats, Config),
-    {HeartbeatClientLabel, ClientLabel} = ?config(clientlabels, Config),
-    ClientsWithTimes = [{activeclient1, "client1", Time - HeartbeatTime}, {activeclient2, "client3", Time},
-        {inactiveclient1, "client2", Time - HeartbeatTime - 1}, {inactiveclient2, "client4", Time - HeartbeatTime * 2}],
-    [ActiveClientIdOne, ActiveClientIdTwo, InactiveClientIdOne, InactiveClientIdTwo] =
-        [element(2, X) || X <- ClientsWithTimes],
-    MonitoredClients = [list_to_binary(ClientLabel ++ Username) || {_, Username, _} <- ClientsWithTimes],
-    MonitoredTimes = [integer_to_binary(TimeHeartbeat) || {_, _, TimeHeartbeat} <- ClientsWithTimes],
-    meck:expect(redis, get_matching_keys, fun(_HeartbeatClientLabel) -> MonitoredClients end),
-    meck:expect(redis, get_list, fun(_) -> MonitoredTimes end),
-    meck:expect(persistence_service, update_client_hash, fun(_, _) -> ok end),
-
-    [InactiveClientIdOne, InactiveClientIdTwo] = heartbeat_monitor:remove_inactive_clients(HeartbeatTime),
-    true = test_helpers:check_function_called(redis, get_matching_keys, [HeartbeatClientLabel]),
-    true = test_helpers:check_function_called(redis, get_list, [[ClientLabel ++ ActiveClientIdOne, ClientLabel ++
-        ActiveClientIdTwo, ClientLabel ++ InactiveClientIdOne, ClientLabel ++ InactiveClientIdTwo]]),
-    true = test_helpers:check_function_called(redis, remove, [HeartbeatClientLabel ++ InactiveClientIdOne]),
-    true = test_helpers:check_function_called(redis, remove, [HeartbeatClientLabel ++ InactiveClientIdTwo]),
-    true = test_helpers:check_function_called(heartbeat_monitor, get_current_time, []),
-    true = test_helpers:check_function_called(client_service, client_logout, [InactiveClientIdOne]),
-    true = test_helpers:check_function_called(client_service, client_logout, [InactiveClientIdTwo]).
+    meck:expect(redis, apply_to_matching_keys, fun(_Filter, _Fun) -> ok end),
+    ok = heartbeat_monitor:remove_inactive_clients(HeartbeatTime).
 
 add_node_to_receive_heartbeat_node_format(Config) ->
     {HeartbeatNodeLabel, _} = ?config(nodelabels, Config),
@@ -191,5 +154,3 @@ remove_client_from_heartbeat_monitor(Config) ->
 
     ok = heartbeat_monitor:remove_client(Username),
     true = test_helpers:check_function_called(redis, remove, [HeartbeatClientLabel ++ Username]).
-
-
