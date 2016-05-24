@@ -83,20 +83,31 @@ $(function () {
             });
             if(!node.edge) return;
             node.edge.forEach(function (edge) {
-                var currentEdge = edges.get(edge.targetNodeId + node.id);
-                if (currentEdge) {
-                    edges.remove(currentEdge.id);
+                var currentEdge1 = edges.get(edge.targetNodeId + "-" + node.id);
+                var currentEdge2 = edges.get(node.id + "-" + edge.targetNodeId);
+                if (currentEdge1) {
+                    edges.remove(currentEdge1.id);
                     edges.add({
-                        id: currentEdge.id,
-                        from: currentEdge.from,
-                        to: currentEdge.to,
-                        weight_from_to: currentEdge.weight_from_to,
+                        id: currentEdge1.id,
+                        from: currentEdge1.from,
+                        to: currentEdge1.to,
+                        weight_from_to: currentEdge1.weight_from_to,
+                        weight_to_from: edge.weight,
+                        arrows: 'from, to'
+                    });
+                }else if(currentEdge2){
+                    edges.remove(currentEdge2.id);
+                    edges.add({
+                        id: currentEdge2.id,
+                        from: currentEdge2.from,
+                        to: currentEdge2.to,
+                        weight_from_to: currentEdge1.weight_from_to,
                         weight_to_from: edge.weight,
                         arrows: 'from, to'
                     });
                 } else {
                     edges.add({
-                        id: node.id + edge.targetNodeId,
+                        id: node.id + "-" + edge.targetNodeId,
                         from: node.id,
                         to: edge.targetNodeId,
                         weight_from_to: edge.weight,
@@ -107,7 +118,7 @@ $(function () {
 
             });
         } catch (error) {
-            alert(error);
+            console.log(error);
         }
     }
 
@@ -119,7 +130,7 @@ $(function () {
                 } else {
                     edges.remove(edge.id);
                     edges.add({
-                        id: edge.to + edge.from,
+                        id: edge.to + "-" + edge.from,
                         from: edge.to,
                         to: edge.from,
                         weight_from_to: edge.weight_to_from,
@@ -144,7 +155,7 @@ $(function () {
                 id: node.id
             });
         } catch (error) {
-            alert(error);
+            console.log(error);
         }
     }
 
@@ -246,6 +257,9 @@ $(function () {
     }
 
     function addEdge(fromId, toId, weight) {
+        if(weight < 0 || weight > 1000000) {
+            return;
+        }
         weight = parseInt(weight);
         var node = nodes.get(fromId);
         var currentEdges = getEdges(fromId);
@@ -263,7 +277,7 @@ $(function () {
         div.style.display = 'block';
     }
 
-    function deleteEdge(nodeId1, nodeId2) {
+    function deleteEdge(nodeId1, nodeId2, weightBoxId) {
         var node = nodes.get(nodeId1);
         var currentEdges = getEdges(nodeId1);
         currentEdges.forEach(function(edge){
@@ -277,9 +291,18 @@ $(function () {
         var newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
         var message = new UpdateNode({node: newNode});
         socketSend("UPDATENODE", message.encode());
+        if(weightBoxId == 'weight1') {
+            var div = document.getElementById("edit-from-edge");
+            div.style.display = 'none';
+        } else {
+            $("#" + weightBoxId).val(undefined);
+        }
     }
 
-    function updateEdge(nodeId1, nodeId2, weight) {
+    function updateEdge(nodeId1, nodeId2, weight, weightBoxId) {
+        if(weight < 0 || weight > 1000000) {
+            return;
+        }
         weight = parseInt(weight);
         var node = nodes.get(nodeId1);
         var currentEdges = getEdges(nodeId1);
@@ -296,6 +319,10 @@ $(function () {
         var newNode = new OnionNode({id: node.id, IPaddress: node.IPaddress, port: node.port, publicKey: node.publicKey, edge:currentEdges});
         var message = new UpdateNode({node: newNode});
         socketSend("UPDATENODE", message.encode());
+        if(weightBoxId == 'weight1') {
+            var div = document.getElementById("edit-from-edge");
+            div.style.display = 'none';
+        }
     }
 
     function checkEdge (fromId, toId) {
@@ -308,12 +335,12 @@ $(function () {
             return false;
         }
 
-        var edge = edges.get(fromId + toId)
+        var edge = edges.get(fromId + "-" + toId)
         if(edge) {
             return false;
         }
 
-        var otherEdge = edges.get(toId + fromId)
+        var otherEdge = edges.get(toId + "-" + fromId)
         if(otherEdge) {
             if(otherEdge.weight_to_from != undefined) {
                 return false;
