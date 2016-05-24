@@ -140,7 +140,7 @@ insert_admin(Username) when is_list(Username) ->
 -spec update_admin(list(), list(), atom()) -> any().
 update_admin(Username, Password, Superadmin) when is_list(Username), is_list(Password), is_atom(Superadmin) ->
     case mnesia:transaction(fun() ->
-        [Admin] = mnesia:wread({client, Username}),
+        [Admin] = mnesia:wread({admin, Username}),
         mnesia:write(
             Admin#admin{username = Username,
                 password = Password,

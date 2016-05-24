@@ -17,7 +17,7 @@
     update_existing_client_hash_return_ok_test/1,
     update_non_existing_client_hash_return_error_test/1,
     update_existing_client_return_ok_test/1,
-%%    update_existing_admin_return_ok_test/1,
+    update_existing_admin_return_ok_test/1,
     update_non_existing_client_return_error_test/1,
 %%    update_non_existing_admin_return_error_test/1,
     select_existing_client_return_client_test/1,
@@ -47,7 +47,7 @@ all() -> [
     update_existing_client_hash_return_ok_test,
     update_non_existing_client_hash_return_error_test,
     update_existing_client_return_ok_test,
-%%    update_existing_admin_return_ok_test,
+    update_existing_admin_return_ok_test,
     update_non_existing_client_return_error_test,
 %%    update_non_existing_admin_return_error_test,
     select_existing_client_return_client_test,
@@ -125,13 +125,13 @@ update_existing_client_return_ok_test(_Config) ->
     [{"Username2", undefined, undefined, "Password", []}, {"Username", "NewHash", <<"PublicKey">>,
         "Password", ["1", "11", "111"]}] = persistence_service:select_all_clients().
 
-%%update_existing_admin_return_ok_test(_Config) ->
-%%    persistence_service:insert_admin("Username", "Password"),
-%%    persistence_service:insert_admin("Username2", "Password"),
-%%
-%%    ok = persistence_service:update_admin("Username", "NewPassword", undefined),
-%%    [{"Username2", "Password", undefined}, {"Username", "NewPassword", undefined}]
-%%        = persistence_service:select_all_clients().
+update_existing_admin_return_ok_test(_Config) ->
+    persistence_service:insert_admin("Username"),
+    persistence_service:insert_admin("Username2"),
+
+    ok = persistence_service:update_admin("Username", "NewPassword", true),
+    [{"Username2", false}, {"Username", true}]
+        = persistence_service:select_all_admins().
 
 update_non_existing_client_return_error_test(_Config) ->
     test_helpers:assert_fail(fun persistence_service:update_client/4, ["Username", "SecretHash", <<"PublicKey">>, ["1", "11", "111"]],
