@@ -83,6 +83,7 @@ $(function () {
                       $( "#error" ).hide();
                       drawGraph();
                       $( "#dashboard" ).show();
+                      $( "#settings-user-management" ).show();
                     }
                     else {
                       $( "#error" ).show();
@@ -175,6 +176,44 @@ $(function () {
 			var message = new AdminLoginRequest({username : username, password: password});
             socketSend("ADMINLOGINREQUEST", message.encode());
         }
+    });
+
+   $("#settings-user-management").on('click', function(event) {
+        $( "#dashboard" ).hide();
+        $( "#settings-user-management" ).hide();
+        $( "#settings-dashboard" ).show();
+        $( "#user-management-box" ).show();
+    });
+
+   $("#settings-dashboard").on('click', function(event) {
+        $( "#settings-dashboard" ).hide();
+        $( "#user-management-box" ).hide();
+        $( "#dashboard" ).show();
+        $( "#settings-user-management" ).show();
+    });
+
+    $("#back-button-add").on('click', function(event) {
+        $( "#settings-dashboard" ).show();
+        $( "#user-management-box" ).show();
+        $( "#add-administrator-box" ).hide();
+    });
+
+    $("#back-button-edit").on('click', function(event) {
+            $( "#settings-dashboard" ).show();
+            $( "#user-management-box" ).show();
+            $( "#edit-administrator-box" ).hide();
+        });
+
+    $("#add-administrator-button").on('click', function(event) {
+        $( "#settings-dashboard" ).hide();
+        $( "#user-management-box" ).hide();
+        $( "#add-administrator-box" ).show();
+    });
+
+    $("#edit-administrator-button").on('click', function(event) {
+        $( "#settings-dashboard" ).hide();
+        $( "#user-management-box" ).hide();
+        $( "#edit-administrator-box" ).show();
     });
 
     initSocket();
