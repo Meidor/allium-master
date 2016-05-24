@@ -21,8 +21,7 @@ node_register(IPaddress, Port, PublicKey)
     heartbeat_monitor:add_node(NodeId),
     {NodeId, SecretHash}.
 
--spec verify_ip(list() | atom()) -> tuple().
-verify_ip(undefined) -> ok;
+-spec verify_ip(list()) -> tuple().
 verify_ip(IPaddress) ->
     {Type, Response} = inet:parse_strict_address(IPaddress),
     case Type of
@@ -62,11 +61,13 @@ node_verify(NodeId, SecretHash)
 -spec node_update(list(), list(), list(), integer(), binary()) -> any().
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     when
-        is_list(NodeId)
-        andalso is_list(SecretHash)
-        andalso (undefined == IPaddress orelse is_list(IPaddress))
-        andalso (undefined == Port orelse (is_integer(Port) andalso Port > 0 andalso Port < 65536))
-        andalso (is_binary(PublicKey) orelse undefined == PublicKey)
+        is_list(NodeId),
+        is_list(SecretHash),
+        is_list(IPaddress),
+        is_integer(Port),
+        Port > 0,
+        Port < 65536,
+        is_binary(PublicKey)
     ->
     verify_ip(IPaddress),
     node_verify(NodeId, SecretHash),
