@@ -37,13 +37,11 @@ websocket_handle({binary, Msg}, Req, State) ->
         'UPDATENODE' ->
             {updatenode, Node} = hrp_pb:decode_updatenode(Data),
             {node, Id, IPaddress, Port, PublicKey, Edges} = Node,
-            io:format("~n~p", [Edges]),
             node_graph_manager:update_node(Id, IPaddress, Port, PublicKey, Edges)
     end,
     {ok, Req, State};
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
-
 
 -spec websocket_info(tuple(), any(), any()) -> tuple().
 websocket_info({?MODULE, _, Msg}, Req, State) ->
