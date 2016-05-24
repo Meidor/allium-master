@@ -14,7 +14,8 @@
     insert_admin/1,
     update_admin/3,
     delete_admin/1,
-    select_all_admins/0
+    select_all_admins/0,
+    delete_all_admins/0
 ]).
 
 -include_lib("stdlib/include/qlc.hrl").
@@ -174,6 +175,11 @@ delete_client(Username) when is_list(Username) ->
 -spec delete_all_clients() -> atom().
 delete_all_clients() ->
     {_, Result} = mnesia:clear_table(client),
+    Result.
+
+-spec delete_all_admins() -> atom().
+delete_all_admins() ->
+    {_, Result} = mnesia:clear_table(admin),
     Result.
 
 -spec get_all_records_from_table(atom()) -> any().
