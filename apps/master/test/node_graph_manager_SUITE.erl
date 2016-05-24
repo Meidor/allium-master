@@ -549,8 +549,7 @@ update_node_with_edges_test(_) ->
             "max_version" ->
                 <<"12">>
         end
-                            end),
-
+    end),
     meck:expect(redis, set, fun(Key, Value) ->
         case Key of
             "node_hash_" ++ _ ->
@@ -567,7 +566,7 @@ update_node_with_edges_test(_) ->
                     [13, 14]
                 )
         end
-                            end),
+    end),
     ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz", [{edge, "node5", 10.0}, {edge, "node6", 55.0}]).
 
 update_node_without_edges_test(_) ->
@@ -578,8 +577,7 @@ update_node_without_edges_test(_) ->
             "max_version" ->
                 <<"12">>
         end
-                            end),
-
+    end),
     meck:expect(redis, set, fun(Key, Value) ->
         case Key of
             "node_hash_" ++ _ ->
@@ -596,5 +594,5 @@ update_node_without_edges_test(_) ->
                     [13, 14]
                 )
         end
-                            end),
+    end),
     ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz", []).
