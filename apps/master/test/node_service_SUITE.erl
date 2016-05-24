@@ -7,14 +7,14 @@
     node_unregister_test_valid_node/1, node_unregister_test_invalid_node/1,
     node_verify_test_valid_node/1, node_verify_test_invalid_node/1,
     node_update_test_valid_node/1, node_update_test_invalid_node/1,
-    node_update_test_invalid_ip/1]).
+    node_update_test_invalid_ip/1, node_update_test_undefined_values_test/1]).
 
 all() -> [node_register_test_valid_node, node_unregister_test_valid_node, 
           node_register_test_invalid_node, node_unregister_test_invalid_node, 
           node_register_test_invalid_ip, node_register_test_double_registration,
           node_verify_test_valid_node, node_verify_test_invalid_node,
           node_update_test_valid_node, node_update_test_invalid_node,
-          node_update_test_invalid_ip].
+          node_update_test_invalid_ip, node_update_test_undefined_values_test].
 
 init_per_suite(Config) ->
     IPaddress = "192.168.4.4",

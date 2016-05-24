@@ -32,7 +32,8 @@
     update_node_test/1,
     get_random_dedicated_nodes_return_random_nodes_test/1,
     get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test/1,
-    add_node_double_registration_test/1
+    add_node_double_registration_test/1,
+    add_node_returns_ip_adress_port_as_node_id_test/1
 ]).
 
 all() -> [
@@ -50,7 +51,8 @@ all() -> [
     update_node_test,
     get_random_dedicated_nodes_return_random_nodes_test,
     get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test,
-    add_node_double_registration_test
+    add_node_double_registration_test,
+    add_node_returns_ip_adress_port_as_node_id_test
 ].
 
 init_per_suite(Config) ->
@@ -441,6 +443,16 @@ add_node_test(_) ->
     true = test_helpers:check_function_called(redis, set_add, ["active_nodes", NodeId]),
     HashedNewGraphUpdate = (["version_" ++ NewMaxVersion, hrp_pb:encode({graphupdate, list_to_integer(NewMaxVersion), false, [{node, NodeId, NewNodeIP, NewNodePort, NewPublicKey, []}], []})]),
     true = test_helpers:check_function_called(redis, set, HashedNewGraphUpdate).
+
+add_node_returns_ip_adress_port_as_node_id_test(_) ->
+    NodeIP = "192.168.1.1",
+    NodePort = 42,
+    PublicKey = "PublicKey",
+    meck:expect(redis, get, fun(_) -> undefined end),
+    meck:expect(redis, set, fun(_Key, _Value) -> ok end),
+    meck:expect(redis, set_add, fun(_Key, _Value) -> ok end),
+    {NodeId, _} = node_graph_manager:add_node(NodeIP, NodePort, PublicKey),
+    NodeId = lists:flatten(io_lib:format("~s:~p", [NodeIP, NodePort])).
 
 add_node_double_registration_test(_) ->
     NewNodeIP = "123.0.0.1",
