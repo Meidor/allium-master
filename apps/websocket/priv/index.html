@@ -53,10 +53,10 @@
                         Weight:
                     </td>
                     <td>
-                        <input type="number" class="padding-input-edge" id="weight1" value="undef" class="edge-weight" placeholder="not defined" onchange="updateEdge($('#edge-from1').val(), $('#edge-to1').val(), $('#weight1').val())"/>
+                        <input type="number" class="padding-input-edge" id="weight1" value="undef" class="edge-weight" placeholder="not defined" onchange="updateEdge($('#edge-from1').val(), $('#edge-to1').val(), $('#weight1').val(), 'weight1')"/>
                     </td>
                     <td class="padding-table-data">
-                        <input class="padding-button" type="submit" value="Delete" onclick="deleteEdge($('#edge-from1').val(), $('#edge-to1').val())" />
+                        <input class="padding-button" type="submit" value="Delete" onclick="deleteEdge($('#edge-from1').val(), $('#edge-to1').val(), 'weight1')" />
                     </td>
                 </tr>
             </table>
@@ -83,10 +83,10 @@
                         Weight:
                     </td>
                     <td>
-                        <input type="number" class="padding-input-edge" id="weight2" value="undef" class="edge-weight" placeholder="not defined" onchange="updateEdge($('#edge-from2').val(), $('#edge-to2').val(), $('#weight2').val())"/>
+                        <input type="number" class="padding-input-edge" id="weight2" value="undef" class="edge-weight" placeholder="not defined" onchange="updateEdge($('#edge-from2').val(), $('#edge-to2').val(), $('#weight2').val(), 'weight2')"/>
                     </td>
                     <td class="padding-table-data">
-                        <input class="padding-button" type="submit" value="Delete" onclick="deleteEdge($('#edge-from2').val(), $('#edge-to2').val())" />
+                        <input class="padding-button" type="submit" value="Delete" onclick="deleteEdge($('#edge-from2').val(), $('#edge-to2').val(), 'weight2')" />
                     </td>
                 </tr>
             </table>
