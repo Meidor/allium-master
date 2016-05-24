@@ -138,6 +138,11 @@ node_update_test_valid_node(Config) ->
     true = test_helpers:check_function_called(node_graph_manager, get_node_secret_hash, [NodeId]),
     true = test_helpers:check_function_called(node_graph_manager, update_node, [NodeId, IPaddress, Port, PublicKey]).
 
+node_update_test_undefined_values_test(Config) ->
+    {_IPaddress, _Port, PublicKey, _} = ?config(validnode, Config),
+    {NodeId, SecretHash} = ?config(validnodeverify, Config),
+    node_service:node_update(NodeId, SecretHash, undefined, undefined, PublicKey).
+
 node_update_test_invalid_node(Config) ->
     {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
     {_InvIPaddress, InvPort, InvPublicKey, _} = ?config(invalidnode, Config),

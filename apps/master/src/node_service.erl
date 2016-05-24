@@ -21,7 +21,8 @@ node_register(IPaddress, Port, PublicKey)
     heartbeat_monitor:add_node(NodeId),
     {NodeId, SecretHash}.
 
--spec verify_ip(list()) -> tuple().
+-spec verify_ip(list() | atom()) -> tuple().
+verify_ip(undefined) -> ok;
 verify_ip(IPaddress) ->
     {Type, Response} = inet:parse_strict_address(IPaddress),
     case Type of
