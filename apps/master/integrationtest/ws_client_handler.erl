@@ -44,18 +44,27 @@ recv(Pid) ->
 websocket_handle({text, _Msg}, _Req, State) ->
     {ok, State};
 websocket_handle({binary, Msg}, _Req, State) ->
-    MessageWrapper =  hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
-    {[{wrapper, Type, Data} | _], _} = MessageWrapper,
-    case Type of
-        'ADMINLOGINRESPONSE' ->
-            State ! hrp_pb:decode_adminloginresponse(Data),
-            {ok, State};
-        'GRAPHUPDATERESPONSE' ->
-            State ! hrp_pb:decode_graphupdateresponse(Data),
-            {ok, State}
-    end;
+    {Type, Data} = get_message_from_wrapper(Msg),
+    handle_response(Type, Data, State);
 websocket_handle(_Data, _Req, State) ->
     {ok, State}.
+
+-spec handle_response(atom(), binary(), any()) -> any().
+handle_response('ADMINLOGINRESPONSE', Data, State) ->
+    State ! hrp_pb:decode_adminloginresponse(Data),
+    {ok, State};
+handle_response('GRAPHUPDATERESPONSE', Data, State) ->
+    State ! hrp_pb:decode_graphupdateresponse(Data),
+    {ok, State};
+handle_response('ADMINLISTRESPONSE', Data, State) ->
+    State ! hrp_pb:decode_adminlistresponse(Data),
+    {ok, State}.
+
+-spec get_message_from_wrapper(iolist()) -> tuple().
+get_message_from_wrapper(Msg) ->
+    MessageWrapper =  hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
+    {[{wrapper, Type, Data} | _], _} = MessageWrapper,
+    {Type, Data}.
 
 websocket_info({binary, From}, _Req, _State) ->
     {ok, From};
