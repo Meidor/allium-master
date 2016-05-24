@@ -2,7 +2,7 @@
 <html>
 <head>
     <base href="static/"></base>
-    <title>Network | DataSet</title>
+    <title>OnionMessenger ManagementApplication</title>
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/vis.js"></script>
     <script type="text/javascript" src="js/long.js"></script>
@@ -24,7 +24,7 @@
             <div id="error">
                 Wrong user credentials have been entered.
             </div>
-            <input type="submit" id="submitlogin" value="Log in"/>
+            <input type="submit" id="submit-login" value="Log in"/>
         </form>
     </div>
 
@@ -37,5 +37,160 @@
             </form>
         </p>
 	</div>
+
+    <div id="user-management-box" class="box">
+        <h1>Administrators</h1>
+        <hr>
+        <br />
+        <input type="button" id="add-administrator-button" value="Add administrator"/>
+        <br />
+        <br />
+        <div id="table-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>SuperAdmin</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="username"><strong>Administrator</strong></td>
+                        <td>Yes</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin1</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin2</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Administrator</strong></td>
+                        <td>Yes</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin1</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin2</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Administrator</strong></td>
+                        <td>Yes</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin1</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin2</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Administrator</strong></td>
+                        <td>Yes</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin1</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin2</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Administrator</strong></td>
+                        <td>Yes</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin1</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin2</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Administrator</strong></td>
+                        <td>Yes</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin1</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                    <tr>
+                        <td class="username"><strong>Admin2</strong></td>
+                        <td>Nope</td>
+                        <td><input type="button" id="edit-administrator-button" class="padding-button" value="Edit"/> | <input type="submit" id="delete-admin" class="padding-button" value="Delete"/></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="add-administrator-box" class="box">
+        <h1>Add administrator</h1>
+        <hr>
+        <br />
+        <p class="p">Username</p>
+        <input class="padding-input" type="text"/>
+        <br />
+        <br />
+        <p class="p">Password</p>
+        <input class="padding-input" type="password"/>
+        <br />
+        <br />
+        <p class="p">Super Admin</p>
+        <input type="checkbox"> If an administrator gets the right to be a super admin, he/she will have the authorisation to add new administrators to the system and edit their user information.
+        <br />
+        <br />
+        <input type="button" id="back-button-add" class="padding-button" value="Back"/>
+        <input type="submit" id="create-administrator-button" class="padding-button" value="Create"/>
+    </div>
+
+    <div id="edit-administrator-box" class="box">
+        <h1>Edit {Username}</h1>
+        <hr>
+        <br />
+        <p class="p">New password</p>
+        <input class="padding-input" type="password"/>
+        <br />
+        <br />
+        <p class="p">Re-enter new password</p>
+        <input class="padding-input" type="password"/>
+        <br />
+        <br />
+        <p class="p">Super Admin</p>
+        <input type="checkbox"> If an administrator gets the right to be a super admin, he/she will have the authorisation to add new administrators to the system and edit their user information.
+        <br />
+        <br />
+        <input type="button" id="back-button-edit" class="padding-button" value="Back"/>
+        <input type="submit" id="save-edit-admin-button" class="padding-button" value="Edit"/>
+    </div>
+
+    <img src="img/user-management.png" type="click" id="settings-user-management" class="settings" alt="settings">
+    <img src="img/dashboard.png" type="click" id="settings-dashboard" class="settings" alt="settings">
 </body>
 </html>
