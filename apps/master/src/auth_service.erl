@@ -6,8 +6,8 @@
     client_verify/2,
     client_logout/1,
     client_login/3,
-    admin_login/2
-]).
+    admin_login/2,
+    verify_super_admin/1]).
 
 -define(AMOUNTOFDEDICATEDNODES, 5).
 
@@ -70,3 +70,9 @@ admin_check_password(Username, Password) when is_list(Username), is_list(Passwor
         _:_ ->
             error(admincredentialsnotvalid)
     end.
+
+-spec verify_super_admin(list()) -> any().
+verify_super_admin(Username)
+    when
+    is_list(Username) ->
+    {Username, _, true} = persistence_service:select_admin(Username).

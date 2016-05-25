@@ -131,7 +131,7 @@ update_existing_admin_return_ok_test(_Config) ->
     persistence_service:insert_admin("Username"),
     persistence_service:insert_admin("Username2"),
 
-    ok = persistence_service:update_admin("Username", "NewPassword", true),
+    ok = persistence_service:update_admin("Username", "NewPassword", true, false),
     [{"Username2", false}, {"Username", true}]
         = persistence_service:select_all_admins().
 
@@ -140,7 +140,7 @@ update_non_existing_client_return_error_test(_Config) ->
         error, couldnotbeupdated, client_does_not_exist).
 
 update_non_existing_admin_return_error_test(_Config) ->
-    test_helpers:assert_fail(fun persistence_service:update_admin/3, ["Username", "Password",false],
+    test_helpers:assert_fail(fun persistence_service:update_admin/4, ["Username", "Password",false, false],
         error, couldnotbeupdated, admin_does_not_exist).
 
 select_existing_client_return_client_test(_Config) ->
