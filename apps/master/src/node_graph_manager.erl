@@ -144,14 +144,18 @@ protobufs_to_tuple(Data) ->
 
 -spec add_node(list(), integer(), binary()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
-    NodeId = get_unique_node_id(),
+    NodeId = lists:flatten(io_lib:format("~s:~p", [IPaddress, Port])),
+    case redis:get("node_hash_" ++ NodeId) of
+        undefined -> ok;
+        _Else -> error(node_already_exists)
+    end,
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
     redis:set("node_hash_" ++ NodeId, Hash),
     redis:set_add("active_nodes", NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
     GraphUpdate = hrp_pb:encode(
-            {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
+        {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
     ),
     redis:set(
         "version_" ++ integer_to_list(Version),
@@ -160,17 +164,6 @@ add_node(IPaddress, Port, PublicKey) ->
     UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
     publish(node_update, UpdateMessage),
     {NodeId, Hash}.
-
--spec get_unique_node_id() -> list().
-get_unique_node_id() ->
-    NodeId = base64:encode_to_string(crypto:strong_rand_bytes(20)),
-    case redis:get("node_hash_" ++ NodeId) of
-        undefined ->
-            NodeId;
-        _ ->
-            get_unique_node_id()
-    end.
-
 
 -spec remove_node(list()) -> atom().
 remove_node(NodeId) ->
