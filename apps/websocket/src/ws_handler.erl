@@ -28,18 +28,28 @@ websocket_init(_TransportName, Req, _Opts) ->
     {ok, Req, undefined_state, hibernate}.
 
 -spec websocket_handle(tuple(), any(), any()) -> tuple().
-websocket_handle({text, Msg}, Req, State) ->
-    {reply, {text, Msg}, Req, State};
+websocket_handle({text, _Msg}, Req, State) ->
+    {ok, Req, State};
 websocket_handle({binary, Msg}, Req, State) ->
-    MessageWrapper =  hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
-    {[{wrapper, Type, Data} | _], _} = MessageWrapper,
+    DecodedMsg = hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
+    {[{wrapper, Type, Data} | _], _} = DecodedMsg,
     case Type of
+        'ADMINLOGINREQUEST' ->
+            {adminloginrequest, Username, Password} = hrp_pb:decode_adminloginrequest(Data),
+            try auth_service:admin_login(Username, Password) of
+                IsSuperAdmin ->
+                    {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
+                        hrp_pb:encode({adminloginresponse, 'SUCCES', IsSuperAdmin}))}, Req, logged_in}
+            catch
+                _:_ ->
+                    {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
+                        hrp_pb:encode({adminloginresponse, 'FAILED', false}))}, Req, State}
+            end;
         'UPDATENODE' ->
             {updatenode, Node} = hrp_pb:decode_updatenode(Data),
             {node, Id, IPaddress, Port, PublicKey, Edges} = Node,
             node_graph_manager:update_node(Id, IPaddress, Port, PublicKey, Edges)
-    end,
-    {ok, Req, State};
+    end;
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
 
