@@ -42,7 +42,7 @@ handle_request('ADMINLOGINREQUEST', Data, Req, State) ->
     try auth_service:admin_login(Username, Password) of
         IsSuperAdmin ->
             {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
-                hrp_pb:encode({adminloginresponse, 'SUCCES', IsSuperAdmin}))}, Req, logged_in}
+                hrp_pb:encode({adminloginresponse, 'SUCCES', IsSuperAdmin}))}, Req, {logged_in, Username}}
     catch
         _:_ ->
             {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
