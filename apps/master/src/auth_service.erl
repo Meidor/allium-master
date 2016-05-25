@@ -54,7 +54,7 @@ client_login(Username, Password, PublicKey)
     persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
     {SecretHash, DedicatedNodes}.
 
--spec admin_login(list(), list())-> atom().
+-spec admin_login(list(), list())-> true | false.
 admin_login(Username, Password)
     when
     is_list(Username), is_list(Password) ->
