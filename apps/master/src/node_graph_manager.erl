@@ -39,6 +39,8 @@ get_min_version() ->
     try
         binary_to_integer(redis:get("min_version"))
     catch _:_ ->
+        update_min_version(1),
+        redis:set("version_1", hrp_pb:encode({graphupdate, 1, true, [], []})),
         1
     end.
 
@@ -61,16 +63,10 @@ get_graph_updates_for_versions(Versions) ->
 get_graph_updates_for_version(Version) ->
     redis:get("version_" ++ integer_to_list(Version)).
 
-
 -spec rebuild_graph() -> atom().
 rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
-    case NewMinVersion of
-        1 ->
-            Graph = {graphupdate, 1, true, [], []};
-        _ ->
-            Graph = build_graph(NewMinVersion)
-    end,
+    Graph = build_graph(NewMinVersion),
     save_graph(Graph, NewMinVersion),
     remove_old_versions(NewMinVersion),
     update_min_version(NewMinVersion),
@@ -148,14 +144,18 @@ protobufs_to_tuple(Data) ->
 
 -spec add_node(list(), integer(), binary()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
-    NodeId = get_unique_node_id(),
+    NodeId = lists:flatten(io_lib:format("~s:~p", [IPaddress, Port])),
+    case redis:get("node_hash_" ++ NodeId) of
+        undefined -> ok;
+        _Else -> error(node_already_exists)
+    end,
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
     redis:set("node_hash_" ++ NodeId, Hash),
     redis:set_add("active_nodes", NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
     GraphUpdate = hrp_pb:encode(
-            {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
+        {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
     ),
     redis:set(
         "version_" ++ integer_to_list(Version),
@@ -165,23 +165,12 @@ add_node(IPaddress, Port, PublicKey) ->
     publish(node_update, UpdateMessage),
     {NodeId, Hash}.
 
--spec get_unique_node_id() -> list().
-get_unique_node_id() ->
-    NodeId = base64:encode_to_string(crypto:strong_rand_bytes(20)),
-    case redis:get("node_hash_" ++ NodeId) of
-        undefined ->
-            NodeId;
-        _ ->
-            get_unique_node_id()
-    end.
-
-
 -spec remove_node(list()) -> atom().
 remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
-    GraphUpdate =  hrp_pb:encode(
+    GraphUpdate = hrp_pb:encode(
             {graphupdate, Version, false, [], [{node, NodeId, "", 0, "", []}]}
     ),
     redis:set_remove("active_nodes", NodeId),
@@ -241,6 +230,7 @@ update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     lager:info(redis:get("edges_" ++ NodeId)),
     ok.
 
+-spec publish(any(), any()) -> any().
 publish(Event, Data) ->
     gproc:send({p, l, {ws_handler, Event}}, {ws_handler, Event, Data}).
 

@@ -33,7 +33,9 @@
     get_random_dedicated_nodes_return_random_nodes_test/1,
     get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test/1,
     update_node_with_edges_test/1,
-    update_node_without_edges_test/1
+    update_node_without_edges_test/1,
+    add_node_double_registration_test/1,
+    add_node_returns_ip_adress_port_as_node_id_test/1
 ]).
 
 all() -> [
@@ -52,7 +54,9 @@ all() -> [
     get_random_dedicated_nodes_return_random_nodes_test,
     get_random_dedicated_nodes_without_existing_nodes_return_empty_list_test,
     update_node_with_edges_test,
-    update_node_without_edges_test
+    update_node_without_edges_test,
+    add_node_double_registration_test,
+    add_node_returns_ip_adress_port_as_node_id_test
 ].
 
 init_per_suite(Config) ->
@@ -80,6 +84,8 @@ get_graph_updates_without_existing_graph_test(_) ->
                 VERSION1
         end
     end),
+
+    meck:expect(redis, set, fun(_Key, _Value) -> ok end),
 
     [VERSION1] = node_graph_manager:get_graph_updates(-1),
     [VERSION1] = node_graph_manager:get_graph_updates(0),
@@ -128,6 +134,8 @@ build_graph_without_existing_graph_test(_) ->
                 VERSION1
         end
     end),
+
+    meck:expect(redis, set, fun(_Key, _Value) -> ok end),
 
     {graphupdate, 1, true,
         [],
@@ -440,6 +448,23 @@ add_node_test(_) ->
     HashedNewGraphUpdate = (["version_" ++ NewMaxVersion, hrp_pb:encode({graphupdate, list_to_integer(NewMaxVersion), false, [{node, NodeId, NewNodeIP, NewNodePort, NewPublicKey, []}], []})]),
     true = test_helpers:check_function_called(redis, set, HashedNewGraphUpdate).
 
+add_node_returns_ip_adress_port_as_node_id_test(_) ->
+    NodeIP = "192.168.1.1",
+    NodePort = 42,
+    PublicKey = "PublicKey",
+    meck:expect(redis, get, fun(_) -> undefined end),
+    meck:expect(redis, set, fun(_Key, _Value) -> ok end),
+    meck:expect(redis, set_add, fun(_Key, _Value) -> ok end),
+    {NodeId, _} = node_graph_manager:add_node(NodeIP, NodePort, PublicKey),
+    NodeId = lists:flatten(io_lib:format("~s:~p", [NodeIP, NodePort])).
+
+add_node_double_registration_test(_) ->
+    NewNodeIP = "123.0.0.1",
+    NewNodePort = 1234,
+    NewPublicKey = "abcdefghijklmnop",
+    meck:expect(redis, get, fun(_) -> ok end),
+    test_helpers:assert_fail(fun node_graph_manager:add_node/3, [NewNodeIP, NewNodePort, NewPublicKey], error, node_already_exists, failed_to_catch_invalid_argument).
+
 remove_node_test(_) ->
     RemovableNodeId = "YWJjZGVmZ2hpamtsbW4=",
     NewMaxVersion = "13",
@@ -519,11 +544,13 @@ update_node_test(_) ->
                 true = lists:any(
                     fun(X) -> X =:= Value end,
                     [13, 14]
-                )
+                );
+            "edges_YWJjZGVmZ2hpamtsbW5vcA==" ->
+                []
         end
     end),
 
-    ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz").
+    ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, <<"xyz">>, []).
 
 get_random_dedicated_nodes_return_random_nodes_test(_) ->
     RedisNodes = [<<"node1">>, <<"node2">>, <<"node3">>, <<"node4">>, <<"node5">>],
@@ -564,7 +591,9 @@ update_node_with_edges_test(_) ->
                 true = lists:any(
                     fun(X) -> X =:= Value end,
                     [13, 14]
-                )
+                );
+            "edges_YWJjZGVmZ2hpamtsbW5vcA==" ->
+                []
         end
     end),
     ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz", [{edge, "node5", 10.0}, {edge, "node6", 55.0}]).
@@ -592,7 +621,9 @@ update_node_without_edges_test(_) ->
                 true = lists:any(
                     fun(X) -> X =:= Value end,
                     [13, 14]
-                )
+                );
+            "edges_YWJjZGVmZ2hpamtsbW5vcA==" ->
+                []
         end
     end),
     ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz", []).

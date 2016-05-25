@@ -5,9 +5,10 @@
 %%% Created : 18. Apr 2016 7:49 PM
 %%%===================================================================
 -module(graph_monitor_app).
+
 -behaviour(gen_server).
 
--define(INTERVAL, 5000).
+-define(INTERVAL, element(2, application:get_env(master, graph_rebuild_interval))).
 
 %% API
 -export([
@@ -25,7 +26,7 @@ start_link() ->
 
 -spec init(list()) -> tuple().
 init([])->
-    Timer = erlang:send_after(1, self(), check),
+    Timer = erlang:send_after(?INTERVAL, self(), check),
     {ok, Timer}.
 
 -spec handle_info(atom(), any()) -> tuple().
