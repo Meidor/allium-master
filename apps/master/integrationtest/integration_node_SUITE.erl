@@ -40,7 +40,10 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
+    test_helpers_int:init_sharded_eredis(),
     application:load(master),
+    application:load(websocket),
+    application:ensure_all_started(websocket),
 
     ValidNodeId = "12345",
     ValidNodeSecretHash = "secrethash12345",
@@ -61,6 +64,7 @@ init_per_testcase(_, Config) ->
 
 end_per_suite(Config) ->
     application:unload(master),
+    application:unload(websocket),
     Config.
 
 update_a_non_existing_node_return_error_test(Config) ->

@@ -9,12 +9,17 @@
     delete_client/1,
     delete_all_clients/0,
     select_clients_by_hash/1,
-    update_client/4
+    update_client/4,
+    select_admin/1,
+    insert_admin/3,
+    update_admin/3,
+    delete_admin/1
 ]).
 
 -include_lib("stdlib/include/qlc.hrl").
 
 -record(client, {username, secrethash, publickey, password, dedicatednodes = []}).
+-record(admin, {username, password, superadmin}).
 
 -spec init() -> any().
 init() ->
@@ -24,7 +29,11 @@ init() ->
     mnesia:create_table(client,
         [ {disc_copies, [node()] },
             {attributes,
-                record_info(fields, client)} ]).
+                record_info(fields, client)}]),
+    mnesia:create_table(admin,
+        [ {disc_copies, [node()]},
+            {attributes,
+                record_info(fields, admin)}]).
 
 -spec insert_client(list(), list()) -> atom().
 insert_client(Username, Password) when is_list(Username), is_list(Password) ->
@@ -89,6 +98,55 @@ select_client(Username) when is_list(Username) ->
         [{_, Username, SecretHash, PublicKey, Password, DedicatedNodes}] ->
             {Username, SecretHash, PublicKey, Password, DedicatedNodes}
     end.
+
+-spec select_admin(list()) -> any().
+select_admin(Username) when is_list(Username) ->
+    case mnesia:dirty_read({admin, Username}) of
+        [] ->
+            undefined;
+        [{_, Username, Password, SuperAdmin}] ->
+            {Username, Password, SuperAdmin}
+    end.
+
+-spec insert_admin(list(), list(), atom()) -> any().
+insert_admin(Username, Password, Superadmin) when is_list(Username), is_list(Password), is_atom(Superadmin) ->
+    try
+        undefined = select_admin(Username)
+    catch
+        _:{badmatch,_} ->
+            error(usernametaken)
+    end,
+
+    case mnesia:transaction(fun() ->
+        mnesia:write(
+            #admin{username = Username,
+                password = Password,
+                superadmin = Superadmin})
+                            end) of
+        {atomic, ok} ->
+            ok;
+        _ ->
+            error(couldnotbeinserted)
+    end.
+
+-spec update_admin(list(), list(), atom()) -> any().
+update_admin(Username, Password, Superadmin) when is_list(Username), is_list(Password), is_atom(Superadmin) ->
+    case mnesia:transaction(fun() ->
+        [Admin] = mnesia:wread({client, Username}),
+        mnesia:write(
+            Admin#admin{username = Username,
+                password = Password,
+                superadmin = Superadmin})
+                            end) of
+        {atomic, ok} ->
+            ok;
+        _ ->
+            error(couldnotbeupdated)
+    end.
+
+-spec delete_admin(list()) -> atom().
+delete_admin(Username) when is_list(Username) ->
+    mnesia:dirty_delete({admin, Username}).
 
 -spec select_clients_by_hash(list()) -> list().
 select_clients_by_hash(SecretHash) when (undefined == SecretHash orelse is_list(SecretHash)) ->
