@@ -19,6 +19,8 @@ $(function () {
     var GraphUpdate = builder.build("GraphUpdate");
 	var AdminLoginRequest = builder.build("AdminLoginRequest");
 	var AdminLoginResponse = builder.build("AdminLoginResponse");
+	var AdminListRequest = builder.build("AdminListRequest");
+	var AdminListResponse = builder.build("AdminListResponse");
 
     function initSocket() {
         $( "#dashboard" ).hide();
@@ -88,6 +90,18 @@ $(function () {
                     else {
                       $( "#error" ).show();
                     }
+                    break;
+                case Wrapper.Type.ADMINLISTRESPONSE:
+                    var adminListResponse = AdminListResponse.decode(wrapper.data);
+                    adminListResponse.forEach(function(admin) {
+                        $( "#tbody" ).innerHTML = '<tr>' +
+                                                    '<td class="' + admin.username + '"><strong>Administrator</strong></td>' +
+                                                    '<td>' + admin.superadmin + '</td>' +
+                                                    '<td><input type="button" id="edit-administrator-button" class="padding-button"' +
+                                                    'value="Edit"/> | <input type="submit" id="delete-admin-' + admin.username +
+                                                    '" class="padding-button" value="Delete-' + admin.username + '"/></td>' +
+                                                  '</tr>';
+                    });
                     break;
             }
         } catch (error) {
@@ -183,6 +197,8 @@ $(function () {
         $( "#settings-user-management" ).hide();
         $( "#settings-dashboard" ).show();
         $( "#user-management-box" ).show();
+        var message = new AdminListRequest();
+        socketSend("ADMINLISTREQUEST", message.encode());
     });
 
    $("#settings-dashboard").on('click', function(event) {
