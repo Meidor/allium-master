@@ -79,7 +79,7 @@ $(function () {
                 IPaddress: node.IPaddress,
                 port: node.port,
                 publicKey: node.publicKey,
-                label: node.id
+                label: node.IPaddress + "\n" + "port: " + node.port
             });
             if(!node.edge) return;
             node.edge.forEach(function (edge) {
@@ -171,7 +171,7 @@ $(function () {
             edges: edges
         };
 
-        var options = {interaction: {hover: true, selectConnectedEdges: false, hoverConnectedEdges: false}, edges: {length:200}};
+        var options = {interaction: {hover: true, selectConnectedEdges: false, hoverConnectedEdges: false}, "edges": { "smooth": { "type": "discrete", "roundness":0}, arrowStrikethrough:true}, nodes: {shape: 'circle'}};
 
         network = new vis.Network(container, data, options);
 
