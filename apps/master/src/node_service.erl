@@ -49,7 +49,7 @@ node_verify(NodeId, SecretHash)
 
 -spec get_edges(list()) -> list().
 get_edges(NodeId) when is_list(NodeId) ->
-ok.
+    ok.
     %EncodedEdges = redis:get(NodeId);
     %Edges = decode(EncodedEges);
 
@@ -65,13 +65,15 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
         andalso (is_binary(PublicKey) orelse undefined == PublicKey)
     ->
     node_verify(NodeId, SecretHash),
-    case NodeId = IPaddress + Port of
+    Edges = get_edges(NodeId),
+    case NodeId =:= IPaddress ++ integer_to_list(Port) of
         true ->
-            Edges = get_edges(NodeId),
             node_graph_manager:update_node(NodeId, IPaddress, Port, PublicKey, Edges),
             NodeId;
-        _ -> node_unregister(NodeId, SecretHash),
-            {NodeId, SecretHash} = node_register(IPaddress, Port, PublicKey),
-            %TODO: secrethash setten naar de vorige.
+        _ ->
+            node_unregister(NodeId, SecretHash),
+            {NodeId, _} = node_register(IPaddress, Port, PublicKey),
+            redis:set("node_hash_" ++ NodeId, SecretHash),
+            
             NodeId
     end.
