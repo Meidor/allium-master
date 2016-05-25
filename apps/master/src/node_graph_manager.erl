@@ -11,7 +11,6 @@
     add_node/3,
     remove_node/1,
     get_node_secret_hash/1,
-    update_node/4,
     update_node/5,
     get_random_dedicated_nodes/1
     ]).
@@ -207,10 +206,6 @@ get_node_secret_hash(NodeId) ->
             undefined
     end.
 
--spec update_node(list(), list(), integer(), binary()) -> atom().
-update_node(NodeId, IPaddress, Port, PublicKey) ->
-    update_node(NodeId, IPaddress, Port, PublicKey, undefined).
-
 -spec update_node(list(), list(), integer(), binary(), list()) -> atom().
 update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     DeleteVersion = get_max_version() + 1,
@@ -239,6 +234,11 @@ update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     ),
     AddMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphAdd),
     publish(node_update, AddMessage),
+    %lager:info(Edges),
+    redis:set(
+        "edges_" ++ NodeId, hrp_pb:encode(Edges)
+    ),
+    lager:info(redis:get("edges_" ++ NodeId)),
     ok.
 
 publish(Event, Data) ->
