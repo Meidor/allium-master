@@ -14,6 +14,7 @@ benchmark(Count) ->
     test_helpers_int:empty_database(),
     persistence_service:delete_all_clients(),
     benchmark_node_register(Count),
+    benchmark_graph_updates_none(Count),
     benchmark_graph_updates_small(Count),
     benchmark_graph_updates_large(Count),
     benchmark_graph_updates_all(round(Count / 10)),
@@ -31,6 +32,17 @@ benchmark_node_register(Count) ->
     ),
     Time = benchmark_message(Message, Count),
     lager:info("Registered ~p nodes in ~p ms on average per node.~n", [Count, Time / Count]).
+
+-spec benchmark_graph_updates_none(integer()) -> atom().
+benchmark_graph_updates_none(Count) ->
+    Message = get_wrapped_message(
+        'GRAPHUPDATEREQUEST',
+        hrp_pb:encode(
+            {graphupdaterequest, Count}
+        )
+    ),
+    Time = benchmark_message(Message, Count),
+    lager:info("Fetched 0 graph updates ~p times in ~p ms on average per request.~n", [Count, Time / Count]).
 
 -spec benchmark_graph_updates_small(integer()) -> atom().
 benchmark_graph_updates_small(Count) ->
@@ -120,10 +132,10 @@ benchmark_message(Message, Count) ->
 
 -spec get_timestamp() -> number().
 get_timestamp() ->
-    {_, Time, Milli} = erlang:now(),
+    {_, Time, Milli} = erlang:timestamp(),
     Time * 1000 + Milli / 1000.
 
--spec get_wrapped_message(list(), list()) -> list().
+-spec get_wrapped_message(atom(), list()) -> list().
 get_wrapped_message(Type, Msg) ->
     hrp_pb:encode([{wrapper, Type, Msg}]).
 
