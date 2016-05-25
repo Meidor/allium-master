@@ -26,7 +26,7 @@ init([]) ->
 -spec handle_info(atom(), any()) -> tuple().
 handle_info(check, OldTimer) ->
     erlang:cancel_timer(OldTimer),
-    heartbeat_monitor:remove_inactive_nodes(round(?INTERVAL/1000)),
+    heartbeat_monitor:remove_inactive_nodes(round(?INTERVAL / 1000)),
     Timer = erlang:send_after(?INTERVAL, self(), check),
     {noreply, Timer}.
 

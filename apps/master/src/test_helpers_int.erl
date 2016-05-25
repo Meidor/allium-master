@@ -124,6 +124,7 @@ get_connection() ->
             Pid
     end.
 
+-spec init() -> any().
 init_sharded_eredis() ->
     application:set_env(sharded_eredis, pools,
         [
