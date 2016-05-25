@@ -54,18 +54,18 @@ client_login(Username, Password, PublicKey)
     persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
     {SecretHash, DedicatedNodes}.
 
--spec admin_login(list(), list())-> ok.
+-spec admin_login(list(), list())-> atom().
 admin_login(Username, Password)
     when
     is_list(Username), is_list(Password) ->
-    admin_check_password(Username, Password),
-    ok.
+    admin_check_password(Username, Password).
 
 
--spec admin_check_password(list(), list()) -> any().
+-spec admin_check_password(list(), list()) -> atom().
 admin_check_password(Username, Password) when is_list(Username), is_list(Password) ->
     try
-        {Username, Password, _} = persistence_service:select_admin(Username)
+        {Username, Password, SuperAdmin} = persistence_service:select_admin(Username),
+        SuperAdmin
     catch
         _:_ ->
             error(admincredentialsnotvalid)
