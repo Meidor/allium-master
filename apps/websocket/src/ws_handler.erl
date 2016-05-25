@@ -37,13 +37,13 @@ websocket_handle({binary, Msg}, Req, State) ->
         'ADMINLOGINREQUEST' ->
         {adminloginrequest, Username, Password} = hrp_pb:decode_adminloginrequest(Data),
         try auth_service:admin_login(Username, Password) of
-            _ ->
+            IsSuperAdmin ->
                 {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
-                    hrp_pb:encode({adminloginresponse, 'SUCCES'}))}, Req, logged_in}
+                    hrp_pb:encode({adminloginresponse, 'SUCCES', IsSuperAdmin}))}, Req, logged_in}
         catch
             _:_ ->
                 {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
-                    hrp_pb:encode({adminloginresponse, 'FAILED'}))}, Req, State}
+                    hrp_pb:encode({adminloginresponse, 'FAILED', false}))}, Req, State}
         end
     end;
 websocket_handle(_Data, Req, State) ->
