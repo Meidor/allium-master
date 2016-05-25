@@ -15,7 +15,8 @@
     empty_database/0,
     get_connection/0,
     register_client/2,
-    login_client/3
+    login_client/3,
+    init_sharded_eredis/0
 ]).
 
 -spec get_data_encrypted_response(binary(), atom(), atom()) -> tuple().
@@ -106,11 +107,11 @@ valid_secret_hash(SecretHash) ->
 
 -spec valid_id(list()) -> any().
 valid_id(Id) ->
-    true = is_list(Id) and (length(Id) == 28).
+    true = is_list(Id).
 
 -spec empty_database() -> any().
 empty_database() ->
-    eredis:q(get_connection(), ["FLUSHALL"]).
+    redis:apply_to_execute_command_on_all_nodes(["FLUSHALL"], fun(_) -> ok end).
 
 -spec get_connection() -> pid().
 get_connection() ->
@@ -122,3 +123,23 @@ get_connection() ->
         Pid ->
             Pid
     end.
+
+init_sharded_eredis() ->
+    application:set_env(sharded_eredis, pools,
+        [
+            {pool0, [
+                {size, 10},
+                {max_overflow, 20},
+                {host, "127.0.0.1"},
+                {port, 6379}
+            ]},
+            {pool1, [
+                {size, 10},
+                {max_overflow, 20},
+                {host, "tumma.nl"},
+                {port, 6379}
+            ]}
+        ]
+    ),
+    application:set_env(sharded_eredis, global_or_local, local),
+    sharded_eredis:start().
