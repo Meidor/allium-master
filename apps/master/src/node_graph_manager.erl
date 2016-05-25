@@ -161,6 +161,9 @@ add_node(IPaddress, Port, PublicKey) ->
         "version_" ++ integer_to_list(Version),
         GraphUpdate
     ),
+    redis:set(
+        "node_edges_" ++ NodeId, hrp_pb:encode([])
+    ),
     UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
     publish(node_update, UpdateMessage),
     {NodeId, Hash}.
@@ -177,6 +180,9 @@ remove_node(NodeId) ->
     redis:set(
         "version_" ++ integer_to_list(Version),
         GraphUpdate
+    ),
+    redis:remove(
+        "node_edges_" ++ NodeId
     ),
     UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
     publish(node_update, UpdateMessage),
@@ -201,10 +207,10 @@ update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     AddVersion = DeleteVersion + 1,
     set_max_version(AddVersion),
     GraphDelete = hrp_pb:encode(
-            {graphupdate, DeleteVersion, false, [], [
-                {node, NodeId, "", 0, "", []}
-            ]}
-        ),
+        {graphupdate, DeleteVersion, false, [], [
+            {node, NodeId, "", 0, "", []}
+        ]}
+    ),
     redis:set(
         "version_" ++ integer_to_list(DeleteVersion),
         GraphDelete
@@ -216,18 +222,15 @@ update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
             {node, NodeId, IPaddress, Port, PublicKey, Edges}
         ], []}
     ),
-        io:format("~n~p", [GraphAdd]),
+    redis:set(
+        "node_edges_" ++ NodeId, hrp_pb:encode(Edges)
+    ),
     redis:set(
         "version_" ++ integer_to_list(AddVersion),
         GraphAdd
     ),
     AddMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphAdd),
     publish(node_update, AddMessage),
-    %lager:info(Edges),
-    redis:set(
-        "edges_" ++ NodeId, hrp_pb:encode(Edges)
-    ),
-    lager:info(redis:get("edges_" ++ NodeId)),
     ok.
 
 -spec publish(any(), any()) -> any().

@@ -61,6 +61,12 @@ init_per_testcase(_, Config) ->
         end 
     end),
     meck:new(redis, [non_strict]),
+    meck:expect(redis, get, fun(Key) ->
+        case Key of
+            "node_edges_ValideNode" ->
+                <<>>
+        end
+    end),
     meck:expect(redis, set, fun(_, _) -> ok end),
     Config.
 

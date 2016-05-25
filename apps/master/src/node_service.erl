@@ -9,8 +9,6 @@
     node_update/5
 ]).
 
-%% @doc Register your node in the graph
-%% @end
 -spec node_register(list(), integer(), binary()) -> tuple().
 node_register(IPaddress, Port, PublicKey)
     when
@@ -29,8 +27,6 @@ verify_ip(IPaddress) ->
         error -> error(Response)
     end.
 
-%% @doc Unregister your node in the graph
-%% @end
 -spec node_unregister(list()) -> any().
 node_unregister(NodeId)
     when
@@ -47,8 +43,6 @@ node_unregister(NodeId, SecretHash)
     node_graph_manager:remove_node(NodeId),
     heartbeat_monitor:remove_node(NodeId).
 
-%% @doc Verify the secrethash of a node
-%% @end
 -spec node_verify(list(), list()) -> list().
 node_verify(NodeId, SecretHash)
     when
@@ -58,12 +52,20 @@ node_verify(NodeId, SecretHash)
 
 -spec get_edges(list()) -> list().
 get_edges(NodeId) when is_list(NodeId) ->
-    ok.
-    %EncodedEdges = redis:get(NodeId);
-    %Edges = decode(EncodedEges);
+    hrp_pb:delimited_decode_edge(
+        binary_to_list(
+            redis:get("node_edges_" ++ NodeId)
+        )
+    ).
 
-%% @doc Update a node
-%% @end
+set_edges(NodeId, Edges) when is_list(NodeId) ->
+    redis:set(
+        "node_edges_" ++ NodeId,
+        hrp_pb:encode(
+            Edges
+        )
+    ).
+
 -spec node_update(list(), list(), list(), integer(), binary()) -> any().
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     when
@@ -86,6 +88,6 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
             node_unregister(NodeId, SecretHash),
             {NodeId, _} = node_register(IPaddress, Port, PublicKey),
             redis:set("node_hash_" ++ NodeId, SecretHash),
-            
+            set_edges(NodeId, Edges),
             NodeId
     end.
