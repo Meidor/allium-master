@@ -107,7 +107,7 @@ valid_secret_hash(SecretHash) ->
 
 -spec valid_id(list()) -> any().
 valid_id(Id) ->
-    true = is_list(Id) and (length(Id) == 28).
+    true = is_list(Id).
 
 -spec empty_database() -> any().
 empty_database() ->
