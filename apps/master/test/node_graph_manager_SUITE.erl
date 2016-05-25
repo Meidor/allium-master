@@ -544,11 +544,13 @@ update_node_test(_) ->
                 true = lists:any(
                     fun(X) -> X =:= Value end,
                     [13, 14]
-                )
+                );
+            "edges_YWJjZGVmZ2hpamtsbW5vcA==" ->
+                []
         end
     end),
 
-    ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz").
+    ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, <<"xyz">>, []).
 
 get_random_dedicated_nodes_return_random_nodes_test(_) ->
     RedisNodes = [<<"node1">>, <<"node2">>, <<"node3">>, <<"node4">>, <<"node5">>],
@@ -589,7 +591,9 @@ update_node_with_edges_test(_) ->
                 true = lists:any(
                     fun(X) -> X =:= Value end,
                     [13, 14]
-                )
+                );
+            "edges_YWJjZGVmZ2hpamtsbW5vcA==" ->
+                []
         end
     end),
     ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz", [{edge, "node5", 10.0}, {edge, "node6", 55.0}]).
@@ -617,7 +621,9 @@ update_node_without_edges_test(_) ->
                 true = lists:any(
                     fun(X) -> X =:= Value end,
                     [13, 14]
-                )
+                );
+            "edges_YWJjZGVmZ2hpamtsbW5vcA==" ->
+                []
         end
     end),
     ok = node_graph_manager:update_node("YWJjZGVmZ2hpamtsbW5vcA==", "127.0.0.1", 12345, "xyz", []).

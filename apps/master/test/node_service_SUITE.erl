@@ -60,6 +60,8 @@ init_per_testcase(_, Config) ->
             _ -> error(nodenotfound) 
         end 
     end),
+    meck:new(redis, [non_strict]),
+    meck:expect(redis, set, fun(_, _) -> ok end),
     Config.
 
 end_per_testcase(_, Config) ->
@@ -135,8 +137,7 @@ node_update_test_valid_node(Config) ->
     {IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
     {NodeId, SecretHash} = ?config(validnodeverify, Config),
     node_service:node_update(NodeId, SecretHash, IPaddress, Port, PublicKey),
-    true = test_helpers:check_function_called(node_graph_manager, get_node_secret_hash, [NodeId]),
-    true = test_helpers:check_function_called(node_graph_manager, update_node, [NodeId, IPaddress, Port, PublicKey]).
+    true = test_helpers:check_function_called(node_graph_manager, get_node_secret_hash, [NodeId]).
 
 node_update_test_undefined_values_failure_test(Config) ->
     {_IPaddress, _Port, PublicKey, _} = ?config(validnode, Config),
