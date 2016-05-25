@@ -1,5 +1,5 @@
 //----------------------------------------
-// VERSION: 0.4.5
+// VERSION: 0.4.6
 //----------------------------------------
 
 syntax = "proto2";
@@ -303,6 +303,7 @@ message AdminLoginResponse {
     }
 
     required Status status = 1;
+    required bool isSuperAdmin = 2;
 }
 
 // Request a list of all currently known admins
@@ -317,8 +318,9 @@ message AdminRegisterRequest {
 // Update an admin
 message AdminUpdateRequest {
     required string username = 1;
-    required string password = 2;
+    optional string password = 2;
     required bool superadmin = 3;
+    required bool resetPassword = 4;
 }
 
 // Delete an admin
@@ -332,7 +334,21 @@ message AdminDeleteRequest {
 // Response to AdminDeleteRequest
 // Contains a list of all admins currently known
 message AdminListResponse {
+    enum Status {
+        // SUCCES: Request succesfully processed.
+        SUCCES = 1;
+
+        // FAILED: Request failed to process.
+        FAILED = 2;
+
+        USERNAME_TAKEN = 3;
+        INVALID_PASSWORD = 4;
+        LAST_SUPERADMIN = 5;
+    }
+
     repeated Admin admins = 1;
+    required Status status = 2;
+    optional string newPassword = 3;
 }
 
 // Contains all Admin data
