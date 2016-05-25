@@ -36,11 +36,11 @@ init() ->
     mnesia:create_table(admin,
         [ {disc_copies, [node()]},
             {attributes,
-                record_info(fields, admin)}]),
+                record_info(fields, admin)}]).
 
-    0 = length(select_all_super_admins()),
-    insert_admin("admin"),
-    update_admin("admin", "password", true, false).
+%%    0 = length(select_all_super_admins()),
+%%    insert_admin("admin"),
+%%    update_admin("admin", "password", true, false)
 
 -spec insert_client(list(), list()) -> atom().
 insert_client(Username, Password) when is_list(Username), is_list(Password) ->
