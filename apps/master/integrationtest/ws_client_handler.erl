@@ -37,7 +37,7 @@ recv(Pid) ->
         Message ->
             Message
     after
-        5000 ->
+        4000 ->
             noresponse
     end.
 
