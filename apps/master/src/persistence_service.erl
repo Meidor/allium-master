@@ -9,7 +9,8 @@
     delete_client/1,
     delete_all_clients/0,
     select_clients_by_hash/1,
-    update_client/4
+    update_client/4,
+    select_admin/1
 ]).
 
 -include_lib("stdlib/include/qlc.hrl").
@@ -88,6 +89,15 @@ select_client(Username) when is_list(Username) ->
             undefined;
         [{_, Username, SecretHash, PublicKey, Password, DedicatedNodes}] ->
             {Username, SecretHash, PublicKey, Password, DedicatedNodes}
+    end.
+
+-spec select_admin(list()) -> any().
+select_admin(Username) when is_list(Username) ->
+    case mnesia:dirty_read({admin, Username}) of
+        [] ->
+            undefined;
+        [{_, Username, Password, SuperAdmin}] ->
+            {Username, Password, SuperAdmin}
     end.
 
 -spec select_clients_by_hash(list()) -> list().
