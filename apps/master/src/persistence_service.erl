@@ -15,6 +15,7 @@
     update_admin/4,
     delete_admin/1,
     select_all_admins/0,
+    select_all_admins_including_passwords/0,
     delete_all_admins/0
 ]).
 
@@ -35,7 +36,11 @@ init() ->
     mnesia:create_table(admin,
         [ {disc_copies, [node()]},
             {attributes,
-                record_info(fields, admin)}]).
+                record_info(fields, admin)}]),
+
+    0 = length(select_all_super_admins()),
+    insert_admin("admin"),
+    update_admin("admin", "password", true, false).
 
 -spec insert_client(list(), list()) -> atom().
 insert_client(Username, Password) when is_list(Username), is_list(Password) ->
@@ -116,6 +121,12 @@ select_all_admins() ->
     [{Username, Superadmin} ||
         {_, Username, _, Superadmin} <- Result].
 
+-spec select_all_admins_including_passwords() -> list().
+select_all_admins_including_passwords() ->
+    {_, Result} = get_all_records_from_table(admin),
+    [{Username, Password, Superadmin} ||
+        {_, Username, Password, Superadmin} <- Result].
+
 -spec select_all_super_admins() -> list().
 select_all_super_admins() ->
     Result = mnesia:dirty_match_object({admin, '_', '_', true}),
@@ -155,7 +166,8 @@ update_admin(Username, Password, SuperAdmin, false) when is_list(Username), is_l
 
 -spec update_admin(list(), list(), atom()) -> any().
 update_admin(Username, Password, SuperAdmin) when is_list(Username), is_list(Password), is_atom(SuperAdmin) ->
-    verify_super_admin_remains(update, SuperAdmin),
+
+    verify_super_admin_remains_after_update(Username, SuperAdmin),
 
     case mnesia:transaction(fun() ->
         [Admin] = mnesia:wread({admin, Username}),
@@ -178,6 +190,7 @@ update_admin_with_known_password(Username, SuperAdmin) when is_list(Username), i
 
 -spec delete_admin(list()) -> atom().
 delete_admin(Username) when is_list(Username) ->
+    verify_super_admin_remains_after_delete(Username),
     mnesia:dirty_delete({admin, Username}).
 
 -spec select_clients_by_hash(list()) -> list().
@@ -218,9 +231,27 @@ get_all_records_from_table(Table) when is_atom(Table) ->
 generate_password() ->
     binary_to_list(base64:encode(crypto:strong_rand_bytes(8))).
 
--spec verify_super_admin_remains(atom(), any()) -> any().
-verify_super_admin_remains(delete, Username) ->
-    {Username, _, SuperAdmin} = select_admin(Username),
-    true = (1 > length(select_all_super_admins()) orelse SuperAdmin == false);
-verify_super_admin_remains(update, SuperAdmin) ->
-    true = (1 > length(select_all_super_admins()) orelse SuperAdmin == true).
+-spec verify_super_admin_remains_after_delete(list()) -> any().
+verify_super_admin_remains_after_delete(Username) ->
+    try
+        {Username, _, SuperAdmin} = select_admin(Username),
+        true = ((1 < length(select_all_super_admins()) orelse SuperAdmin == false))
+    catch
+        _:{badmatch,_} ->
+            error(nonexistingadmin);
+        _:_ ->
+            error(noremainingsuperadmin)
+    end.
+
+
+-spec verify_super_admin_remains_after_update(list(), boolean()) -> any().
+verify_super_admin_remains_after_update(Username, NewSuperAdmin) ->
+    try
+        {Username, _, SuperAdmin} = select_admin(Username),
+        true = ((1 < length(select_all_super_admins()) orelse (SuperAdmin == false orelse NewSuperAdmin == true)))
+    catch
+        _:{badmatch,_} ->
+            error(nonexistingadmin);
+        _:_ ->
+            error(noremainingsuperadmin)
+    end.
