@@ -239,10 +239,10 @@ $(function () {
 });
 
     function createSuggestions(filter) {
-        if(filter.length == 0) {
-            return;
+        var options = "";
+        if(filter.length > 0) {
+            options = getOptions(filter);
         }
-        var options = getOptions(filter);
         document.getElementById('suggestions').innerHTML = options;
     }
 
