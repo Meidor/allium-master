@@ -292,10 +292,9 @@ $(function () {
         var message = new AdminUpdateRequest();
 
         message.username = $("#edit-username").val();
-        message.password = $("#edit-password").val();
+        message.password = "";
         message.superadmin = $("#edit-superadmin").prop('checked');
         message.resetPassword = true;
-
         socketSend("ADMINUPDATEREQUEST", message.encode());
     });
 
