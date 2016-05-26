@@ -245,6 +245,7 @@ $(function () {
         $("#settings-dashboard").hide();
         $("#user-management-box").hide();
         $("#add-administrator-box").show();
+        $("#add-username").val("");
     });
 
     $("#create-administrator-button").on('click', function (event) {
@@ -303,7 +304,7 @@ $(function () {
     });
 
     function showNotice(message) {
-        alert(message);
+        $("#notice").html(message).show().delay(5000).fadeOut();
     }
 
     initSocket();
