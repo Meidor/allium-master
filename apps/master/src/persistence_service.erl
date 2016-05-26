@@ -29,14 +29,16 @@ init() ->
     mnesia:stop(),
     mnesia:create_schema([node()]),
     mnesia:start(),
-    mnesia:create_table(client,
-        [ {disc_copies, [node()] },
-            {attributes,
-                record_info(fields, client)}]),
     mnesia:create_table(admin,
         [ {disc_copies, [node()]},
             {attributes,
                 record_info(fields, admin)}]),
+    mnesia:create_table(client,
+        [ {disc_copies, [node()] },
+            {attributes,
+                record_info(fields, client)}]),
+
+    timer:sleep(1000),
 
     case length(select_all_super_admins()) of
         0 ->
@@ -161,7 +163,7 @@ insert_admin(Username) when is_list(Username) ->
 
 -spec update_admin(list(), list(), atom(), atom()) -> any().
 update_admin(Username, _Password, _SuperAdmin, true) when is_list(Username) ->
-    {_,_,SuperAdmin} = select_admin(Username),
+    {_, _, SuperAdmin} = select_admin(Username),
     update_admin(Username, generate_password(), SuperAdmin);
 update_admin(Username, undefined , SuperAdmin, false) when is_list(Username), is_atom(SuperAdmin) ->
     update_admin_with_known_password(Username, SuperAdmin);

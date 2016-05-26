@@ -303,7 +303,7 @@ $(function () {
         var message = new AdminUpdateRequest();
         message.username = $("#edit-username").val();
         message.password = "";
-        message.superadmin = $("#edit-superadmin").; // Ik moet de superadmin onveranderd kunnen houden. Kan nu niet.
+        message.superadmin = $("#edit-superadmin").prop('checked');
         message.resetPassword = false;
 
         socketSend("ADMINUPDATEREQUEST", message.encode());

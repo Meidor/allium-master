@@ -40,10 +40,11 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
-    test_helpers_int:init_sharded_eredis(),
     application:load(master),
     application:load(websocket),
     application:ensure_all_started(websocket),
+    test_helpers_int:init_sharded_eredis(),
+    persistence_service:init(),
 
     ValidNodeId = "12345",
     ValidNodeSecretHash = "secrethash12345",

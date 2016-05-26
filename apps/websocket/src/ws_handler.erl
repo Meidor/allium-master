@@ -59,7 +59,7 @@ handle_request('UPDATENODE', Data, Req, {logged_in, LoggedInUsername}) ->
         _:_ ->
             lager:info(LoggedInUsername ++ " tried to alter information which should not be altered!")
     end,
-    {ok, Req, logged_in};
+    {ok, Req, {logged_in, LoggedInUsername}};
 handle_request('ADMINREGISTERREQUEST', Data, Req, {logged_in, LoggedInUsername}) ->
     try
         auth_service:verify_super_admin(LoggedInUsername),
@@ -165,7 +165,7 @@ return_admin_update_response(Username, Password, SuperAdmin, ResetPassword, Req,
         persistence_service:update_admin(Username, Password, SuperAdmin, ResetPassword),
         case ResetPassword of
             true ->
-                {Username, NewPassword, SuperAdmin} = persistence_service:select_admin(Username);
+                {Username, NewPassword, _} = persistence_service:select_admin(Username);
             false ->
                 NewPassword = undefined
         end,
