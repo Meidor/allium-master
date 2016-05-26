@@ -41,12 +41,12 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
-    meck:new(auth_service, [non_strict]),
-    meck:new(redis, [non_strict]),
-    meck:new(heartbeat_monitor, [non_strict]),
     Config.
 
 init_per_testcase(_, Config) ->
+    meck:new(auth_service, [non_strict]),
+    meck:new(redis, [non_strict]),
+    meck:new(heartbeat_monitor, [non_strict]),
     meck:expect(redis, set, fun(_,_) -> ok end),
     Config.
 

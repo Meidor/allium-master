@@ -56,7 +56,6 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
-    meck:new(redis, [non_strict]),
     Config.
 
 %%initial for datastructure graph, not right yet
