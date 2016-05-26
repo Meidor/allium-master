@@ -10,27 +10,34 @@
     websocket_handle/3,
     websocket_info/3,
     websocket_terminate/3,
-    send/2,
+    send/3,
     recv/1
 ]).
 
+-spec start_link() -> any().
 start_link() ->
     crypto:start(),
     ssl:start(),
     websocket_client:start_link("ws://localhost:8080/websocket", ?MODULE, []).
 
+-spec init(list()) -> tuple().
 init([]) ->
     {once, state}.
 
+-spec onconnect(any(), any()) -> tuple().
 onconnect(_WSReq, State) ->
     {ok, State}.
 
+-spec ondisconnect(tuple(), any()) -> tuple().
 ondisconnect({remote, closed}, State) ->
     {ok, State}.
 
-send(Pid, Msg) ->
-    websocket_client:cast(Pid, {binary, iolist_to_binary(Msg)}).
+-spec send(pid(), atom(), any()) -> any().
+send(Pid, Type, Msg) ->
+    Message = hrp_pb:encode([{wrapper, Type, Msg}]),
+    websocket_client:cast(Pid, {binary, iolist_to_binary(Message)}).
 
+-spec recv(pid()) -> any().
 recv(Pid) ->
     Pid ! {binary, self()},
     receive
@@ -41,6 +48,7 @@ recv(Pid) ->
             noresponse
     end.
 
+-spec websocket_handle(tuple(), any(), any()) -> any().
 websocket_handle({text, _Msg}, _Req, State) ->
     {ok, State};
 websocket_handle({binary, Msg}, _Req, State) ->
@@ -66,12 +74,14 @@ get_message_from_wrapper(Msg) ->
     {[{wrapper, Type, Data} | _], _} = MessageWrapper,
     {Type, Data}.
 
+-spec websocket_info(tuple(), any(), any()) -> tuple().
 websocket_info({binary, From}, _Req, _State) ->
     {ok, From};
 websocket_info(Data, _Req, _State) ->
     self() ! Data,
     {ok, Data}.
 
+-spec websocket_terminate(any(), any(), any()) -> atom().
 websocket_terminate(_Reason, _ConnState, _State) ->
     erlang:display("Websocket closed in state ~p wih reason ~p~n"),
     ok.
