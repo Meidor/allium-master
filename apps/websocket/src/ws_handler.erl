@@ -115,10 +115,10 @@ return_admin_list_response(Value, Req, State) ->
             Admins = [{admin, Username, SuperAdmin} ||
                 {Username, SuperAdmin} <- persistence_service:select_all_admins()],
             {reply, {binary, get_wrapped_message('ADMINLISTRESPONSE',
-                hrp_pb:encode({adminlistresponse, Admins}))}, Req, State}
+                hrp_pb:encode({adminlistresponse, 'SUCCES', Admins, undefined}))}, Req, State}
     catch
         _:Error ->
             lager:error("Error in admin request: ~p", [Error]),
             {reply, {binary, get_wrapped_message('ADMINLISTRESPONSE',
-                hrp_pb:encode({adminlistresponse, []}))}, Req, State}
+                hrp_pb:encode({adminlistresponse, 'FAILED', [], undefined}))}, Req, State}
     end.
