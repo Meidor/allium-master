@@ -120,7 +120,8 @@ $(function () {
                         to: currentEdge1.to,
                         weight_from_to: currentEdge1.weight_from_to,
                         weight_to_from: edge.weight,
-                        arrows: 'from, to'
+                        arrows: 'from, to',
+                        length: 200
                     });
                 } else if (currentEdge2) {
                     edges.remove(currentEdge2.id);
@@ -130,7 +131,8 @@ $(function () {
                         to: currentEdge2.to,
                         weight_from_to: currentEdge1.weight_from_to,
                         weight_to_from: edge.weight,
-                        arrows: 'from, to'
+                        arrows: 'from, to',
+                        length: 200
                     });
                 } else {
                     edges.add({
@@ -139,7 +141,8 @@ $(function () {
                         to: edge.targetNodeId,
                         weight_from_to: edge.weight,
                         weight_to_from: undefined,
-                        arrows: 'to'
+                        arrows: 'to',
+                        length: 200
                     });
                 }
 
@@ -195,9 +198,28 @@ $(function () {
         };
 
         var options = {
-            interaction: {hover: true, selectConnectedEdges: false, hoverConnectedEdges: false},
-            "edges": {"smooth": {"type": "discrete", "roundness": 0}, arrowStrikethrough: true},
-            nodes: {shape: 'circle'}
+            interaction: {
+                hover: true,
+                selectConnectedEdges: false,
+                hoverConnectedEdges: false
+            },
+            "edges": {
+                "smooth": {
+                    "type": "discrete",
+                    "roundness": 0
+                },
+                arrowStrikethrough: true
+            },
+            nodes: {
+                shape: 'circle'
+            },
+            layout: {
+                hierarchical: {
+                    enabled: true,
+                    nodeSpacing: 150,
+                    sortMethod: 'hubsize'
+                }
+            }
         };
 
         network = new vis.Network(container, data, options);
