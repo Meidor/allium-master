@@ -19,6 +19,7 @@
     update_existing_client_return_ok_test/1,
     update_existing_admin_return_ok_test/1,
     update_existing_admin_with_unchanged_password_test/1,
+    update_existing_admin_with_undefined_password_test/1,
     update_existing_admin_with_password_reset_test/1,
     update_non_existing_client_return_error_test/1,
     update_non_existing_admin_return_error_test/1,
@@ -39,7 +40,10 @@
     delete_non_existing_admin_return_ok_test/1,
     delete_all_clients_return_ok_test/1,
     delete_all_admins_return_ok_test/1,
-    select_not_existing_admin_return_empty_test/1
+    select_not_existing_admin_return_empty_test/1,
+    delete_last_remaining_superadmin_return_error_test/1,
+    update_removing_last_remaining_superadmin_return_error_test/1,
+    update_password_with_a_too_short_password_return_error_test/1
 ]).
 
 all() -> [
@@ -52,6 +56,7 @@ all() -> [
     update_existing_client_return_ok_test,
     update_existing_admin_return_ok_test,
     update_existing_admin_with_unchanged_password_test,
+    update_existing_admin_with_undefined_password_test,
     update_existing_admin_with_password_reset_test,
     update_non_existing_client_return_error_test,
     update_non_existing_admin_return_error_test,
@@ -72,7 +77,10 @@ all() -> [
     delete_non_existing_admin_return_ok_test,
     delete_all_admins_return_ok_test,
     delete_all_clients_return_ok_test,
-    select_not_existing_admin_return_empty_test
+    select_not_existing_admin_return_empty_test,
+    delete_last_remaining_superadmin_return_error_test,
+    update_removing_last_remaining_superadmin_return_error_test,
+    update_password_with_a_too_short_password_return_error_test
 ].
 
 init_per_suite(Config) ->
@@ -145,6 +153,15 @@ update_existing_admin_with_unchanged_password_test(_Config) ->
     ok = persistence_service:update_admin("Username2", "NewPassword2", true, false),
     ok = persistence_service:update_admin("Username", "NewPassword", true, false),
     ok = persistence_service:update_admin("Username", "", false, false),
+    [{"Username2", "NewPassword2", true}, {"admin", "password", true}, {"Username", "NewPassword", false}]
+        = persistence_service:select_all_admins_including_passwords().
+
+update_existing_admin_with_undefined_password_test(_Config) ->
+    persistence_service:insert_admin("Username"),
+    persistence_service:insert_admin("Username2"),
+    ok = persistence_service:update_admin("Username2", "NewPassword2", true, false),
+    ok = persistence_service:update_admin("Username", "NewPassword", true, false),
+    ok = persistence_service:update_admin("Username", undefined, false, false),
     [{"Username2", "NewPassword2", true}, {"admin", "password", true}, {"Username", "NewPassword", false}]
         = persistence_service:select_all_admins_including_passwords().
 
@@ -252,3 +269,16 @@ delete_all_admins_return_ok_test(_Config) ->
 
 select_not_existing_admin_return_empty_test(_Config) ->
     undefined = persistence_service:select_admin("Username").
+
+delete_last_remaining_superadmin_return_error_test(_Config) ->
+    test_helpers:assert_fail(fun persistence_service:delete_admin/1, ["admin"],
+        error, noremainingsuperadmin, last_remaining_superadmin).
+
+update_removing_last_remaining_superadmin_return_error_test(_Config) ->
+    test_helpers:assert_fail(fun persistence_service:update_admin/4, ["admin", "", false, false],
+        error, noremainingsuperadmin, last_remaining_superadmin).
+
+update_password_with_a_too_short_password_return_error_test(_Config) ->
+    TooShortPassword = "PW",
+    test_helpers:assert_fail(fun persistence_service:update_admin/4, ["admin", TooShortPassword, true, false],
+        error, invalidpassword, password_invalid).

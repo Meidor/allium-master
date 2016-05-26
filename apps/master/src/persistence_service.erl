@@ -151,11 +151,12 @@ insert_admin(Username) when is_list(Username) ->
         {atomic, ok} ->
             ok;
         _ ->
+
             error(couldnotbeinserted)
     end.
 
 -spec update_admin(list(), list(), atom(), atom()) -> any().
-update_admin(Username, Password, SuperAdmin, true) when is_list(Username), is_list(Password), is_atom(SuperAdmin) ->
+update_admin(Username, _Password, SuperAdmin, true) when is_list(Username), is_atom(SuperAdmin) ->
     update_admin(Username, generate_password(), SuperAdmin);
 update_admin(Username, undefined , SuperAdmin, false) when is_list(Username), is_atom(SuperAdmin) ->
     update_admin_with_known_password(Username, SuperAdmin);
@@ -166,8 +167,8 @@ update_admin(Username, Password, SuperAdmin, false) when is_list(Username), is_l
 
 -spec update_admin(list(), list(), atom()) -> any().
 update_admin(Username, Password, SuperAdmin) when is_list(Username), is_list(Password), is_atom(SuperAdmin) ->
-
     verify_super_admin_remains_after_update(Username, SuperAdmin),
+    verify_valid_admin_password(Password),
 
     case mnesia:transaction(fun() ->
         [Admin] = mnesia:wread({admin, Username}),
@@ -237,10 +238,10 @@ verify_super_admin_remains_after_delete(Username) ->
         {Username, _, SuperAdmin} = select_admin(Username),
         true = ((1 < length(select_all_super_admins()) orelse SuperAdmin == false))
     catch
-        _:{badmatch,_} ->
-            error(nonexistingadmin);
+        _:{badmatch, false} ->
+            error(noremainingsuperadmin);
         _:_ ->
-            error(noremainingsuperadmin)
+            error(nonexistingadmin)
     end.
 
 
@@ -250,8 +251,17 @@ verify_super_admin_remains_after_update(Username, NewSuperAdmin) ->
         {Username, _, SuperAdmin} = select_admin(Username),
         true = ((1 < length(select_all_super_admins()) orelse (SuperAdmin == false orelse NewSuperAdmin == true)))
     catch
-        _:{badmatch,_} ->
-            error(nonexistingadmin);
+        _:{badmatch, false} ->
+            error(noremainingsuperadmin);
         _:_ ->
-            error(noremainingsuperadmin)
+            error(nonexistingadmin)
+    end.
+
+-spec verify_valid_admin_password(list()) -> any().
+verify_valid_admin_password(Password) ->
+    try
+        true = 4 < length(Password)
+    catch
+        _:_ ->
+            error(invalidpassword)
     end.
