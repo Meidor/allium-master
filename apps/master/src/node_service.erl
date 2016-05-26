@@ -6,7 +6,8 @@
 -export([node_register/3,
     node_unregister/1, node_unregister/2,
     node_verify/2,
-    node_update/5
+    node_update/5,
+    node_exists/1
 ]).
 
 -spec node_register(list(), integer(), binary()) -> tuple().
@@ -91,3 +92,6 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
             set_edges(NewNodeId, Edges),
             NewNodeId
     end.
+
+node_exists(NodeId) when is_list(NodeId) ->
+    false = undefined == node_graph_manager:get_node_secret_hash(NodeId).
