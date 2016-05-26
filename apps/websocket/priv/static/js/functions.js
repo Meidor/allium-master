@@ -21,6 +21,8 @@ $(function () {
     var GraphUpdate = builder.build("GraphUpdate");
     var AdminLoginRequest = builder.build("AdminLoginRequest");
     var AdminLoginResponse = builder.build("AdminLoginResponse");
+    var OnionNode = builder.build("Node");
+    var UpdateNode = builder.build("UpdateNode");
 
     function initSocket() {
         $("#dashboard").hide();
@@ -405,6 +407,62 @@ $(function () {
             var message = new AdminLoginRequest({username: username, password: password});
             socketSend("ADMINLOGINREQUEST", message.encode());
         }
+    });
+
+    $("#find-node").on('keyup', function(event) {
+        var to = $('#to').val();
+        createSuggestions(to);
+    });
+
+    $("#weight1").on('change', function(event) {
+        updateEdge(
+            $('#edge-from1').val(),
+            $('#edge-to1').val(),
+            $('#weight1').val(),
+            'weight1'
+        )
+    });
+
+    $("#weight1-delete").on('click', function(event) {
+        deleteEdge(
+            $('#edge-from1').val(),
+            $('#edge-to1').val(),
+            'weight1'
+        )
+    });
+
+    $("#weight2").on('change', function(event) {
+        updateEdge(
+            $('#edge-from2').val(),
+            $('#edge-to2').val(),
+            $('#weight2').val(),
+            'weight2'
+        )
+    });
+
+    $("#weight2-delete").on('click', function(event) {
+        deleteEdge(
+            $('#edge-from2').val(),
+            $('#edge-to2').val(),
+            'weight2'
+        )
+    });
+
+    $("#add-edge").on('click', function(event) {
+        var nodeId = $('#nodeId').val();
+        createEdgeForm(nodeId);
+    });
+
+    $("#to").on('keyup', function(event) {
+        createSuggestions($('#to').val());
+    });
+
+    $("#add-edge-submit").on('click', function(event) {
+        addEdge(
+            $('#from').val(),
+            $('#to').val(),
+            $('#weight').val()
+        )
     });
 
     initSocket();
