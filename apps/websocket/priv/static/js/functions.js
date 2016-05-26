@@ -20,6 +20,9 @@ $(function () {
 	var AdminLoginRequest = builder.build("AdminLoginRequest");
 	var AdminLoginResponse = builder.build("AdminLoginResponse");
 	var AdminListRequest = builder.build("AdminListRequest");
+    var AdminRegisterRequest = builder.build("AdminRegisterRequest");
+    var AdminUpdateRequest = builder.build("AdminUpdateRequest");
+    var AdminDeleteRequest = builder.build("AdminDeleteRequest");
 	var AdminListResponse = builder.build("AdminListResponse");
 
     function initSocket() {
@@ -93,15 +96,37 @@ $(function () {
                     break;
                 case Wrapper.Type.ADMINLISTRESPONSE:
                     var adminListResponse = AdminListResponse.decode(wrapper.data);
-                    adminListResponse.forEach(function(admin) {
-                        $( "#tbody" ).innerHTML = '<tr>' +
-                                                    '<td class="' + admin.username + '"><strong>Administrator</strong></td>' +
-                                                    '<td>' + admin.superadmin + '</td>' +
-                                                    '<td><input type="button" id="edit-administrator-button" class="padding-button"' +
-                                                    'value="Edit"/> | <input type="submit" id="delete-admin-' + admin.username +
-                                                    '" class="padding-button" value="Delete-' + admin.username + '"/></td>' +
-                                                  '</tr>';
-                    });
+                    switch (adminListResponse.status) {
+                        case AdminListResponse.Status.SUCCES:
+                            var tableContent = '';
+                            adminListResponse.admins.forEach(function(admin) {
+                                tableContent +=
+                                '<tr>' +
+                                    '<td class=""><strong>' + admin.username + '</strong></td>' +
+                                    '<td>' + admin.superadmin + '</td>' +
+                                    '<td>' +
+                                        '<input type="button" class="edit-admin padding-button" data-username="' + admin.username +
+                                        '" value="Edit"/>' +
+                                        '<input type="button" class="delete-admin padding-button" data-username="' + admin.username +
+                                        '" value="Delete"/>' +
+                                    '</td>' +
+                                '</tr>';
+                            });
+                            $("#tbody").html(tableContent);
+                            break;
+                        case AdminListResponse.Status.FAILED:
+                            alert("Er ging iets fout, probeer het opnieuw.");
+                            break;
+                        case AdminListResponse.Status.USERNAME_TAKEN:
+                            alert("Deze gebruikersnaam is al bezet.");
+                            break;
+                        case AdminListResponse.Status.INVALID_PASSWORD:
+                            alert("Het wachtwoord is niet toegestaan.");
+                            break;
+                        case AdminListResponse.Status.LAST_SUPERADMIN:
+                            alert("Het is niet mogelijk om de laatste superadmin te verwijderen");
+                            break;
+                    }
                     break;
             }
         } catch (error) {
@@ -215,10 +240,10 @@ $(function () {
     });
 
     $("#back-button-edit").on('click', function(event) {
-            $( "#settings-dashboard" ).show();
-            $( "#user-management-box" ).show();
-            $( "#edit-administrator-box" ).hide();
-        });
+        $( "#settings-dashboard" ).show();
+        $( "#user-management-box" ).show();
+        $( "#edit-administrator-box" ).hide();
+    });
 
     $("#add-administrator-button").on('click', function(event) {
         $( "#settings-dashboard" ).hide();
@@ -226,11 +251,64 @@ $(function () {
         $( "#add-administrator-box" ).show();
     });
 
+    $("#create-administrator-button").on('click', function(event) {
+        var message = new AdminRegisterRequest();
+        message.username = $("#add-username").val();
+
+        socketSend("ADMINREGISTERREQUEST", message.encode());
+        showNotice("Toegevoegd!");
+
+        $( "#settings-dashboard" ).show();
+        $( "#user-management-box" ).show();
+        $( "#add-administrator-box" ).hide();
+    });
+
+    $(document).on('click', '.delete-admin', function(event) {
+        var username = $(this).data('username');
+        if (confirm("Weet je zeker dat je admin " + username + " wil verwijderen?")) {
+            var message = new AdminDeleteRequest();
+            message.username = username;
+
+            socketSend("ADMINDELETEREQUEST", message.encode());
+            showNotice("Verwijderd!");
+        }
+    });
+
     $("#edit-administrator-button").on('click', function(event) {
         $( "#settings-dashboard" ).hide();
         $( "#user-management-box" ).hide();
         $( "#edit-administrator-box" ).show();
     });
+
+    $(document).on('click', '.edit-admin', function(event) {
+        var username = $(this).data('username');
+        $("#edit-username-title").html("Edit " + username);
+        $("#edit-username").val(username);
+
+        $( "#settings-dashboard" ).hide();
+        $( "#user-management-box" ).hide();
+        $( "#edit-administrator-box" ).show();
+
+    });
+
+    $("#save-edit-admin-button").on('click', function(event) {
+        var message = new AdminUpdateRequest();
+        message.username = $("#edit-username").val();
+        message.password = $("#edit-password").val();
+        message.superadmin = $("#edit-superadmin").prop('checked');
+        message.resetPassword = false;
+
+        socketSend("ADMINUPDATEREQUEST", message.encode());
+        showNotice("Aangepast!");
+
+        $( "#settings-dashboard" ).show();
+        $( "#user-management-box" ).show();
+        $( "#edit-administrator-box" ).hide();
+    });
+
+    function showNotice(message) {
+        alert(message);
+    }
 
     initSocket();
 });

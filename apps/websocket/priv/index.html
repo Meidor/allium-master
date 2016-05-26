@@ -65,39 +65,32 @@
         <hr>
         <br />
         <p class="p">Username</p>
-        <input class="padding-input" type="text"/>
-        <br />
-        <br />
-        <p class="p">Password</p>
-        <input class="padding-input" type="password"/>
-        <br />
-        <br />
-        <p class="p">Super Admin</p>
-        <input type="checkbox"> If an administrator gets the right to be a super admin, he/she will have the authorisation to add new administrators to the system and edit their user information.
+        <input class="padding-input" type="text" id="add-username"/>
         <br />
         <br />
         <input type="button" id="back-button-add" class="padding-button" value="Back"/>
-        <input type="submit" id="create-administrator-button" class="padding-button" value="Create"/>
+        <input type="button" id="create-administrator-button" class="padding-button" value="Create"/>
     </div>
 
     <div id="edit-administrator-box" class="box">
-        <h1>Edit {Username}</h1>
+        <h1 id="edit-username-title">Edit {Username}</h1>
         <hr>
         <br />
         <p class="p">New password</p>
-        <input class="padding-input" type="password"/>
+        <input class="padding-input" type="password" id="edit-password"/>
         <br />
         <br />
         <p class="p">Re-enter new password</p>
-        <input class="padding-input" type="password"/>
+        <input class="padding-input" type="password" id="edit-password2"/>
         <br />
         <br />
         <p class="p">Super Admin</p>
-        <input type="checkbox"> If an administrator gets the right to be a super admin, he/she will have the authorisation to add new administrators to the system and edit their user information.
+        <input type="checkbox" id="edit-superadmin"> If an administrator gets the right to be a super admin, he/she will have the authorisation to add new administrators to the system and edit their user information.
         <br />
         <br />
-        <input type="button" id="back-button-edit" class="padding-button" value="Back"/>
-        <input type="submit" id="save-edit-admin-button" class="padding-button" value="Edit"/>
+        <input type="hidden" id="edit-username" />
+        <input type="button" id="back-button-edit" class="padding-button" value="Back" />
+        <input type="submit" id="save-edit-admin-button" class="padding-button" value="Edit" />
     </div>
 
     <img src="img/user-management.png" type="click" id="settings-user-management" class="settings" alt="settings">
