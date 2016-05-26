@@ -24,7 +24,7 @@
             <div id="error">
                 Wrong user credentials have been entered.
             </div>
-            <input type="submit" id="submitlogin" value="Log in"/>
+            <input type="submit" id="submit-login" value="Log in"/>
         </form>
     </div>
 
@@ -41,7 +41,7 @@
             <table>
                 <tr>
                     <td>
-                        From:
+                        <label for="edge-from1">From:</label>
                     </td>
                     <td>
                         <input type="text" class="padding-input-edge" id="edge-from1" disabled value="undef"/>
@@ -49,7 +49,7 @@
                 </tr>
                 <tr>
                     <td>
-                        To:
+                        <label for="edge-to1">To:</label>
                     </td>
                     <td>
                         <input type="text" class="padding-input-edge" id="edge-to1" disabled value="undef"/>
@@ -70,18 +70,18 @@
             <table>
                 <tr>
                     <td>
-                        From:
+                        <label for="edge-from2">From:</label>
                     </td>
                     <td>
-                        <input type="text" class="padding-input-edge" id="edge-from2" disabled value="undef"/>
+                        <input type="text" class="padding-input-edge" id="edge-from2" disabled value="undef" />
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        To:
+                        <label for="edge-to2">To:</label>
                     </td>
                     <td>
-                        <input type="text" class="padding-input-edge" id="edge-to2" disabled value="undef"/>
+                        <input type="text" class="padding-input-edge" id="edge-to2" disabled value="undef" />
                     </td>
                 </tr>
                 <tr>
@@ -102,36 +102,35 @@
             <hr>
             <h3>Alter node</h3>
             <p>
-                <input type="text" class="padding-input" id="nodeId" name="nodeId" disabled>
+                <input type="text" class="padding-input" id="node-id" disabled>
                 <input type="submit" class="padding-button" id="add-edge" value="Add edge" />
             </p>
         </div>
 
         <div id="add-edge-from-node" class="hide-display">
-            <input type="hidden" id="edgeId" value="0"/>
             <div class="edge-information">
                 <table>
                     <tr>
                         <td>
-                            From:
+                            <label for="from">From:</label>
                         </td>
                         <td>
-                            <input type="text" class="padding-input-edge" id="from" disabled value="undef"/>
+                            <input type="text" class="padding-input-edge" id="from" disabled value="undef" />
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            To:
+                            <label for="to">To:</label>
                         </td>
                         <td>
-                            <input id="to" list="suggestions" class="padding-input-edge" onkeyup="">
+                            <input id="to" list="suggestions" class="padding-input-edge" />
                             <datalist id="suggestions">
                             </datalist>
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            Weight:
+                            <label for="weight">Weight:</label>
                         </td>
                         <td>
                             <input type="number" id="weight" class="padding-input-edge" value="undef" />

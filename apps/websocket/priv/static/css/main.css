@@ -134,7 +134,7 @@ center{
     color: black;
 }
 
-#submitlogin{
+#submit-login{
     font-size: 16px;
     float: right;
     color: #4E4D4B;
@@ -148,7 +148,7 @@ center{
     background-color: white;
 }
 
-#submitlogin:hover{
+#submit-login:hover{
     background: linear-gradient(#ffdd7f 5%, #ffbc00 100%);
 }
 

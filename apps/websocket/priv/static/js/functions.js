@@ -247,7 +247,7 @@ $(function () {
 
         network.on("selectNode", function (data) {
 
-            $("#nodeId").val(nodes._data[data.nodes[0]].id);
+            $("#node-id").val(nodes._data[data.nodes[0]].id);
 
             var div = document.getElementById("edit-from-node");
             div.style.display = 'block';
@@ -471,7 +471,7 @@ $(function () {
     });
 
     $("#add-edge").on('click', function(event) {
-        var nodeId = $('#nodeId').val();
+        var nodeId = $('#node-id').val();
         createEdgeForm(nodeId);
     });
 
