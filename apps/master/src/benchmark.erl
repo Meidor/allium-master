@@ -24,12 +24,14 @@ benchmark(Count) ->
 
 -spec benchmark_node_register(integer()) -> atom().
 benchmark_node_register(Count) ->
-    Message = get_wrapped_message(
-        'NODEREGISTERREQUEST',
-        hrp_pb:encode(
-            {noderegisterrequest, "123.123.123.123", 123, <<"OK">>}
+    Message = fun() ->
+        get_wrapped_message(
+            'NODEREGISTERREQUEST',
+            hrp_pb:encode(
+                {noderegisterrequest, generate_random_ip(), 123, <<"OK">>}
+            )
         )
-    ),
+    end,
     Time = benchmark_message(Message, Count),
     lager:info("Registered ~p nodes in ~p ms on average per node.~n", [Count, Time / Count]).
 
@@ -123,7 +125,7 @@ benchmark_client_list(Count) ->
 
 -spec benchmark_message(list() | fun(), integer()) -> number().
 benchmark_message(Message, Count) ->
-    send_message_multiple_times(Message, 1),
+    send_message(Message, 1),
     timer:sleep(1000),
     Start = get_timestamp(),
     wait_for_messages_received(Message, Count),
@@ -139,10 +141,10 @@ get_timestamp() ->
 get_wrapped_message(Type, Msg) ->
     hrp_pb:encode([{wrapper, Type, Msg}]).
 
--spec send_message_multiple_times(list() | fun(), integer()) -> atom().
-send_message_multiple_times(_, 0) ->
+-spec send_message(list() | fun(), integer()) -> atom().
+send_message(_, 0) ->
     ok;
-send_message_multiple_times(MessageFun, Count) when is_function(MessageFun) ->
+send_message(MessageFun, Count) when is_function(MessageFun) ->
     Self = self(),
     spawn(fun() ->
         {ok, Socket} = gen_tcp:connect("127.0.0.1", 1337, [{packet, 0}, {active, false}, {reuseaddr, true}, {nodelay, true}]),
@@ -156,7 +158,7 @@ send_message_multiple_times(MessageFun, Count) when is_function(MessageFun) ->
         gen_tcp:close(Socket),
         Self ! Count - 1
     end);
-send_message_multiple_times(Message, Count) ->
+send_message(Message, Count) ->
     Self = self(),
     spawn(fun() ->
         {ok, Socket} = gen_tcp:connect("127.0.0.1", 1337, [{packet, 0}, {active, false}, {reuseaddr, true}]),
@@ -172,6 +174,17 @@ wait_for_messages_received(_, 0) ->
 wait_for_messages_received(Message, Count) ->
     receive
         _ ->
-            send_message_multiple_times(Message, Count - 1)
+            send_message(Message, Count - 1)
     end,
     wait_for_messages_received(Message, Count - 1).
+
+-spec generate_random_ip() -> list().
+generate_random_ip() ->
+    generate_random_ip_part() ++ "." ++
+    generate_random_ip_part() ++ "." ++
+    generate_random_ip_part() ++ "." ++
+    generate_random_ip_part().
+
+-spec generate_random_ip_part() -> list().
+generate_random_ip_part() ->
+    integer_to_list(erlang:unique_integer() rem 255).
