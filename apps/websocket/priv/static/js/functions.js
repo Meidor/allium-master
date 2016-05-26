@@ -1,4 +1,6 @@
-var nodes, edges, network;
+var nodes = new vis.DataSet();
+var edges = new vis.DataSet();
+var network;
 var url = "ws://localhost:8080/websocket";
 var socket;
 var counter = 10;
@@ -88,11 +90,11 @@ $(function () {
                     break;
                 case Wrapper.Type.ADMINLOGINRESPONSE:
                     var adminLoginResponse = AdminLoginResponse.decode(wrapper.data);
-                    if(adminLoginResponse.status === AdminLoginResponse.Status.SUCCES) {
-                      $( "#main" ).hide();
-                      $( "#error" ).hide();
-                      drawGraph();
-                      $( "#dashboard" ).show();
+                    if (adminLoginResponse.status === AdminLoginResponse.Status.SUCCES) {
+                        $("#main").hide();
+                        $("#error").hide();
+                        drawGraph();
+                        $("#dashboard").show();
                     }
                     else {
                       $( "#error" ).show();
@@ -192,10 +194,6 @@ $(function () {
     }
 
     function drawGraph() {
-        nodes = new vis.DataSet();
-
-        edges = new vis.DataSet();
-
         var container = document.getElementById('network');
 
         var data = {
@@ -276,7 +274,6 @@ $(function () {
     });
 
     initSocket();
-
 });
 
     function createSuggestions(filter) {
