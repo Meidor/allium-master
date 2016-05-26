@@ -60,7 +60,6 @@ admin_login(Username, Password)
     is_list(Username), is_list(Password) ->
     admin_check_password_and_return_super_admin(Username, Password).
 
-
 -spec admin_check_password_and_return_super_admin(list(), list()) -> true | false.
 admin_check_password_and_return_super_admin(Username, Password) when is_list(Username), is_list(Password) ->
     try

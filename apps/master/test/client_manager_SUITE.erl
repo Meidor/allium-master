@@ -18,10 +18,10 @@ all() -> [
 ].
 
 init_per_suite(Config) ->
-    meck:new(persistence_service, [non_strict]),
     Config.
 
 init_per_testcase(_, Config) ->
+    meck:new(persistence_service, [non_strict]),
     Config.
 
 end_per_testcase(_, Config) ->
