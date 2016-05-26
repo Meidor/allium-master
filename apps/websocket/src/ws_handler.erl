@@ -56,10 +56,10 @@ handle_request('UPDATENODE', Data, Req, {logged_in, LoggedInUsername}) ->
         Id = IPaddress ++ ":" ++ integer_to_list(Port),
         node_graph_manager:update_node(Id, IPaddress, Port, PublicKey, Edges)
     catch
-        _:_ ->
+        _ ->
             lager:info(LoggedInUsername ++ " tried to alter information which should not be altered!")
     end,
-    {ok, Req, logged_in};
+    {ok, Req, {logged_in, LoggedInUsername}};
 handle_request(_, _Data, Req, _State) ->
     {ok, Req, invalidrequest}.
 
