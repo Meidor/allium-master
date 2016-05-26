@@ -31,27 +31,37 @@ websocket_init(_TransportName, Req, _Opts) ->
 websocket_handle({text, _Msg}, Req, State) ->
     {ok, Req, State};
 websocket_handle({binary, Msg}, Req, State) ->
-    DecodedMsg = hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
-    {[{wrapper, Type, Data} | _], _} = DecodedMsg,
-    case Type of
-        'ADMINLOGINREQUEST' ->
-            {adminloginrequest, Username, Password} = hrp_pb:decode_adminloginrequest(Data),
-            try auth_service:admin_login(Username, Password) of
-                IsSuperAdmin ->
-                    {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
-                        hrp_pb:encode({adminloginresponse, 'SUCCES', IsSuperAdmin}))}, Req, logged_in}
-            catch
-                _:_ ->
-                    {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
-                        hrp_pb:encode({adminloginresponse, 'FAILED', false}))}, Req, State}
-            end;
-        'UPDATENODE' ->
-            {updatenode, Node} = hrp_pb:decode_updatenode(Data),
-            {node, Id, IPaddress, Port, PublicKey, Edges} = Node,
-            node_graph_manager:update_node(Id, IPaddress, Port, PublicKey, Edges)
-    end;
+    {Type, Data} = get_message_from_wrapper(Msg),
+    handle_request(Type, Data, Req, State);
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
+
+-spec handle_request(atom(), binary(), any(), any()) -> any().
+handle_request('ADMINLOGINREQUEST', Data, Req, State) ->
+    {adminloginrequest, Username, Password} = hrp_pb:decode_adminloginrequest(Data),
+    try auth_service:admin_login(Username, Password) of
+        IsSuperAdmin ->
+            {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
+                hrp_pb:encode({adminloginresponse, 'SUCCES', IsSuperAdmin}))}, Req, {logged_in, Username}}
+    catch
+        _:_ ->
+            {reply, {binary, get_wrapped_message('ADMINLOGINRESPONSE',
+                hrp_pb:encode({adminloginresponse, 'FAILED', false}))}, Req, State}
+    end;
+handle_request('UPDATENODE', Data, Req, {logged_in, LoggedInUsername}) ->
+    {updatenode, Node} = hrp_pb:decode_updatenode(Data),
+    {node, Id, IPaddress, Port, PublicKey, Edges} = Node,
+    try
+        node_service:node_exists(Id),
+        Id = IPaddress ++ ":" ++ integer_to_list(Port),
+        node_graph_manager:update_node(Id, IPaddress, Port, PublicKey, Edges)
+    catch
+        _:_ ->
+            lager:info(LoggedInUsername ++ " tried to alter information which should not be altered!")
+    end,
+    {ok, Req, logged_in};
+handle_request(_, _Data, Req, _State) ->
+    {ok, Req, invalidrequest}.
 
 -spec websocket_info(tuple(), any(), any()) -> tuple().
 websocket_info({?MODULE, _, Msg}, Req, State) ->
@@ -63,8 +73,14 @@ websocket_terminate(_Reason, _Req, _State) ->
     ok.
 
 -spec get_wrapped_message(list(), list()) -> list().
- get_wrapped_message(Type, Msg) ->
-    hrp_pb:encode({wrapper, Type, Msg}).
+get_wrapped_message(Type, Msg) ->
+    hrp_pb:encode([{wrapper, Type, Msg}]).
+
+-spec get_message_from_wrapper(iolist()) -> tuple().
+get_message_from_wrapper(Msg) ->
+    MessageWrapper =  hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
+    {[{wrapper, Type, Data} | _], _} = MessageWrapper,
+    {Type, Data}.
 
 -spec get_full_graph() -> list().
 get_full_graph() ->
@@ -74,3 +90,6 @@ get_full_graph() ->
             {graphupdateresponse, node_graph_manager:get_graph_updates(0)}
         )
     ).
+
+
+

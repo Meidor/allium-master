@@ -52,11 +52,11 @@ node_verify(NodeId, SecretHash)
 
 -spec get_edges(list()) -> list().
 get_edges(NodeId) when is_list(NodeId) ->
-    hrp_pb:delimited_decode_edge(
-        binary_to_list(
-            redis:get("node_edges_" ++ NodeId)
-        )
-    ).
+    {Edges, _} = hrp_pb:delimited_decode_edge(
+        redis:get("node_edges_" ++ NodeId)
+    ),
+    Edges.
+
 
 set_edges(NodeId, Edges) when is_list(NodeId) ->
     redis:set(
@@ -80,14 +80,14 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     verify_ip(IPaddress),
     node_verify(NodeId, SecretHash),
     Edges = get_edges(NodeId),
-    case NodeId =:= IPaddress ++ integer_to_list(Port) of
+    case NodeId =:= IPaddress ++ ":" ++ integer_to_list(Port) of
         true ->
             node_graph_manager:update_node(NodeId, IPaddress, Port, PublicKey, Edges),
             NodeId;
         _ ->
             node_unregister(NodeId, SecretHash),
-            {NodeId, _} = node_register(IPaddress, Port, PublicKey),
-            redis:set("node_hash_" ++ NodeId, SecretHash),
-            set_edges(NodeId, Edges),
-            NodeId
+            {NewNodeId, _} = node_register(IPaddress, Port, PublicKey),
+            redis:set("node_hash_" ++ NewNodeId, SecretHash),
+            set_edges(NewNodeId, Edges),
+            NewNodeId
     end.
