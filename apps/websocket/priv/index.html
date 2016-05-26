@@ -39,12 +39,9 @@
 	</div>
 
     <div id="user-management-box" class="box">
+        <input type="button" id="add-administrator-button" value="Add administrator"/>
         <h1>Administrators</h1>
         <hr>
-        <br />
-        <input type="button" id="add-administrator-button" value="Add administrator"/>
-        <br />
-        <br />
         <div id="table-box">
             <table>
                 <thead>
@@ -63,37 +60,37 @@
     <div id="add-administrator-box" class="box">
         <h1>Add administrator</h1>
         <hr>
-        <br />
-        <p class="p">Username</p>
-        <input class="padding-input" type="text" id="add-username"/>
-        <br />
-        <br />
-        <input type="button" id="back-button-add" class="padding-button" value="Back"/>
-        <input type="button" id="create-administrator-button" class="padding-button" value="Create"/>
+        <div class="add-content-wrapper content-wrapper">
+            <label for="add-username">Username</label>
+            <input class="padding-input" type="text" id="add-username"/>
+        </div>
+
+        <div class="add-submit-wrapper submit-wrapper">
+            <input type="button" id="back-button-add" class="padding-button" value="Back"/>
+            <input type="button" id="create-administrator-button" class="padding-button" value="Create"/>
+        </div>
     </div>
 
     <div id="edit-administrator-box" class="box">
         <h1 id="edit-username-title">Edit {Username}</h1>
         <hr>
-        <br />
-        <p class="p">New password</p>
-        <input class="padding-input" type="password" id="edit-password"/>
-        <br />
-        <br />
-        <p class="p">Re-enter new password</p>
-        <input class="padding-input" type="password" id="edit-password2"/>
-        <br />
-        <br />
-        <p class="p">Super Admin</p>
-        <input type="checkbox" id="edit-superadmin"> If an administrator gets the right to be a super admin, he/she will have the authorisation to add new administrators to the system and edit their user information.
-        <br />
-        <br />
-        <input type="hidden" id="edit-username" />
-        <input type="button" id="back-button-edit" class="padding-button" value="Back" />
-        <input type="submit" id="save-edit-admin-button" class="padding-button" value="Edit" />
+        <div class="edit-content-wrapper content-wrapper">
+            <label for="edit-password">New password</label>
+            <input class="padding-input" type="password" id="edit-password"/><br />
+            <label for="edit-password2">Re-enter new password</label>
+            <input class="padding-input" type="password" id="edit-password2"/><br />
+            <label for="edit-superadmin">Super Admin</label>
+            <input type="checkbox" id="edit-superadmin"> If an administrator gets the right to be a super admin, he/she will have the authorisation to add new administrators to the system and edit their user information.<br />
+        </div>
+
+        <div class="edit-submit-wrapper submit-wrapper">
+            <input type="hidden" id="edit-username" />
+            <input type="button" id="back-button-edit" class="padding-button" value="Back" />
+            <input type="submit" id="save-edit-admin-button" class="padding-button" value="Edit" />
+        </div>
     </div>
 
-    <img src="img/user-management.png" type="click" id="settings-user-management" class="settings" alt="settings">
-    <img src="img/dashboard.png" type="click" id="settings-dashboard" class="settings" alt="settings">
+    <img src="img/user-management.png" id="settings-user-management" class="settings" alt="settings">
+    <img src="img/dashboard.png" id="settings-dashboard" class="settings" alt="settings">
 </body>
 </html>

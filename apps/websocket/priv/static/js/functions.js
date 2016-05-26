@@ -102,14 +102,14 @@ $(function () {
                             adminListResponse.admins.forEach(function (admin) {
                                 tableContent +=
                                     '<tr>' +
-                                    '<td class=""><strong>' + admin.username + '</strong></td>' +
-                                    '<td>' + admin.superadmin + '</td>' +
-                                    '<td>' +
-                                    '<input type="button" class="edit-admin padding-button" data-username="' + admin.username +
-                                    '" value="Edit"/>' +
-                                    '<input type="button" class="delete-admin padding-button" data-username="' + admin.username +
-                                    '" value="Delete"/>' +
-                                    '</td>' +
+                                        '<td class=""><strong>' + admin.username + '</strong></td>' +
+                                        '<td>' + admin.superadmin + '</td>' +
+                                        '<td>' +
+                                            '<input type="button" class="edit-admin padding-button" data-username="' + admin.username +
+                                            '" value="Edit"/>' +
+                                            '<input type="button" class="delete-admin padding-button" data-username="' + admin.username +
+                                            '" value="Delete"/>' +
+                                        '</td>' +
                                     '</tr>';
                             });
                             $("#tbody").html(tableContent);
