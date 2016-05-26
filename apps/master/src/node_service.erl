@@ -57,7 +57,6 @@ get_edges(NodeId) when is_list(NodeId) ->
     ),
     Edges.
 
-
 set_edges(NodeId, Edges) when is_list(NodeId) ->
     redis:set(
         "node_edges_" ++ NodeId,
