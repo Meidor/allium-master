@@ -1,7 +1,6 @@
 <!doctype html>
 <html>
 <head>
-    <base href="static/"></base>
     <title>Network | DataSet</title>
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/vis.js"></script>
@@ -30,12 +29,10 @@
 
     <div id="dashboard">
         <h3>Find Node</h3>
-        <p>
-            <form id="finder">
-                <input type="text" onkeyup="createSuggestions($('#to').val()" class="padding-input" id="find_node" placeholder="Search nodes" />
-                <input type="submit" class="padding-button" value="Search"/>
-            </form>
-        </p>
+        <form id="finder">
+            <input type="text" onkeyup="createSuggestions($('#to').val()" class="padding-input" id="find_node" placeholder="Search nodes" />
+            <input type="submit" class="padding-button" value="Search"/>
+        </form>
 
         <div id="edit-from-edge" class="hide-display">
             <br />
@@ -64,7 +61,7 @@
                         Weight:
                     </td>
                     <td>
-                        <input type="number" class="padding-input-edge" id="weight1" value="undef" class="edge-weight" placeholder="not defined" onchange="updateEdge($('#edge-from1').val(), $('#edge-to1').val(), $('#weight1').val(), 'weight1')"/>
+                        <input type="number" class="padding-input-edge edge-weight" id="weight1" value="undef" placeholder="not defined" onchange="updateEdge($('#edge-from1').val(), $('#edge-to1').val(), $('#weight1').val(), 'weight1')"/>
                     </td>
                     <td class="padding-table-data">
                         <input class="padding-button" type="submit" value="Delete" onclick="deleteEdge($('#edge-from1').val(), $('#edge-to1').val(), 'weight1')" />
@@ -94,7 +91,7 @@
                         Weight:
                     </td>
                     <td>
-                        <input type="number" class="padding-input-edge" id="weight2" value="undef" class="edge-weight" placeholder="not defined" onchange="updateEdge($('#edge-from2').val(), $('#edge-to2').val(), $('#weight2').val(), 'weight2')"/>
+                        <input type="number" class="padding-input-edge edge-weight" id="weight2" value="undef" placeholder="not defined" onchange="updateEdge($('#edge-from2').val(), $('#edge-to2').val(), $('#weight2').val(), 'weight2')"/>
                     </td>
                     <td class="padding-table-data">
                         <input class="padding-button" type="submit" value="Delete" onclick="deleteEdge($('#edge-from2').val(), $('#edge-to2').val(), 'weight2')" />
