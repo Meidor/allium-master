@@ -7,6 +7,7 @@
     node_unregister_test_valid_node/1, node_unregister_test_invalid_node/1,
     node_verify_test_valid_node/1, node_verify_test_invalid_node/1,
     node_update_test_valid_node/1, node_update_test_invalid_node/1,
+    node_update_test_new_ip/1,
     node_update_test_invalid_ip/1, node_update_test_undefined_values_failure_test/1]).
 
 all() -> [node_register_test_valid_node, node_unregister_test_valid_node, 
@@ -14,6 +15,7 @@ all() -> [node_register_test_valid_node, node_unregister_test_valid_node,
           node_register_test_invalid_ip, node_register_test_double_registration,
           node_verify_test_valid_node, node_verify_test_invalid_node,
           node_update_test_valid_node, node_update_test_invalid_node,
+          node_update_test_new_ip,
           node_update_test_invalid_ip, node_update_test_undefined_values_failure_test].
 
 init_per_suite(Config) ->
@@ -171,6 +173,23 @@ node_update_test_invalid_node(Config) ->
     test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, IPaddress, Port, InvPublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, IPaddress, -1,PublicKey], error, function_clause, failed_to_catch_invalid_argument),
     test_helpers:assert_fail(fun node_service:node_update/5, [ValidNodeId, ValidHash, IPaddress, 65537,PublicKey], error, function_clause, failed_to_catch_invalid_argument).
+
+node_update_test_new_ip(Config) ->
+    {_IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
+    {NodeId, SecretHash} = ?config(validnodeverify, Config),
+    NewIPaddress = "255.255.255.255",
+    NewNodeId = "255.255.255.255:" ++ integer_to_list(Port),
+    meck:expect(node_graph_manager, add_node, fun(_,_,_) ->
+        {NewNodeId, SecretHash} end),
+
+    node_service:node_update(NodeId, SecretHash, NewIPaddress, Port, PublicKey),
+    true = test_helpers:check_function_called(node_graph_manager, remove_node, [NodeId]),
+    true = test_helpers:check_function_called(node_graph_manager, get_node_secret_hash, [NodeId]),
+    true = test_helpers:check_function_called(node_graph_manager, add_node, [NewIPaddress, Port, PublicKey]),
+    true = test_helpers:check_function_called(heartbeat_monitor, add_node, [NewNodeId]),
+    true = test_helpers:check_function_called(heartbeat_monitor, remove_node, [NodeId]),
+    true = test_helpers:check_function_called(redis, set, ["node_hash_" ++ NewNodeId, SecretHash]),
+    true = test_helpers:check_function_called(redis, get, ["node_edges_" ++ NodeId]).
 
 node_update_test_invalid_ip(Config) ->
     {_IPaddress, Port, PublicKey, _} = ?config(validnode, Config),
