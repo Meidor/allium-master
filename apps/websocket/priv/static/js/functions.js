@@ -288,11 +288,22 @@ $(function () {
 
     });
 
-    $("#save-edit-admin-button").on('click', function (event) {
+    $("#reset-password-button").on('click', function (event) {
         var message = new AdminUpdateRequest();
+
         message.username = $("#edit-username").val();
         message.password = $("#edit-password").val();
         message.superadmin = $("#edit-superadmin").prop('checked');
+        message.resetPassword = true;
+
+        socketSend("ADMINUPDATEREQUEST", message.encode());
+    });
+
+    $("#save-edit-admin-button").on('click', function (event) {
+        var message = new AdminUpdateRequest();
+        message.username = $("#edit-username").val();
+        message.password = "";
+        message.superadmin = $("#edit-superadmin").; // Ik moet de superadmin onveranderd kunnen houden. Kan nu niet.
         message.resetPassword = false;
 
         socketSend("ADMINUPDATEREQUEST", message.encode());

@@ -198,9 +198,11 @@ td {
 }
 
 .padding-button {
-    width: 80px;
+    width: 120px;
     padding: 5px;
 }
+
+
 
 .box {
       /*display: none;*/
