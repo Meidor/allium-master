@@ -108,6 +108,7 @@ $(function () {
                         else {
                             showNotice("Admin deleted!", true);
                         }
+                        deletedAdmin = null;
                     }
 
                     switch (adminListResponse.status) {
