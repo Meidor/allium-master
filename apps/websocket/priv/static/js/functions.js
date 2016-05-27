@@ -3,6 +3,7 @@ var url = "ws://localhost:8080/websocket";
 var socket;
 var counter = 10;
 var edgeCounter = 10;
+var deletedAdmin = null;
 
 $(function () {
     if (typeof dcodeIO === 'undefined' || !dcodeIO.ProtoBuf) {
@@ -99,6 +100,16 @@ $(function () {
                 case Wrapper.Type.ADMINLISTRESPONSE:
                     var adminListResponse = AdminListResponse.decode(wrapper.data);
                     check_if_new_password(adminListResponse.newPassword);
+
+                    if(deletedAdmin != null) {
+                        if (adminListResponse.status === AdminListResponse.Status.LAST_SUPERADMIN){
+                            showNotice("This is the last super admin, admin not deleted!", false);
+                        }
+                        else {
+                            showNotice("Admin deleted!", true);
+                        }
+                    }
+
                     switch (adminListResponse.status) {
                         case AdminListResponse.Status.SUCCES:
                             var tableContent = '';
@@ -286,7 +297,7 @@ $(function () {
             message.username = username;
 
             socketSend("ADMINDELETEREQUEST", message.encode());
-            showNotice("Admin deleted!", true);
+            deletedAdmin = username;
         }
     });
 
