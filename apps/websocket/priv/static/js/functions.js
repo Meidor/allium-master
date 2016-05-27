@@ -188,7 +188,7 @@ $(function () {
 
     function check_if_new_password(password) {
         if(password) {
-            window.prompt("your new password:", password);
+            showPassword("Your new password: " + password + "<br />Double tap this message box to make it disappear.");
         }
     }
 
@@ -222,6 +222,10 @@ $(function () {
         }
     });
 
+    $("#show-password").dblclick('click', function (event) {
+        $("#show-password").hide();
+    });
+
     $("#settings-user-management").on('click', function (event) {
         $("#dashboard").hide();
         $("#settings-user-management").hide();
@@ -251,8 +255,6 @@ $(function () {
     });
 
     $("#add-administrator-button").on('click', function (event) {
-        var username = $("add-username").value;
-        if ($username != "")
         $("#settings-dashboard").hide();
         $("#user-management-box").hide();
         $("#add-administrator-box").show();
@@ -261,24 +263,30 @@ $(function () {
 
     $("#create-administrator-button").on('click', function (event) {
         var message = new AdminRegisterRequest();
-        message.username = $("#add-username").val();
+        var username = $("#add-username").val();
 
-        socketSend("ADMINREGISTERREQUEST", message.encode());
-        showNotice("Toegevoegd!");
-
-        $("#settings-dashboard").show();
-        $("#user-management-box").show();
-        $("#add-administrator-box").hide();
+        var correctedUsername = username.split(' ').join('_');
+        if ($.trim(correctedUsername).length > 5) {
+            message.username = correctedUsername;
+            socketSend("ADMINREGISTERREQUEST", message.encode());
+            showNotice("Admin added!", true);
+            $("#settings-dashboard").show();
+            $("#user-management-box").show();
+            $("#add-administrator-box").hide();
+        }
+        else {
+            showNotice("Username must contain more than 5 characters.", false);
+        }
     });
 
     $(document).on('click', '.delete-admin', function (event) {
         var username = $(this).data('username');
-        if (confirm("Weet je zeker dat je admin " + username + " wil verwijderen?")) {
+        if (confirm("Are you sure you want to delete admin" + username + "?")) {
             var message = new AdminDeleteRequest();
             message.username = username;
 
             socketSend("ADMINDELETEREQUEST", message.encode());
-            showNotice("Verwijderd!");
+            showNotice("Admin deleted!", true);
         }
     });
 
@@ -323,7 +331,7 @@ $(function () {
             message.resetPassword = false;
 
             socketSend("ADMINUPDATEREQUEST", message.encode());
-            showNotice("Aangepast!");
+            showNotice("Admin edited!", true);
 
             $("#settings-dashboard").show();
             $("#user-management-box").show();
@@ -333,12 +341,21 @@ $(function () {
             $("#edit-password").val("");
         }
         else {
-            showNotice("Passwords do not match");
+            showNotice("Passwords do not match", false);
         }
     });
 
-    function showNotice(message) {
-        $("#notice").html(message).show().delay(5000).fadeOut();
+    function showNotice(message, success) {
+        if (success) {
+            $("#success-notice").html(message).show().delay(5000).fadeOut();
+        }
+        else {
+            $("#error-notice").html(message).show().delay(5000).fadeOut();
+        }
+    }
+
+    function showPassword(message) {
+        $("#show-password").html(message).show();
     }
 
     initSocket();
