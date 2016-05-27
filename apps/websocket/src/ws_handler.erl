@@ -47,7 +47,7 @@ websocket_terminate(_Reason, _Req, _State) ->
 
 -spec get_wrapped_message(list(), list()) -> list().
  get_wrapped_message(Type, Msg) ->
-    hrp_pb:encode({wrapper, Type, Msg}).
+    hrp_pb:encode([{wrapper, Type, Msg}]).
 
 -spec get_full_graph() -> list().
 get_full_graph() ->

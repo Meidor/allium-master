@@ -11,7 +11,19 @@
 
 -spec client_register(list(), list()) -> any().
 client_register(Username, Password) when is_list(Username), is_list(Password) ->
+    ok = verify_username(Username),
     auth_service:client_register(Username, Password).
+
+-spec verify_username(list()) -> atom().
+verify_username(Username)
+    when
+        is_list(Username), length(Username) > 2, length(Username) =< 40
+    ->
+    {ok, MP} = re:compile("^[a-zA-Z0-9_-]*$"),
+    case re:run(Username, MP) of
+        nomatch -> error(username_invalid);
+        _Else -> ok
+    end.
 
 -spec client_verify(list(), list()) -> list().
 client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->

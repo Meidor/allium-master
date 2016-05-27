@@ -4,20 +4,25 @@ var socket;
 var counter = 10;
 var edgeCounter = 10;
 
-
 $(function () {
     if (typeof dcodeIO === 'undefined' || !dcodeIO.ProtoBuf) {
         throw(new Error("ProtoBuf.js is not present."));
     }
 
     // Initialize ProtoBuf.js
-    var ProtoBuf = dcodeIO.ProtoBuf;
-    var Wrapper = ProtoBuf.loadProtoFile("js/hrp.proto").build("Wrapper");
-    var GraphUpdateResponse = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdateResponse");
-    var GraphUpdate = ProtoBuf.loadProtoFile("js/hrp.proto").build("GraphUpdate");
-
+	var ProtoBuf = dcodeIO.ProtoBuf;
+    var builder = ProtoBuf.loadProtoFile("js/hrp.proto");
+    var Wrapper = builder.build("Wrapper");
+    var NodeDeleteRequest = builder.build("NodeDeleteRequest");
+    var NodeRegisterRequest = builder.build("NodeRegisterRequest");
+    var GraphUpdateResponse = builder.build("GraphUpdateResponse");
+    var GraphUpdate = builder.build("GraphUpdate");
+	var AdminLoginRequest = builder.build("AdminLoginRequest");
+	var AdminLoginResponse = builder.build("AdminLoginResponse");
 
     function initSocket() {
+        $( "#dashboard" ).hide();
+        $( "#error" ).hide();
         console.log("Initializing socket");
         socket = new WebSocket(url);
         socket.binaryType = "arraybuffer";
@@ -27,12 +32,10 @@ $(function () {
         socket.onmessage = socketMessage;
     }
 
-    function socketSend(type, data) {
+	function socketSend(type, data) {
         if (socket.readyState == WebSocket.OPEN) {
-            var wrapper = new Wrapper();
-            wrapper.setType(type);
-            wrapper.setData(data);
-            socket.send(wrapper.toArrayBuffer());
+            var message = new Wrapper({type: type, data: data});
+            socket.send(message.encodeDelimited().toArrayBuffer());
         } else {
             console.log("Not connected while sending: " + data);
         }
@@ -50,11 +53,10 @@ $(function () {
         console.log("Received message: " + event.data);
         try {
             var wrapper = Wrapper.decodeDelimited(event.data);
-
             switch (wrapper.type) {
                 case Wrapper.Type.GRAPHUPDATERESPONSE:
-                    console.log("Received GraphUpdateResponse...");
                     var graphUpdateResponse = GraphUpdateResponse.decode(wrapper.data);
+
                     graphUpdateResponse.graphUpdates.forEach(function (update) {
                         var graphUpdate = GraphUpdate.decode(update);
 
@@ -73,6 +75,18 @@ $(function () {
                             });
                         }
                     });
+                    break;
+                case Wrapper.Type.ADMINLOGINRESPONSE:
+                    var adminLoginResponse = AdminLoginResponse.decode(wrapper.data);
+                    if(adminLoginResponse.status === AdminLoginResponse.Status.SUCCES) {
+                      $( "#main" ).hide();
+                      $( "#error" ).hide();
+                      drawGraph();
+                      $( "#dashboard" ).show();
+                    }
+                    else {
+                      $( "#error" ).show();
+                    }
                     break;
             }
         } catch (error) {
@@ -153,10 +167,15 @@ $(function () {
         findNode.val("");
     });
 
-    drawGraph();
+    $("#login").on('submit', function(event) {
+        event.preventDefault();
+        var username = $("#username").val();
+        var password = $("#password").val();
+        if (username !== undefined && password !== undefined) {
+			var message = new AdminLoginRequest({username : username, password: password});
+            socketSend("ADMINLOGINREQUEST", message.encode());
+        }
+    });
+
     initSocket();
 });
-    
-
-
-

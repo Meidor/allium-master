@@ -12,7 +12,9 @@
                 crypto,
                 lager,
                 websocket,
-                mnesia
+                mnesia,
+                sharded_eredis,
+                poolboy
             ]},
         {env,
             [
