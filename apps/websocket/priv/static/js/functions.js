@@ -52,7 +52,7 @@ $(function () {
     function socketMessage(event) {
         console.log("Received message: " + event.data);
         try {
-            var wrapper = Wrapper.decode(event.data);
+            var wrapper = Wrapper.decodeDelimited(event.data);
             switch (wrapper.type) {
                 case Wrapper.Type.GRAPHUPDATERESPONSE:
                     var graphUpdateResponse = GraphUpdateResponse.decode(wrapper.data);

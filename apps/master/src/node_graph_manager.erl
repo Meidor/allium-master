@@ -223,7 +223,7 @@ publish(Event, Data) ->
 -spec get_wrapped_graphupdate_message(list(), list()) -> list().
 get_wrapped_graphupdate_message(Type, Msg) ->
     EncodedMessage = hrp_pb:encode({graphupdateresponse, [Msg]}),
-    hrp_pb:encode({wrapper, Type, EncodedMessage}).
+    hrp_pb:encode([{wrapper, Type, EncodedMessage}]).
 
 -spec get_random_dedicated_nodes(integer()) -> list().
 get_random_dedicated_nodes(NumberOfDedicatedNodes) ->
