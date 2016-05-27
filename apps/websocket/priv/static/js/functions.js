@@ -88,7 +88,9 @@ $(function () {
                         $("#error").hide();
                         drawGraph();
                         $("#dashboard").show();
-                        $("#settings-user-management").show();
+                        if(adminLoginResponse.isSuperAdmin) {
+                            $("#settings-user-management").show();
+                        }
                     }
                     else {
                         $("#error").show();
@@ -311,7 +313,7 @@ $(function () {
     $("#save-edit-admin-button").on('click', function (event) {
         var message = new AdminUpdateRequest();
         message.username = $("#edit-username").val();
-        message.password = "";
+        message.password = $("#edit-password").val();
         message.superadmin = $("#edit-superadmin").prop('checked');
         message.resetPassword = false;
 
