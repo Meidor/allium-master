@@ -1,5 +1,5 @@
 //----------------------------------------
-// VERSION: 0.4.6
+// VERSION: 0.4.7
 //----------------------------------------
 
 syntax = "proto2";
@@ -95,9 +95,9 @@ message NodeRegisterResponse {
 message NodeUpdateRequest {
 	required string id = 1;
 	required string secretHash = 2;
-	optional string IPaddress = 3;
-	optional int32 port = 4;
-	optional bytes publicKey = 5;
+	required string IPaddress = 3;
+	required int32 port = 4;
+	required bytes publicKey = 5;
 }
 
 // Returns update success
@@ -112,6 +112,9 @@ message NodeUpdateResponse {
 	}
 
 	required Status status = 1;
+
+    // Assigned unique ID
+    optional string id = 2;
 }
 
 // Remove yourself from the network as a node
@@ -346,8 +349,8 @@ message AdminListResponse {
         LAST_SUPERADMIN = 5;
     }
 
-    repeated Admin admins = 1;
-    required Status status = 2;
+    required Status status = 1;
+    repeated Admin admins = 2;
     optional string newPassword = 3;
 }
 

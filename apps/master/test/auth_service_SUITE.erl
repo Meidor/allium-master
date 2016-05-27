@@ -21,7 +21,10 @@
     client_login_with_wrong_password_return_client_not_verified_test/1,
     admin_login_return_true_test/1,
     admin_login_return_false_test/1,
-    admin_login_with_wrong_password_return_admin_not_verified_test/1
+    admin_login_with_wrong_password_return_admin_not_verified_test/1,
+    verify_super_admin_with_super_admin_return_ok_test/1,
+    verify_super_admin_with_regular_admin_return_error_test/1,
+    verify_super_admin_with_non_existing_admin_return_error_test/1
 ]).
 
 all() -> [
@@ -36,7 +39,10 @@ all() -> [
     client_login_with_wrong_password_return_client_not_verified_test,
     admin_login_return_true_test,
     admin_login_return_false_test,
-    admin_login_with_wrong_password_return_admin_not_verified_test
+    admin_login_with_wrong_password_return_admin_not_verified_test,
+    verify_super_admin_with_super_admin_return_ok_test,
+    verify_super_admin_with_regular_admin_return_error_test,
+    verify_super_admin_with_non_existing_admin_return_error_test
 ].
 
 init_per_suite(Config) ->
@@ -164,3 +170,26 @@ admin_login_with_wrong_password_return_admin_not_verified_test(_Config) ->
     meck:expect(persistence_service, select_admin, fun(_Username) -> undefined end),
     test_helpers:assert_fail(fun auth_service:admin_login/2, [ValidUsername, InvalidPassword],
         error, admincredentialsnotvalid, failed_to_catch_invalid_password).
+
+verify_super_admin_with_super_admin_return_ok_test(_Config) ->
+    Username = "SuperAdmin",
+    meck:expect(persistence_service, select_admin, fun(_) -> {Username, "Password", true} end),
+    auth_service:verify_super_admin(Username),
+    true = test_helpers:check_function_called(persistence_service, select_admin,
+        [Username]).
+
+verify_super_admin_with_regular_admin_return_error_test(_Config) ->
+    Username = "RegularAdmin",
+    meck:expect(persistence_service, select_admin, fun(_) -> {Username, "Password", false} end),
+    test_helpers:assert_fail(fun auth_service:verify_super_admin/1, [Username],
+        error, {badmatch,{"RegularAdmin","Password", false}}, failed_to_catch_regular_admin),
+    true = test_helpers:check_function_called(persistence_service, select_admin,
+        [Username]).
+
+verify_super_admin_with_non_existing_admin_return_error_test(_Config) ->
+    Username = "NonExistingAdmin",
+    meck:expect(persistence_service, select_admin, fun(_) -> undefined end),
+    test_helpers:assert_fail(fun auth_service:verify_super_admin/1, [Username],
+        error, {badmatch, undefined}, failed_to_catch_regular_admin),
+    true = test_helpers:check_function_called(persistence_service, select_admin,
+        [Username]).

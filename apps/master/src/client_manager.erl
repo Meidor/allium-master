@@ -11,5 +11,3 @@ return_all_clients_by_clientgroup(Clientgroup) when is_integer(Clientgroup), Cli
         {Username, SecretHash, PublicKey, _, ConnectedNodes}
             <- persistence_service:select_all_clients(),
             SecretHash =/= undefined].
-
-

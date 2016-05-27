@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
 <head>
-    <base href="static/" />
-    <title>Network | DataSet</title>
+    <base href="static/">
+    <title>OnionMessenger ManagementApplication</title>
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/vis.js"></script>
     <script type="text/javascript" src="js/long.js"></script>
@@ -19,8 +19,8 @@
     <div class="main" id="main">
         <h2>OnionMessenger</h2>
         <form id="login" method="post">
-            <input type="text" name="username" placeholder="Username" id="username"/>
-            <input type="password" name="password" placeholder="Password" id="password"/>
+            <input type="text" class="login-input" name="username" placeholder="Username" id="username"/>
+            <input type="password" class="login-input" name="password" placeholder="Password" id="password"/>
             <div id="error">
                 Wrong user credentials have been entered.
             </div>
@@ -144,5 +144,71 @@
         </div>
 
 	</div>
+
+    <div id="user-management-box" class="box">
+        <input type="button" id="add-administrator-button" value="Add administrator"/>
+        <h1>Administrators</h1>
+        <hr>
+        <div id="table-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>SuperAdmin</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="add-administrator-box" class="box">
+        <h1>Add administrator</h1>
+        <hr>
+        <div class="add-content-wrapper content-wrapper">
+            <label for="add-username">Username</label>
+            <input class="padding-input" type="text" minlength="2" id="add-username"/>
+        </div>
+
+        <div class="add-submit-wrapper submit-wrapper">
+            <input type="button" id="back-button-add" class="padding-button" value="Back"/>
+            <input type="button" id="create-administrator-button" class="padding-button" value="Create"/>
+        </div>
+    </div>
+
+    <div id="edit-administrator-box" class="box">
+        <h1 id="edit-username-title">Edit {Username}</h1>
+        <hr>
+        <div class="edit-content-wrapper content-wrapper">
+            <label for="edit-password">New password</label>
+            <input class="padding-input" type="password" id="edit-password"/><br />
+            <label for="edit-password2">Re-enter new password</label>
+            <input class="padding-input" type="password" id="edit-password2"/><br />
+            <label for="edit-superadmin">Super Admin</label>
+            <input type="checkbox" id="edit-superadmin"> If an administrator gets the right to be a super admin, he/she will have the authorisation to add new administrators to the system and edit their user information.<br />
+        </div>
+
+        <div class="edit-submit-wrapper submit-wrapper">
+            <input type="hidden" id="edit-username" />
+            <input type="button" id="back-button-edit" class="padding-button" value="Back" />
+            <input type="submit" id="save-edit-admin-button" class="padding-button" value="Save" />
+            <input type="submit" id="reset-password-button" class ="padding-button" value="Reset password" />
+        </div>
+    </div>
+
+    <img src="img/user-management.png" id="settings-user-management" class="settings" alt="settings">
+    <img src="img/dashboard.png" id="settings-dashboard" class="settings" alt="settings">
+
+    <span id="success-notice">
+        &nbsp;
+    </span>
+    <span id="error-notice">
+        &nbsp;
+    </span>
+    <span id="show-password">
+        &nbsp;
+    </span>
 </body>
 </html>

@@ -5,6 +5,7 @@ var url = "ws://localhost:8080/websocket";
 var socket;
 var counter = 10;
 var edgeCounter = 10;
+var deletedAdmin = null;
 
 $(function () {
     if (typeof dcodeIO === 'undefined' || !dcodeIO.ProtoBuf) {
@@ -21,6 +22,11 @@ $(function () {
     var GraphUpdate = builder.build("GraphUpdate");
     var AdminLoginRequest = builder.build("AdminLoginRequest");
     var AdminLoginResponse = builder.build("AdminLoginResponse");
+    var AdminListRequest = builder.build("AdminListRequest");
+    var AdminRegisterRequest = builder.build("AdminRegisterRequest");
+    var AdminUpdateRequest = builder.build("AdminUpdateRequest");
+    var AdminDeleteRequest = builder.build("AdminDeleteRequest");
+    var AdminListResponse = builder.build("AdminListResponse");
     var OnionNode = builder.build("Node");
     var UpdateNode = builder.build("UpdateNode");
 
@@ -88,9 +94,58 @@ $(function () {
                         $("#error").hide();
                         drawGraph();
                         $("#dashboard").show();
+                        if(adminLoginResponse.isSuperAdmin) {
+                            $("#settings-user-management").show();
+                        }
                     }
                     else {
                         $("#error").show();
+                    }
+                    break;
+                case Wrapper.Type.ADMINLISTRESPONSE:
+                    var adminListResponse = AdminListResponse.decode(wrapper.data);
+                    check_if_new_password(adminListResponse.newPassword);
+
+                    if(deletedAdmin != null) {
+                        if (adminListResponse.status === AdminListResponse.Status.LAST_SUPERADMIN){
+                            showNotice("This is the last super admin, admin not deleted!", false);
+                        }
+                        else {
+                            showNotice("Admin deleted!", true);
+                        }
+                        deletedAdmin = null;
+                    }
+
+                    switch (adminListResponse.status) {
+                        case AdminListResponse.Status.SUCCES:
+                            var tableContent = '';
+                            adminListResponse.admins.forEach(function (admin) {
+                                tableContent +=
+                                    '<tr>' +
+                                        '<td class=""><strong>' + admin.username + '</strong></td>' +
+                                        '<td class="superAdminStatus"  >' + admin.superadmin + '</td>' +
+                                        '<td>' +
+                                            '<input type="button" class="edit-admin padding-button" data-superadmin="' + admin.superadmin + '" data-username="' + admin.username +
+                                            '" value="Edit"/>' +
+                                            '<input type="button" class="delete-admin padding-button" data-username="' + admin.username +
+                                            '" value="Delete"/>' +
+                                        '</td>' +
+                                    '</tr>';
+                            });
+                            $("#tbody").html(tableContent);
+                            break;
+                        case AdminListResponse.Status.FAILED:
+                            alert("Er ging iets fout, probeer het opnieuw.");
+                            break;
+                        case AdminListResponse.Status.USERNAME_TAKEN:
+                            alert("Deze gebruikersnaam is al bezet.");
+                            break;
+                        case AdminListResponse.Status.INVALID_PASSWORD:
+                            alert("Het wachtwoord is niet toegestaan.");
+                            break;
+                        case AdminListResponse.Status.LAST_SUPERADMIN:
+                            alert("Het is niet mogelijk om de laatste superadmin te verwijderen");
+                            break;
                     }
                     break;
             }
@@ -145,7 +200,6 @@ $(function () {
                         length: 200
                     });
                 }
-
             });
         } catch (error) {
             console.log(error);
@@ -298,6 +352,12 @@ $(function () {
         }
     }
 
+    function check_if_new_password(password) {
+        if(password) {
+            showPassword("Your new password: " + password + "<br />Double tap this message box to make it disappear.");
+        }
+    }
+
     function createEdgeForm(nodeId) {
         $("#from").val(nodeId);
         var div = document.getElementById("add-edge-from-node");
@@ -402,10 +462,10 @@ $(function () {
 
     $("#finder").on('submit', function (event) {
         event.preventDefault();
-        var findNode = $("#find_node");
+        var findNode = $("#find-node");
         var search = findNode.val();
-
         var result = undefined;
+
         nodes.forEach(function (node) {
             if (node.id.lastIndexOf(search, 0) === 0) {
                 result = node;
@@ -429,6 +489,142 @@ $(function () {
             socketSend("ADMINLOGINREQUEST", message.encode());
         }
     });
+
+    $("#show-password").dblclick('click', function (event) {
+        $("#show-password").hide();
+    });
+
+    $("#settings-user-management").on('click', function (event) {
+        $("#dashboard").hide();
+        $("#settings-user-management").hide();
+        $("#settings-dashboard").show();
+        $("#user-management-box").show();
+        var message = new AdminListRequest();
+        socketSend("ADMINLISTREQUEST", message.encode());
+    });
+
+    $("#settings-dashboard").on('click', function (event) {
+        $("#settings-dashboard").hide();
+        $("#user-management-box").hide();
+        $("#dashboard").show();
+        $("#settings-user-management").show();
+    });
+
+    $("#back-button-add").on('click', function (event) {
+        $("#settings-dashboard").show();
+        $("#user-management-box").show();
+        $("#add-administrator-box").hide();
+    });
+
+    $("#back-button-edit").on('click', function (event) {
+        $("#settings-dashboard").show();
+        $("#user-management-box").show();
+        $("#edit-administrator-box").hide();
+    });
+
+    $("#add-administrator-button").on('click', function (event) {
+        $("#settings-dashboard").hide();
+        $("#user-management-box").hide();
+        $("#add-administrator-box").show();
+        $("#add-username").val("");
+    });
+
+    $("#create-administrator-button").on('click', function (event) {
+        var message = new AdminRegisterRequest();
+        var username = $("#add-username").val();
+
+        var correctedUsername = username.split(' ').join('_');
+        if ($.trim(correctedUsername).length > 5) {
+            message.username = correctedUsername;
+            socketSend("ADMINREGISTERREQUEST", message.encode());
+            showNotice("Admin added!", true);
+            $("#settings-dashboard").show();
+            $("#user-management-box").show();
+            $("#add-administrator-box").hide();
+        }
+        else {
+            showNotice("Username must contain more than 5 characters.", false);
+        }
+    });
+
+    $(document).on('click', '.delete-admin', function (event) {
+        var username = $(this).data('username');
+        if (confirm("Are you sure you want to delete admin" + username + "?")) {
+            var message = new AdminDeleteRequest();
+            message.username = username;
+
+            socketSend("ADMINDELETEREQUEST", message.encode());
+            deletedAdmin = username;
+        }
+    });
+
+    $("#edit-administrator-button").on('click', function (event) {
+        $("#settings-dashboard").hide();
+        $("#user-management-box").hide();
+        $("#edit-administrator-box").show();
+    });
+
+    $(document).on('click', '.edit-admin', function (event) {
+        var username = $(this).data('username');
+        var superadmin = $(this).data('superadmin');
+        $("#edit-username-title").html("Edit " + username);
+        $("#edit-username").val(username);
+
+        $("#settings-dashboard").hide();
+        $("#user-management-box").hide();
+        $("#edit-administrator-box").show();
+
+        $("#edit-superadmin").prop("checked", superadmin);
+
+    });
+
+    $("#reset-password-button").on('click', function (event) {
+        var message = new AdminUpdateRequest();
+
+        message.username = $("#edit-username").val();
+        message.password = "";
+        message.superadmin = $("#edit-superadmin").prop('checked');
+        message.resetPassword = true;
+        socketSend("ADMINUPDATEREQUEST", message.encode());
+    });
+
+    $("#save-edit-admin-button").on('click', function (event) {
+        password = $("#edit-password").val();
+        repeatedPassword = $("#edit-password2").val();
+        if(password == repeatedPassword) {
+            var message = new AdminUpdateRequest();
+            message.username = $("#edit-username").val();
+            message.password = password;
+            message.superadmin = $("#edit-superadmin").prop('checked');
+            message.resetPassword = false;
+
+            socketSend("ADMINUPDATEREQUEST", message.encode());
+            showNotice("Admin edited!", true);
+
+            $("#settings-dashboard").show();
+            $("#user-management-box").show();
+            $("#edit-administrator-box").hide();
+
+            $("#edit-password2").val("");
+            $("#edit-password").val("");
+        }
+        else {
+            showNotice("Passwords do not match", false);
+        }
+    });
+
+    function showNotice(message, success) {
+        if (success) {
+            $("#success-notice").html(message).show().delay(5000).fadeOut();
+        }
+        else {
+            $("#error-notice").html(message).show().delay(5000).fadeOut();
+        }
+    }
+
+    function showPassword(message) {
+        $("#show-password").html(message).show();
+    }
 
     $("#find-node").on('keyup', function(event) {
         var to = $('#to').val();
