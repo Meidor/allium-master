@@ -121,7 +121,11 @@ init_per_suite(Config) ->
         {emptygraph, EmptyGraph}
     ] ++ Config.
 
-init_per_testcase(connect_to_websocket_return_full_graph, Config) ->
+init_per_testcase(connect_to_websocket_return_empty_graph_when_no_existing_nodes_test, Config) ->
+    persistence_service:delete_all_admins(),
+    test_helpers_int:empty_database(),
+    Config;
+init_per_testcase(connect_to_websocket_return_full_graph_when_existing_nodes_test, Config) ->
     persistence_service:delete_all_admins(),
     test_helpers_int:empty_database(),
     Config;
@@ -159,6 +163,7 @@ connect_to_websocket_return_full_graph_when_existing_nodes_test(Config) ->
     {NodeId, _SecretHash} = node_service:node_register(IP, Port, PublicKey),
     {OtherNodeId, _OtherSecretHash} = node_service:node_register(OtherIP, OtherPort, OtherPublicKey),
 
+
     FullGraph =  {graphupdateresponse,
         [
             iolist_to_binary(hrp_pb:encode(
@@ -172,6 +177,7 @@ connect_to_websocket_return_full_graph_when_existing_nodes_test(Config) ->
             ))
         ]
     },
+
     {ok, Pid} = ws_client_handler:start_link(),
 
     verify_received_messages([Pid], [FullGraph]).
@@ -394,6 +400,7 @@ update_one_ws_client_sent_to_all_clients_test(Config) ->
     },
 
     ws_client_handler:send(Pid, 'UPDATENODE', Msg),
+    timer:sleep(3000),
     verify_received_messages([Pid2, Pid], [DeleteNodeResponse, AddNodeResponse]).
 
 update_backend_sent_to_all_clients_test(Config) ->
