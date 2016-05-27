@@ -106,9 +106,9 @@ $(function () {
                                 tableContent +=
                                     '<tr>' +
                                         '<td class=""><strong>' + admin.username + '</strong></td>' +
-                                        '<td>' + admin.superadmin + '</td>' +
+                                        '<td class="superAdminStatus"  >' + admin.superadmin + '</td>' +
                                         '<td>' +
-                                            '<input type="button" class="edit-admin padding-button" data-username="' + admin.username +
+                                            '<input type="button" class="edit-admin padding-button" data-superadmin="' + admin.superadmin + '" data-username="' + admin.username +
                                             '" value="Edit"/>' +
                                             '<input type="button" class="delete-admin padding-button" data-username="' + admin.username +
                                             '" value="Delete"/>' +
@@ -252,7 +252,6 @@ $(function () {
 
     $("#add-administrator-button").on('click', function (event) {
         var username = $("add-username").value;
-        console.log(username);
         if ($username != "")
         $("#settings-dashboard").hide();
         $("#user-management-box").hide();
@@ -291,12 +290,15 @@ $(function () {
 
     $(document).on('click', '.edit-admin', function (event) {
         var username = $(this).data('username');
+        var superadmin = $(this).data('superadmin');
         $("#edit-username-title").html("Edit " + username);
         $("#edit-username").val(username);
 
         $("#settings-dashboard").hide();
         $("#user-management-box").hide();
         $("#edit-administrator-box").show();
+
+        $("#edit-superadmin").prop("checked", superadmin);
 
     });
 
@@ -311,18 +313,28 @@ $(function () {
     });
 
     $("#save-edit-admin-button").on('click', function (event) {
-        var message = new AdminUpdateRequest();
-        message.username = $("#edit-username").val();
-        message.password = $("#edit-password").val();
-        message.superadmin = $("#edit-superadmin").prop('checked');
-        message.resetPassword = false;
+        password = $("#edit-password").val();
+        repeatedPassword = $("#edit-password2").val();
+        if(password == repeatedPassword) {
+            var message = new AdminUpdateRequest();
+            message.username = $("#edit-username").val();
+            message.password = password;
+            message.superadmin = $("#edit-superadmin").prop('checked');
+            message.resetPassword = false;
 
-        socketSend("ADMINUPDATEREQUEST", message.encode());
-        showNotice("Aangepast!");
+            socketSend("ADMINUPDATEREQUEST", message.encode());
+            showNotice("Aangepast!");
 
-        $("#settings-dashboard").show();
-        $("#user-management-box").show();
-        $("#edit-administrator-box").hide();
+            $("#settings-dashboard").show();
+            $("#user-management-box").show();
+            $("#edit-administrator-box").hide();
+
+            $("#edit-password2").val("");
+            $("#edit-password").val("");
+        }
+        else {
+            showNotice("Passwords do not match");
+        }
     });
 
     function showNotice(message) {
