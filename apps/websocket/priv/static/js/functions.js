@@ -88,7 +88,9 @@ $(function () {
                         $("#error").hide();
                         drawGraph();
                         $("#dashboard").show();
-                        $("#settings-user-management").show();
+                        if(AdminLoginResponse.isSuperAdmin) {
+                            $("#settings-user-management").show();
+                        }
                     }
                     else {
                         $("#error").show();
