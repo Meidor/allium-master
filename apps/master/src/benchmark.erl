@@ -187,4 +187,4 @@ generate_random_ip() ->
 
 -spec generate_random_ip_part() -> list().
 generate_random_ip_part() ->
-    integer_to_list(erlang:unique_integer() rem 255).
+    integer_to_list((erlang:unique_integer() rem 255) + 255).
