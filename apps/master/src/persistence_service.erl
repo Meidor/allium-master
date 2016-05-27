@@ -161,15 +161,15 @@ insert_admin(Username) when is_list(Username) ->
             error(couldnotbeinserted)
     end.
 
--spec update_admin(list(), list(), atom(), atom()) -> any().
+-spec update_admin(list(), list(), boolean(), boolean()) -> any().
 update_admin(Username, _Password, _SuperAdmin, true) when is_list(Username) ->
     {_, _, SuperAdmin} = select_admin(Username),
     update_admin(Username, generate_password(), SuperAdmin);
-update_admin(Username, undefined , SuperAdmin, false) when is_list(Username), is_atom(SuperAdmin) ->
+update_admin(Username, undefined , SuperAdmin, false) when is_list(Username), is_boolean(SuperAdmin) ->
     update_admin_with_known_password(Username, SuperAdmin);
-update_admin(Username, "" , SuperAdmin, false) when is_list(Username), is_atom(SuperAdmin) ->
+update_admin(Username, "" , SuperAdmin, false) when is_list(Username), is_boolean(SuperAdmin) ->
     update_admin_with_known_password(Username, SuperAdmin);
-update_admin(Username, Password, SuperAdmin, false) when is_list(Username), is_list(Password), is_atom(SuperAdmin) ->
+update_admin(Username, Password, SuperAdmin, false) when is_list(Username), is_list(Password), is_boolean(SuperAdmin) ->
     update_admin(Username, Password, SuperAdmin).
 
 -spec update_admin(list(), list(), atom()) -> any().
