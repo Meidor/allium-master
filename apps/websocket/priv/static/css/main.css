@@ -22,9 +22,48 @@ html, body {
     position: fixed;
     top: 30px;
     left: 30px;
-    width: 300px;
-    background-color: cornsilk;
+    width: 400px;
+    background-color: white;
     padding: 15px;
+    border: 1px solid grey;
+    box-shadow: 5px 5px 5px grey;
+    border-radius: 3px;
+}
+
+.hide-display {
+    display: none;
+}
+
+.edge-weight {
+    width: 140px;
+}
+
+.edge-information {
+    float: left;
+    padding-right: 10px;
+}
+
+#padding-save {
+    padding: 11px;
+}
+
+.padding-button {
+    padding: 5px;
+    width: 80px;
+}
+
+.padding-input {
+    padding: 5px;
+    width: 300px;
+}
+
+.padding-input-edge {
+    padding: 5px;
+    width: 246px;
+}
+
+.padding-table-data {
+    padding-left:2px;
     box-shadow: 10px 10px 10px grey;
 }
 
@@ -95,7 +134,7 @@ center{
     color: black;
 }
 
-#submitlogin{
+#submit-login{
     font-size: 16px;
     float: right;
     color: #4E4D4B;
@@ -109,7 +148,7 @@ center{
     background-color: white;
 }
 
-#submitlogin:hover{
+#submit-login:hover{
     background: linear-gradient(#ffdd7f 5%, #ffbc00 100%);
 }
 

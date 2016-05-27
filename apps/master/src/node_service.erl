@@ -6,11 +6,10 @@
 -export([node_register/3,
     node_unregister/1, node_unregister/2,
     node_verify/2,
-    node_update/5
+    node_update/5,
+    node_exists/1
 ]).
 
-%% @doc Register your node in the graph
-%% @end
 -spec node_register(list(), integer(), binary()) -> tuple().
 node_register(IPaddress, Port, PublicKey)
     when
@@ -29,8 +28,6 @@ verify_ip(IPaddress) ->
         error -> error(Response)
     end.
 
-%% @doc Unregister your node in the graph
-%% @end
 -spec node_unregister(list()) -> any().
 node_unregister(NodeId)
     when
@@ -47,8 +44,6 @@ node_unregister(NodeId, SecretHash)
     node_graph_manager:remove_node(NodeId),
     heartbeat_monitor:remove_node(NodeId).
 
-%% @doc Verify the secrethash of a node
-%% @end
 -spec node_verify(list(), list()) -> list().
 node_verify(NodeId, SecretHash)
     when
@@ -56,8 +51,21 @@ node_verify(NodeId, SecretHash)
     ->
     SecretHash = node_graph_manager:get_node_secret_hash(NodeId).
 
-%% @doc Update a node
-%% @end
+-spec get_edges(list()) -> list().
+get_edges(NodeId) when is_list(NodeId) ->
+    {Edges, _} = hrp_pb:delimited_decode_edge(
+        redis:get("node_edges_" ++ NodeId)
+    ),
+    Edges.
+
+set_edges(NodeId, Edges) when is_list(NodeId) ->
+    redis:set(
+        "node_edges_" ++ NodeId,
+        hrp_pb:encode(
+            Edges
+        )
+    ).
+
 -spec node_update(list(), list(), list(), integer(), binary()) -> any().
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     when
@@ -71,4 +79,18 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     ->
     verify_ip(IPaddress),
     node_verify(NodeId, SecretHash),
-    node_graph_manager:update_node(NodeId, IPaddress, Port, PublicKey).
+    Edges = get_edges(NodeId),
+    case NodeId =:= IPaddress ++ ":" ++ integer_to_list(Port) of
+        true ->
+            node_graph_manager:update_node(NodeId, IPaddress, Port, PublicKey, Edges),
+            NodeId;
+        _ ->
+            node_unregister(NodeId, SecretHash),
+            {NewNodeId, _} = node_register(IPaddress, Port, PublicKey),
+            redis:set("node_hash_" ++ NewNodeId, SecretHash),
+            set_edges(NewNodeId, Edges),
+            NewNodeId
+    end.
+
+node_exists(NodeId) when is_list(NodeId) ->
+    false = undefined == node_graph_manager:get_node_secret_hash(NodeId).
