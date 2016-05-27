@@ -12,7 +12,8 @@
 ]).
 
 -export([
-    connect_to_websocket_return_full_graph_test/1,
+    connect_to_websocket_return_empty_graph_when_no_existing_nodes_test/1,
+    connect_to_websocket_return_full_graph_when_existing_nodes_test/1,
     log_in_regular_admin_return_succes_test/1,
     log_in_super_admin_return_succes_test/1,
     log_in_invalid_admin_return_error_test/1,
@@ -56,7 +57,8 @@
 ]).
 
 all() -> [
-    connect_to_websocket_return_full_graph_test,
+    connect_to_websocket_return_empty_graph_when_no_existing_nodes_test,
+    connect_to_websocket_return_full_graph_when_existing_nodes_test,
     log_in_regular_admin_return_succes_test,
     log_in_super_admin_return_succes_test,
     log_in_invalid_admin_return_error_test,
@@ -140,11 +142,29 @@ end_per_suite(Config) ->
     application:unload(websocket),
     Config.
 
-connect_to_websocket_return_full_graph_test(Config) ->
+connect_to_websocket_return_empty_graph_when_no_existing_nodes_test(Config) ->
     EmptyGraph = ?config(emptygraph, Config),
     {ok, Pid} = ws_client_handler:start_link(),
 
     verify_received_messages([Pid], [EmptyGraph]).
+
+connect_to_websocket_return_full_graph_when_existing_nodes_test(Config) ->
+    {IP, Port, PublicKey} = ?config(node, Config),
+    {OtherIP, OtherPort, OtherPublicKey, _UpdatedEdges} = ?config(updatednode, Config),
+    {NodeId, _SecretHash} = node_service:node_register(IP, Port, PublicKey),
+    {OtherNodeId, _OtherSecretHash} = node_service:node_register(OtherIP, OtherPort, OtherPublicKey),
+
+    FullGraph =  {graphupdateresponse,[
+        iolist_to_binary(hrp_pb:encode(
+            {graphupdate, 1, true, [], []})),
+        iolist_to_binary(hrp_pb:encode(
+            {graphupdate, 2, false, [{node, NodeId, IP, Port, PublicKey, []}], []})),
+        iolist_to_binary(hrp_pb:encode(
+        {graphupdate, 3, false, [{node, OtherNodeId, OtherIP, OtherPort, OtherPublicKey, []}], []}))
+        ]},
+    {ok, Pid} = ws_client_handler:start_link(),
+
+    verify_received_messages([Pid], [FullGraph]).
 
 log_in_regular_admin_return_succes_test(Config) ->
     Pid = ?config(pid, Config),
