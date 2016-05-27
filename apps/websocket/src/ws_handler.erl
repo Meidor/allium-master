@@ -212,6 +212,3 @@ return_admin_delete_response(Username, Req, State) ->
 get_all_admins_for_list_response() ->
     [{admin, Username, SuperAdmin} ||
         {Username, SuperAdmin} <- persistence_service:select_all_admins()].
-
-
-

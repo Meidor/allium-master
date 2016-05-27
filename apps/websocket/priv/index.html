@@ -30,12 +30,119 @@
 
     <div id="dashboard">
         <h3>Find Node</h3>
-        <p>
-            <form id="finder">
-                <input type="text" id="find-node" placeholder="Zoek hier op een node" />
-                <input type="submit" name="ZOEK" />
-            </form>
-        </p>
+        <form id="finder">
+            <input type="text" class="padding-input" id="find-node" placeholder="Search nodes" />
+            <input type="submit" class="padding-button" value="Search"/>
+        </form>
+
+        <div id="edit-from-edge" class="hide-display">
+            <hr>
+            <h3>Alter edge</h3>
+            <table>
+                <tr>
+                    <td>
+                        <label for="edge-from1">From:</label>
+                    </td>
+                    <td>
+                        <input type="text" class="padding-input-edge" id="edge-from1" disabled value="undef"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="edge-to1">To:</label>
+                    </td>
+                    <td>
+                        <input type="text" class="padding-input-edge" id="edge-to1" disabled value="undef"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Weight:
+                    </td>
+                    <td>
+                        <input type="number" class="padding-input-edge edge-weight" id="weight1" value="undef" placeholder="not defined"/>
+                    </td>
+                    <td class="padding-table-data">
+                        <input class="padding-button" id="weight1-delete" type="submit" value="Delete" />
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>
+                        <label for="edge-from2">From:</label>
+                    </td>
+                    <td>
+                        <input type="text" class="padding-input-edge" id="edge-from2" disabled value="undef" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="edge-to2">To:</label>
+                    </td>
+                    <td>
+                        <input type="text" class="padding-input-edge" id="edge-to2" disabled value="undef" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Weight:
+                    </td>
+                    <td>
+                        <input type="number" class="padding-input-edge edge-weight" id="weight2" value="undef" placeholder="not defined" />
+                    </td>
+                    <td class="padding-table-data">
+                        <input class="padding-button" id="weight2-delete" type="submit" value="Delete" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="edit-from-node" class="hide-display">
+            <hr>
+            <h3>Alter node</h3>
+            <p>
+                <input type="text" class="padding-input" id="node-id" disabled>
+                <input type="submit" class="padding-button" id="add-edge" value="Add edge" />
+            </p>
+        </div>
+
+        <div id="add-edge-from-node" class="hide-display">
+            <div class="edge-information">
+                <table>
+                    <tr>
+                        <td>
+                            <label for="from">From:</label>
+                        </td>
+                        <td>
+                            <input type="text" class="padding-input-edge" id="from" disabled value="undef" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="to">To:</label>
+                        </td>
+                        <td>
+                            <input id="to" list="suggestions" class="padding-input-edge" />
+                            <datalist id="suggestions">
+                            </datalist>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="weight">Weight:</label>
+                        </td>
+                        <td>
+                            <input type="number" id="weight" class="padding-input-edge" value="undef" />
+                        </td>
+                        <td class="padding-table-data">
+                            <input type="submit" class="padding-button" id="add-edge-submit" value="Save" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
 	</div>
 
     <div id="user-management-box" class="box">

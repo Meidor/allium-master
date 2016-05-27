@@ -31,7 +31,7 @@ all() -> [
     client_verify_existing_user, client_verify_non_existing_user,
     client_logout_return_ok_test,
     non_existing_client_logout_return_error_test,
-    client_login_valid_user_return_user_test, 
+    client_login_valid_user_return_user_test,
     client_login_invalid_user_return_error_test,
     client_logout_with_valid_username_and_secrethash,
     non_existing_client_logout_invalid,
@@ -45,14 +45,11 @@ init_per_suite(Config) ->
 
 init_per_testcase(_, Config) ->
     meck:new(auth_service, [non_strict]),
-    meck:new(redis, [non_strict]),
     meck:new(heartbeat_monitor, [non_strict]),
-    meck:expect(redis, set, fun(_,_) -> ok end),
     Config.
 
 end_per_testcase(_, Config) ->
     meck:unload(auth_service),
-    meck:unload(redis),
     meck:unload(heartbeat_monitor),
     Config.
 
@@ -76,19 +73,16 @@ client_register_invalid_client_username_taken_return_error_test(_Config) ->
 client_register_invalid_client_username_too_short_error_test(_Config) ->
     InvalidUsername = "a",
     Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
-    meck:expect(auth_service, client_register, fun(_InvalidUsername, _Password) -> ok end),
     test_helpers:assert_fail(fun client_service:client_register/2, [InvalidUsername, Password], 
         error, function_clause, failed_to_catch_invalid_username).
 
 client_register_invalid_client_username_too_long_error_test(_Config) ->
-    meck:expect(auth_service, client_register, fun(_InvalidUsername, _Password) -> ok end),
     InvalidUsername = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
     test_helpers:assert_fail(fun client_service:client_register/2, [InvalidUsername, Password], 
         error, function_clause, failed_to_catch_invalid_username).
 
 client_register_invalid_client_username_not_alphanumeric_error_test(_Config) ->
-    meck:expect(auth_service, client_register, fun(_InvalidUsername, _Password) -> ok end),
     InvalidUsername = "No$Unit",
     Password = "jiddSDIH#FJSOE=-0==fdIHDSihe(HIFj*Dufnkdknfzsi(U(W*jf",
     test_helpers:assert_fail(fun client_service:client_register/2, [InvalidUsername, Password], 

@@ -124,6 +124,7 @@ get_connection() ->
             Pid
     end.
 
+-spec init_sharded_eredis() -> any().
 init_sharded_eredis() ->
     application:set_env(sharded_eredis, pools,
         [
@@ -131,12 +132,6 @@ init_sharded_eredis() ->
                 {size, 10},
                 {max_overflow, 20},
                 {host, "127.0.0.1"},
-                {port, 6379}
-            ]},
-            {pool1, [
-                {size, 10},
-                {max_overflow, 20},
-                {host, "tumma.nl"},
                 {port, 6379}
             ]}
         ]

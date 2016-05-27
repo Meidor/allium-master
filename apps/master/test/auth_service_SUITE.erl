@@ -65,7 +65,7 @@ client_verify_existing_user(_Config) ->
         {Username, SecretHash, <<"PUBLICKEY123">>, "Qwerty123", []} end),
 
     auth_service:client_verify(Username, SecretHash),
-    test_helpers:check_function_called(persistence_service, select_client, [Username]).
+    true = test_helpers:check_function_called(persistence_service, select_client, [Username]).
 
 client_verify_existing_user_wrong_hash(_Config) ->
     Username = "Client1",
@@ -75,7 +75,7 @@ client_verify_existing_user_wrong_hash(_Config) ->
 
     test_helpers:assert_fail(fun auth_service:client_verify/2, [Username, SecretHash],
         error, clientnotverified, no_user_with_username),
-    test_helpers:check_function_called(persistence_service, select_client, [Username]).
+    true = test_helpers:check_function_called(persistence_service, select_client, [Username]).
 
 client_verify_not_existing_user(_Config) ->
     Username = "Client2",
@@ -84,7 +84,7 @@ client_verify_not_existing_user(_Config) ->
 
     test_helpers:assert_fail(fun auth_service:client_verify/2, [Username, SecretHash],
         error, clientnotverified, no_user_with_username),
-    test_helpers:check_function_called(persistence_service, select_client, [Username]).
+    true = test_helpers:check_function_called(persistence_service, select_client, [Username]).
 
 client_register_valid_client_return_ok_test(_Config) ->
     ValidUsername = "ValidUsername",
