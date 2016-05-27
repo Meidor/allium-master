@@ -308,7 +308,7 @@ $(function () {
     $("#save-edit-admin-button").on('click', function (event) {
         var message = new AdminUpdateRequest();
         message.username = $("#edit-username").val();
-        message.password = "";
+        message.password = $("#edit-password").val();
         message.superadmin = $("#edit-superadmin").prop('checked');
         message.resetPassword = false;
 
