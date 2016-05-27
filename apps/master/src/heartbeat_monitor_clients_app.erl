@@ -28,7 +28,7 @@ handle_info(check, OldTimer) ->
     erlang:cancel_timer(OldTimer),
     heartbeat_monitor:remove_inactive_clients(
         round(
-            ?INTERVAL/1000
+            ?INTERVAL / 1000
         )
     ),
     Timer = erlang:send_after(?INTERVAL, self(), check),

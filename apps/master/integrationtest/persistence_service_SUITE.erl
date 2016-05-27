@@ -24,8 +24,7 @@
     select_all_existing_clients_with_given_hash_no_matches_return_empty_test/1,
     delete_existing_client_return_ok_test/1,
     delete_non_existing_client_return_ok_test/1,
-    delete_all_clients_return_ok_test/1,
-    select_admin_return_empty_test/1
+    delete_all_clients_return_ok_test/1
 ]).
 
 all() -> [
@@ -43,12 +42,10 @@ all() -> [
     select_all_existing_clients_with_given_hash_no_matches_return_empty_test,
     delete_existing_client_return_ok_test,
     delete_non_existing_client_return_ok_test,
-    delete_all_clients_return_ok_test,
-    select_admin_return_empty_test
+    delete_all_clients_return_ok_test
 ].
 
 init_per_suite(Config) ->
-    test_helpers_int:init_sharded_eredis(),
     persistence_service:init(),
     Config.
 
@@ -141,7 +138,3 @@ delete_all_clients_return_ok_test(_Config) ->
 
     ok = persistence_service:delete_all_clients(),
     [] = persistence_service:select_all_clients().
-
-select_admin_return_empty_test(_Config) ->
-    Username = "Username",
-    undefined = persistence_service:select_admin(Username).

@@ -13,7 +13,8 @@
                 lager,
                 websocket,
                 mnesia,
-                sharded_eredis
+                sharded_eredis,
+                poolboy
             ]},
         {env,
             [

@@ -462,7 +462,7 @@ add_node_double_registration_test(_) ->
     NewNodePort = 1234,
     NewPublicKey = "abcdefghijklmnop",
     meck:expect(redis, get, fun(_) -> ok end),
-    test_helpers:assert_fail(fun node_graph_manager:add_node/3, [NewNodeIP, NewNodePort, NewPublicKey], error, node_already_exists, failed_to_catch_invalid_argument).
+    test_helpers:assert_fail(fun node_graph_manager:add_node/3, [NewNodeIP, NewNodePort, NewPublicKey], error, alreadyexists, failed_to_catch_invalid_argument).
 
 remove_node_test(_) ->
     RemovableNodeId = "YWJjZGVmZ2hpamtsbW4=",

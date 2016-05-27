@@ -16,7 +16,6 @@
 -include_lib("stdlib/include/qlc.hrl").
 
 -record(client, {username, secrethash, publickey, password, dedicatednodes = []}).
--record(admin, {username, password, superadmin}).
 
 -spec init() -> any().
 init() ->
@@ -26,11 +25,7 @@ init() ->
     mnesia:create_table(client,
         [ {disc_copies, [node()] },
             {attributes,
-                record_info(fields, client)}]),
-    mnesia:create_table(admin,
-        [ {disc_copies, [node()]},
-            {attributes,
-                record_info(fields, admin)}]).
+                record_info(fields, client)} ]).
 
 -spec insert_client(list(), list()) -> atom().
 insert_client(Username, Password) when is_list(Username), is_list(Password) ->
@@ -95,7 +90,6 @@ select_client(Username) when is_list(Username) ->
         [{_, Username, SecretHash, PublicKey, Password, DedicatedNodes}] ->
             {Username, SecretHash, PublicKey, Password, DedicatedNodes}
     end.
-
 
 -spec select_admin(list()) -> any().
 select_admin(Username) when is_list(Username) ->

@@ -23,6 +23,7 @@
 
 -define(prefix, "onion_").
 
+-spec init() -> any().
 init() ->
     sharded_eredis:start().
 

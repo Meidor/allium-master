@@ -147,7 +147,7 @@ add_node(IPaddress, Port, PublicKey) ->
     NodeId = lists:flatten(io_lib:format("~s:~p", [IPaddress, Port])),
     case redis:get("node_hash_" ++ NodeId) of
         undefined -> ok;
-        _Else -> error(node_already_exists)
+        _Else -> error(alreadyexists)
     end,
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
     redis:set("node_hash_" ++ NodeId, Hash),
