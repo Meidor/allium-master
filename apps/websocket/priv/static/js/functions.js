@@ -278,7 +278,7 @@ $(function () {
     }
 
     function addEdge(fromId, toId, weight) {
-        if (weight < 0 || weight > 1000000) {
+        if (isNaN(weight) || weight < 0 || weight > 1000000) {
             return;
         }
         weight = parseInt(weight);
@@ -333,10 +333,9 @@ $(function () {
     }
 
     function updateEdge(nodeId1, nodeId2, weight, weightBoxId) {
-        if (weight < 0 || weight > 1000000) {
+        if (isNaN(weight) || weight < 0 || weight > 1000000) {
             return;
         }
-        weight = parseInt(weight);
         var node = nodes.get(nodeId1);
         var currentEdges = getEdges(nodeId1);
         var targetEdgeIndex = -1;
@@ -440,7 +439,7 @@ $(function () {
         updateEdge(
             $('#edge-from1').val(),
             $('#edge-to1').val(),
-            $('#weight1').val(),
+            parseInt($('#weight1').val()),
             'weight1'
         )
     });
@@ -457,7 +456,7 @@ $(function () {
         updateEdge(
             $('#edge-from2').val(),
             $('#edge-to2').val(),
-            $('#weight2').val(),
+            parseInt($('#weight2').val()),
             'weight2'
         )
     });
@@ -483,7 +482,7 @@ $(function () {
         addEdge(
             $('#from').val(),
             $('#to').val(),
-            $('#weight').val()
+            parseInt($('#weight').val())
         )
     });
 
