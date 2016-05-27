@@ -1,4 +1,6 @@
-var nodes, edges, network;
+var nodes = new vis.DataSet();
+var edges = new vis.DataSet();
+var network;
 var url = "ws://localhost:8080/websocket";
 var socket;
 var counter = 10;
@@ -10,19 +12,21 @@ $(function () {
     }
 
     // Initialize ProtoBuf.js
-	var ProtoBuf = dcodeIO.ProtoBuf;
+    var ProtoBuf = dcodeIO.ProtoBuf;
     var builder = ProtoBuf.loadProtoFile("js/hrp.proto");
     var Wrapper = builder.build("Wrapper");
     var NodeDeleteRequest = builder.build("NodeDeleteRequest");
     var NodeRegisterRequest = builder.build("NodeRegisterRequest");
     var GraphUpdateResponse = builder.build("GraphUpdateResponse");
     var GraphUpdate = builder.build("GraphUpdate");
-	var AdminLoginRequest = builder.build("AdminLoginRequest");
-	var AdminLoginResponse = builder.build("AdminLoginResponse");
+    var AdminLoginRequest = builder.build("AdminLoginRequest");
+    var AdminLoginResponse = builder.build("AdminLoginResponse");
+    var OnionNode = builder.build("Node");
+    var UpdateNode = builder.build("UpdateNode");
 
     function initSocket() {
-        $( "#dashboard" ).hide();
-        $( "#error" ).hide();
+        $("#dashboard").hide();
+        $("#error").hide();
         console.log("Initializing socket");
         socket = new WebSocket(url);
         socket.binaryType = "arraybuffer";
@@ -32,7 +36,7 @@ $(function () {
         socket.onmessage = socketMessage;
     }
 
-	function socketSend(type, data) {
+    function socketSend(type, data) {
         if (socket.readyState == WebSocket.OPEN) {
             var message = new Wrapper({type: type, data: data});
             socket.send(message.encodeDelimited().toArrayBuffer());
@@ -63,14 +67,15 @@ $(function () {
                         if (graphUpdate.isFullGraph) {
                             nodes.clear();
                         }
-                        if(graphUpdate.addedNodes){
-                            graphUpdate.addedNodes.forEach(function(node) {
+
+                        if (graphUpdate.addedNodes) {
+                            graphUpdate.addedNodes.forEach(function (node) {
                                 addNode(node);
                             });
                         }
 
-                        if(graphUpdate.deletedNodes){
-                            graphUpdate.deletedNodes.forEach(function(node) {
+                        if (graphUpdate.deletedNodes) {
+                            graphUpdate.deletedNodes.forEach(function (node) {
                                 removeNode(node);
                             });
                         }
@@ -78,14 +83,14 @@ $(function () {
                     break;
                 case Wrapper.Type.ADMINLOGINRESPONSE:
                     var adminLoginResponse = AdminLoginResponse.decode(wrapper.data);
-                    if(adminLoginResponse.status === AdminLoginResponse.Status.SUCCES) {
-                      $( "#main" ).hide();
-                      $( "#error" ).hide();
-                      drawGraph();
-                      $( "#dashboard" ).show();
+                    if (adminLoginResponse.status === AdminLoginResponse.Status.SUCCES) {
+                        $("#main").hide();
+                        $("#error").hide();
+                        drawGraph();
+                        $("#dashboard").show();
                     }
                     else {
-                      $( "#error" ).show();
+                        $("#error").show();
                     }
                     break;
             }
@@ -101,36 +106,90 @@ $(function () {
                 IPaddress: node.IPaddress,
                 port: node.port,
                 publicKey: node.publicKey,
-                label: node.id
+                label: node.IPaddress + "\n" + "port: " + node.port
             });
-            if(!node.edges) return;
-            
-            node.edges.forEach(function (edge) {
-                edges.add({
-                    id: node.id + edge.targetNodeId,
-                    from: node.id,
-                    to: edge.targetNodeId
-                });
+            if (!node.edge) return;
+            node.edge.forEach(function (edge) {
+                var currentEdge1 = edges.get(edge.targetNodeId + "-" + node.id);
+                var currentEdge2 = edges.get(node.id + "-" + edge.targetNodeId);
+                if (currentEdge1) {
+                    edges.remove(currentEdge1.id);
+                    edges.add({
+                        id: currentEdge1.id,
+                        from: currentEdge1.from,
+                        to: currentEdge1.to,
+                        weight_from_to: currentEdge1.weight_from_to,
+                        weight_to_from: edge.weight,
+                        arrows: 'from, to',
+                        length: 200
+                    });
+                } else if (currentEdge2) {
+                    edges.remove(currentEdge2.id);
+                    edges.add({
+                        id: currentEdge2.id,
+                        from: currentEdge2.from,
+                        to: currentEdge2.to,
+                        weight_from_to: currentEdge1.weight_from_to,
+                        weight_to_from: edge.weight,
+                        arrows: 'from, to',
+                        length: 200
+                    });
+                } else {
+                    edges.add({
+                        id: node.id + "-" + edge.targetNodeId,
+                        from: node.id,
+                        to: edge.targetNodeId,
+                        weight_from_to: edge.weight,
+                        weight_to_from: undefined,
+                        arrows: 'to',
+                        length: 200
+                    });
+                }
+
             });
         } catch (error) {
-            alert(error);
+            console.log(error);
         }
     }
 
     function removeNode(node) {
+        edges.forEach(function (edge) {
+            if (edge.from == node.id) {
+                if (edge.weight_to_from == undefined) {
+                    edges.remove(edge.id);
+                } else {
+                    edges.remove(edge.id);
+                    edges.add({
+                        id: edge.to + "-" + edge.from,
+                        from: edge.to,
+                        to: edge.from,
+                        weight_from_to: edge.weight_to_from,
+                        weight_to_from: undefined,
+                        arrows: 'to'
+                    });
+                }
+            } else if (edge.to == node.id) {
+                edges.remove(edge.id);
+                edges.add({
+                    id: edge.id,
+                    from: edge.from,
+                    to: edge.to,
+                    weight_from_to: edge.weight_from_to,
+                    weight_to_from: undefined,
+                    arrows: 'to'
+                });
+            }
+        });
         try {
             nodes.remove({
                 id: node.id
             });
         } catch (error) {
-            alert(error);
+            console.log(error);
         }
     }
 
     function drawGraph() {
-        nodes = new vis.DataSet();
-        edges = new vis.DataSet();
-
         var container = document.getElementById('network');
 
         var data = {
@@ -138,22 +197,216 @@ $(function () {
             edges: edges
         };
 
-        var options = {interaction: {hover: true}};
+        var options = {
+            interaction: {
+                hover: true,
+                selectConnectedEdges: false,
+                hoverConnectedEdges: false
+            },
+            "edges": {
+                "smooth": {
+                    "type": "discrete",
+                    "roundness": 0
+                },
+                arrowStrikethrough: true
+            },
+            nodes: {
+                shape: 'circle'
+            },
+            layout: {
+                hierarchical: {
+                    enabled: true,
+                    nodeSpacing: 150,
+                    sortMethod: 'hubsize'
+                }
+            }
+        };
 
         network = new vis.Network(container, data, options);
+
+        network.on("selectEdge", function (data) {
+            $("#edgeData1").html("from node " + edges._data[data.edges[0]].from + " to node " + edges._data[data.edges[0]].to);
+            $("#edgeData2").html("from node " + edges._data[data.edges[0]].to + " to node " + edges._data[data.edges[0]].from);
+
+            $("#weight1").val(edges._data[data.edges[0]].weight_from_to);
+            $("#weight2").val(edges._data[data.edges[0]].weight_to_from);
+
+            $("#edge-from1").val(edges._data[data.edges[0]].from);
+            $("#edge-to1").val(edges._data[data.edges[0]].to);
+
+            $("#edge-from2").val(edges._data[data.edges[0]].to);
+            $("#edge-to2").val(edges._data[data.edges[0]].from);
+
+            var div = document.getElementById("edit-from-edge");
+            div.style.display = 'block';
+            div = document.getElementById("edit-from-node");
+            div.style.display = 'none';
+            var div = document.getElementById("add-edge-from-node");
+            div.style.display = 'none';
+        });
+
+        network.on("selectNode", function (data) {
+
+            $("#node-id").val(nodes._data[data.nodes[0]].id);
+
+            var div = document.getElementById("edit-from-node");
+            div.style.display = 'block';
+            div = document.getElementById("edit-from-edge");
+            div.style.display = 'none';
+            var div = document.getElementById("add-edge-from-node");
+            div.style.display = 'none';
+        });
     }
 
-    function clear() {
-        nodes.clear();
+
+    function createSuggestions(filter) {
+        var options = "";
+        if (filter.length > 0) {
+            options = getOptions(filter);
+        }
+        document.getElementById('suggestions').innerHTML = options;
     }
 
-    $("#finder").on('submit', function(event) {
+    function getOptions(filter) {
+        var options = "";
+        nodes.forEach(function (node) {
+            if (node.id.indexOf(filter) == 0) {
+                options += '<option value="' + node.id + '">';
+            }
+        });
+        return options;
+    }
+
+    function addEdge(fromId, toId, weight) {
+        if (isNaN(weight) || weight < 0 || weight > 1000000) {
+            return;
+        }
+        weight = parseInt(weight);
+        var node = nodes.get(fromId);
+        var currentEdges = getEdges(fromId);
+        if (checkEdge(fromId, toId)) {
+            currentEdges.push({targetNodeId: toId, weight: weight});
+            var newNode = new OnionNode({
+                id: node.id,
+                IPaddress: node.IPaddress,
+                port: node.port,
+                publicKey: node.publicKey,
+                edge: currentEdges
+            });
+            var message = new UpdateNode({node: newNode});
+            socketSend("UPDATENODE", message.encode());
+        }
+    }
+
+    function createEdgeForm(nodeId) {
+        $("#from").val(nodeId);
+        var div = document.getElementById("add-edge-from-node");
+        div.style.display = 'block';
+    }
+
+    function deleteEdge(nodeId1, nodeId2, weightBoxId) {
+        var node = nodes.get(nodeId1);
+        var currentEdges = getEdges(nodeId1);
+        currentEdges.forEach(function (edge) {
+            if (edge.targetNodeId == nodeId2) {
+                var index = currentEdges.indexOf(edge);
+                if (index > -1) {
+                    currentEdges.splice(index, 1);
+                }
+            }
+        });
+        var newNode = new OnionNode({
+            id: node.id,
+            IPaddress: node.IPaddress,
+            port: node.port,
+            publicKey: node.publicKey,
+            edge: currentEdges
+        });
+        var message = new UpdateNode({node: newNode});
+        socketSend("UPDATENODE", message.encode());
+        if (weightBoxId == 'weight1') {
+            var div = document.getElementById("edit-from-edge");
+            div.style.display = 'none';
+        } else {
+            $("#" + weightBoxId).val(undefined);
+        }
+    }
+
+    function updateEdge(nodeId1, nodeId2, weight, weightBoxId) {
+        if (isNaN(weight) || weight < 0 || weight > 1000000) {
+            return;
+        }
+        var node = nodes.get(nodeId1);
+        var currentEdges = getEdges(nodeId1);
+        var targetEdgeIndex = -1;
+        currentEdges.forEach(function (edge) {
+            if (edge.targetNodeId == nodeId2) {
+                targetEdgeIndex = currentEdges.indexOf(edge);
+            }
+        });
+        if (targetEdgeIndex > -1) {
+            currentEdges.splice(targetEdgeIndex, 1);
+        }
+        currentEdges.push({targetNodeId: nodeId2, weight: weight});
+        var newNode = new OnionNode({
+            id: node.id,
+            IPaddress: node.IPaddress,
+            port: node.port,
+            publicKey: node.publicKey,
+            edge: currentEdges
+        });
+        var message = new UpdateNode({node: newNode});
+        socketSend("UPDATENODE", message.encode());
+        if (weightBoxId == 'weight1') {
+            var div = document.getElementById("edit-from-edge");
+            div.style.display = 'none';
+        }
+    }
+
+    function checkEdge(fromId, toId) {
+        if (fromId == toId) {
+            return false;
+        }
+
+        var node = nodes.get(toId);
+        if (!node) {
+            return false;
+        }
+
+        var edge = edges.get(fromId + "-" + toId)
+        if (edge) {
+            return false;
+        }
+
+        var otherEdge = edges.get(toId + "-" + fromId)
+        if (otherEdge) {
+            if (otherEdge.weight_to_from != undefined) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function getEdges(NodeId) {
+        currentEdges = [];
+        edges.forEach(function (edge) {
+            if (edge.from == NodeId && edge.weight_from_to != undefined) {
+                currentEdges.push({targetNodeId: edge.to, weight: edge.weight_from_to});
+            }
+            if (edge.to == NodeId && edge.weight_to_from != undefined) {
+                currentEdges.push({targetNodeId: edge.from, weight: edge.weight_to_from});
+            }
+        });
+        return currentEdges;
+    }
+
+    $("#finder").on('submit', function (event) {
         event.preventDefault();
         var findNode = $("#find_node");
         var search = findNode.val();
 
-        var result;
-        nodes.forEach(function(node) {
+        var result = undefined;
+        nodes.forEach(function (node) {
             if (node.id.lastIndexOf(search, 0) === 0) {
                 result = node;
             }
@@ -167,19 +420,71 @@ $(function () {
         findNode.val("");
     });
 
-    $("#login").on('submit', function(event) {
+    $("#login").on('submit', function (event) {
         event.preventDefault();
         var username = $("#username").val();
         var password = $("#password").val();
         if (username !== undefined && password !== undefined) {
-			var message = new AdminLoginRequest({username : username, password: password});
+            var message = new AdminLoginRequest({username: username, password: password});
             socketSend("ADMINLOGINREQUEST", message.encode());
         }
     });
 
+    $("#find-node").on('keyup', function(event) {
+        var to = $('#to').val();
+        createSuggestions(to);
+    });
+
+    $("#weight1").on('change', function(event) {
+        updateEdge(
+            $('#edge-from1').val(),
+            $('#edge-to1').val(),
+            parseInt($('#weight1').val()),
+            'weight1'
+        )
+    });
+
+    $("#weight1-delete").on('click', function(event) {
+        deleteEdge(
+            $('#edge-from1').val(),
+            $('#edge-to1').val(),
+            'weight1'
+        )
+    });
+
+    $("#weight2").on('change', function(event) {
+        updateEdge(
+            $('#edge-from2').val(),
+            $('#edge-to2').val(),
+            parseInt($('#weight2').val()),
+            'weight2'
+        )
+    });
+
+    $("#weight2-delete").on('click', function(event) {
+        deleteEdge(
+            $('#edge-from2').val(),
+            $('#edge-to2').val(),
+            'weight2'
+        )
+    });
+
+    $("#add-edge").on('click', function(event) {
+        var nodeId = $('#node-id').val();
+        createEdgeForm(nodeId);
+    });
+
+    $("#to").on('keyup', function(event) {
+        createSuggestions($('#to').val());
+    });
+
+    $("#add-edge-submit").on('click', function(event) {
+        addEdge(
+            $('#from').val(),
+            $('#to').val(),
+            parseInt($('#weight').val())
+        )
+    });
+
     initSocket();
 });
-    
-
-
-
