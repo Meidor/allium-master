@@ -45,7 +45,7 @@ start(Port) ->
 
 -spec server(integer()) -> any().
 server(Port) ->
-    {ok, Socket} = gen_tcp:listen(Port, [{active, true}, {packet, raw}]),
+    {ok, Socket} = gen_tcp:listen(Port, [{active, true}, {packet, raw}, {reuseaddr, true}]),
     listen(Socket).
 
 -spec listen(any()) -> any().
@@ -61,19 +61,19 @@ handle_messages(Socket) ->
         {tcp, error, closed} ->
             done;
         {tcp, Socket, Data} ->
-            lager:info("~p", [Data]),
             Response = handle_message(Data),
-            lager:info("RESPONSE: ~p", [Response]),
             gen_tcp:send(Socket, Response),
             handle_messages(Socket);
         _ ->
             unexpected
+    after
+        300000 ->
+            gen_tcp:close(Socket)
     end.
 
 -spec handle_message(list()) -> list().
 handle_message(Msg) ->
     DecodedMsg = hrp_pb:delimited_decode_wrapper(iolist_to_binary(Msg)),
-    lager:info("MSG: ~p DECODED: ~p", [Msg, DecodedMsg]),
     {[{wrapper, Type, Data} | _], _} = DecodedMsg,
     handle_decoded_message(Type, Data).
     
