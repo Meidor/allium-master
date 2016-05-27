@@ -32,7 +32,7 @@ onconnect(_WSReq, State) ->
 ondisconnect({remote, closed}, State) ->
     {ok, State}.
 
--spec send(pid(), atom(), any()) -> any().
+-spec send(pid(), atom(), binary()) -> any().
 send(Pid, Type, Msg) ->
     Message = hrp_pb:encode([{wrapper, Type, Msg}]),
     websocket_client:cast(Pid, {binary, iolist_to_binary(Message)}).
@@ -48,7 +48,7 @@ recv(Pid) ->
             noresponse
     end.
 
--spec websocket_handle(tuple(), any(), any()) -> any().
+-spec websocket_handle(any(), any(), any()) -> any().
 websocket_handle({text, _Msg}, _Req, State) ->
     {ok, State};
 websocket_handle({binary, Msg}, _Req, State) ->
@@ -83,5 +83,4 @@ websocket_info(Data, _Req, _State) ->
 
 -spec websocket_terminate(any(), any(), any()) -> atom().
 websocket_terminate(_Reason, _ConnState, _State) ->
-    erlang:display("Websocket closed in state ~p wih reason ~p~n"),
     ok.

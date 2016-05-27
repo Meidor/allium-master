@@ -107,8 +107,13 @@ init_per_suite(Config) ->
     application:ensure_all_started(websocket),
     persistence_service:init(),
     test_helpers_int:init_sharded_eredis(),
-    EmptyGraph = {graphupdateresponse,[iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 1, true, [], []}))]},
+    EmptyGraph = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 1, true, [], []}
+            ))
+        ]
+    },
     [
         {node, {"192.168.1.2", 80, <<"PublicKey">>}},
         {nodewithedges, {"192.168.1.2", 80, <<"PublicKey">>, [{edge, "Node1", 10.0}, {edge, "Node2", 15.0}]}},
@@ -154,14 +159,19 @@ connect_to_websocket_return_full_graph_when_existing_nodes_test(Config) ->
     {NodeId, _SecretHash} = node_service:node_register(IP, Port, PublicKey),
     {OtherNodeId, _OtherSecretHash} = node_service:node_register(OtherIP, OtherPort, OtherPublicKey),
 
-    FullGraph =  {graphupdateresponse,[
-        iolist_to_binary(hrp_pb:encode(
-            {graphupdate, 1, true, [], []})),
-        iolist_to_binary(hrp_pb:encode(
-            {graphupdate, 2, false, [{node, NodeId, IP, Port, PublicKey, []}], []})),
-        iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 3, false, [{node, OtherNodeId, OtherIP, OtherPort, OtherPublicKey, []}], []}))
-        ]},
+    FullGraph =  {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 1, true, [], []}
+            )),
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 2, false, [{node, NodeId, IP, Port, PublicKey, []}], []}
+            )),
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 3, false, [{node, OtherNodeId, OtherIP, OtherPort, OtherPublicKey, []}], []}
+            ))
+        ]
+    },
     {ok, Pid} = ws_client_handler:start_link(),
 
     verify_received_messages([Pid], [FullGraph]).
@@ -207,8 +217,13 @@ register_node_in_backend_receive_graph_update_test(Config) ->
     login_as_admin(Pid, ?config(regularadmin, Config)),
     {NodeId, _SecretHash} = node_service:node_register(IP, Port, PublicKey),
 
-    Response = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 2, false, [{node, NodeId, IP, Port, PublicKey, []}], []}))]},
+    Response = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 2, false, [{node, NodeId, IP, Port, PublicKey, []}], []}
+            ))
+        ]
+    },
 
     verify_received_messages([Pid], [Response]).
 
@@ -220,10 +235,20 @@ update_node_ip_port_from_backend_edges_removed_receive_graph_update_test(Config)
     {NodeId, SecretHash} = register_node({IP, Port, PublicKey, Edges}, 1, [Pid]),
 
     NewNodeId = node_service:node_update(NodeId, SecretHash, UpdatedIP, UpdatedPort, PublicKey),
-    NodeDeleteResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 5, false, [], [{node, NodeId , [], 0, <<>>, []}]}))]},
-    NodeAddResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 6, false, [{node, NewNodeId, UpdatedIP, UpdatedPort, PublicKey, []}] ,[]}))]},
+    NodeDeleteResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 5, false, [], [{node, NodeId , [], 0, <<>>, []}]}
+            ))
+        ]
+    },
+    NodeAddResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 6, false, [{node, NewNodeId, UpdatedIP, UpdatedPort, PublicKey, []}] ,[]}
+            ))
+        ]
+    },
 
     verify_received_messages([Pid], [NodeDeleteResponse, NodeAddResponse]).
 
@@ -234,10 +259,20 @@ update_node_public_key_from_backend_edges_remain_receive_graph_update_test(Confi
     login_as_admin(Pid, ?config(regularadmin, Config)),
     {NodeId, SecretHash} = register_node({IP, Port, PublicKey, Edges}, 1, [Pid]),
 
-    NodeDeleteResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 5, false, [], [{node, NodeId , [], 0, <<>>, []}]}))]},
-    NodeAddResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 6, false, [{node, NodeId, IP, Port, UpdatedPublicKey, Edges}] ,[]}))]},
+    NodeDeleteResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 5, false, [], [{node, NodeId , [], 0, <<>>, []}]}
+            ))
+        ]
+    },
+    NodeAddResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 6, false, [{node, NodeId, IP, Port, UpdatedPublicKey, Edges}] ,[]}
+            ))
+        ]
+    },
     NodeId = node_service:node_update(NodeId, SecretHash, IP, Port, UpdatedPublicKey),
 
     verify_received_messages([Pid], [NodeDeleteResponse, NodeAddResponse]).
@@ -248,8 +283,12 @@ delete_node_in_backend_receive_graph_update_test(Config) ->
     login_as_admin(Pid, ?config(regularadmin, Config)),
     {NodeId, SecretHash} = register_node({IP, Port, PublicKey, []}, 1, [Pid]),
 
-    Response = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 3, false, [], [{node, NodeId , [], 0, <<>>, []}]}))]
+    Response = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 3, false, [], [{node, NodeId , [], 0, <<>>, []}]}
+            ))
+        ]
     },
     node_service:node_unregister(NodeId, SecretHash),
 
@@ -285,12 +324,21 @@ update_node_public_key_from_ws_client_edges_remain_receive_graph_update_test(Con
     login_as_admin(Pid, ?config(regularadmin, Config)),
     {NodeId, _SecretHash} = register_node({IP, Port, PublicKey, Edges}, 1, [Pid]),
 
-    Msg = {updatenode,{node, NodeId, IP, Port, UpdatedPublicKey, Edges}},
-    DeleteNodeResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 5, false, [], [{node, NodeId , [], 0, <<>>, []}]}))]},
-    AddNodeResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 6, false, [{node, NodeId, IP, Port, UpdatedPublicKey, Edges}] ,[]}))]},
-
+    Msg = {updatenode, {node, NodeId, IP, Port, UpdatedPublicKey, Edges}},
+    DeleteNodeResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 5, false, [], [{node, NodeId , [], 0, <<>>, []}]}
+            ))
+        ]
+    },
+    AddNodeResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 6, false, [{node, NodeId, IP, Port, UpdatedPublicKey, Edges}] ,[]}
+            ))
+        ]
+    },
     ws_client_handler:send(Pid, 'UPDATENODE', Msg),
     verify_received_messages([Pid], [DeleteNodeResponse, AddNodeResponse]).
 
@@ -302,10 +350,20 @@ update_node_edges_from_ws_client_edges_remain_receive_graph_update_test(Config) 
     {NodeId, _SecretHash} = register_node({IP, Port, PublicKey, Edges}, 1, [Pid]),
 
     Msg = {updatenode,{node, NodeId, IP, Port, PublicKey, UpdatedEdges}},
-    DeleteNodeResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 5, false, [], [{node, NodeId , [], 0, <<>>, []}]}))]},
-    AddNodeResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 6, false, [{node, NodeId, IP, Port, PublicKey, UpdatedEdges}] ,[]}))]},
+    DeleteNodeResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 5, false, [], [{node, NodeId , [], 0, <<>>, []}]}
+            ))
+        ]
+    },
+    AddNodeResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 6, false, [{node, NodeId, IP, Port, PublicKey, UpdatedEdges}] ,[]}
+            ))
+        ]
+    },
 
     ws_client_handler:send(Pid, 'UPDATENODE', Msg),
     verify_received_messages([Pid], [DeleteNodeResponse, AddNodeResponse]).
@@ -320,10 +378,20 @@ update_one_ws_client_sent_to_all_clients_test(Config) ->
     {NodeId, _SecretHash} = register_node({IP, Port, PublicKey, UpdatedEdges}, 1, [Pid, Pid2]),
 
     Msg = {updatenode,{node, NodeId, IP, Port, PublicKey, UpdatedEdges}},
-    DeleteNodeResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 5, false, [], [{node, NodeId, [], 0, <<>>, []}]}))]},
-    AddNodeResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 6, false, [{node, NodeId, IP, Port, PublicKey, UpdatedEdges}] ,[]}))]},
+    DeleteNodeResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 5, false, [], [{node, NodeId, [], 0, <<>>, []}]}
+            ))
+        ]
+    },
+    AddNodeResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 6, false, [{node, NodeId, IP, Port, PublicKey, UpdatedEdges}] ,[]}
+            ))
+        ]
+    },
 
     ws_client_handler:send(Pid, 'UPDATENODE', Msg),
     verify_received_messages([Pid2, Pid], [DeleteNodeResponse, AddNodeResponse]).
@@ -339,10 +407,20 @@ update_backend_sent_to_all_clients_test(Config) ->
     {NodeId, SecretHash} = register_node({IP, Port, PublicKey, []}, 1, [Pid, Pid2]),
     NewNodeId = node_service:node_update(NodeId, SecretHash, UpdatedIP, UpdatedPort, UpdatedPublicKey),
 
-    DeleteNodeResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 3, false, [], [{node, NodeId , [], 0, <<>>, []}]}))]},
-    AddNodeResponse = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, 4, false, [{node, NewNodeId, UpdatedIP, UpdatedPort, UpdatedPublicKey, []}] ,[]}))]},
+    DeleteNodeResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 3, false, [], [{node, NodeId , [], 0, <<>>, []}]}
+            ))
+        ]
+    },
+    AddNodeResponse = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, 4, false, [{node, NewNodeId, UpdatedIP, UpdatedPort, UpdatedPublicKey, []}] ,[]}
+            ))
+        ]
+    },
 
     verify_received_messages([Pid2, Pid], [DeleteNodeResponse, AddNodeResponse]).
 
@@ -383,7 +461,11 @@ register_admin_while_logged_in_as_super_admin_return_all_admins_test(Config) ->
     login_as_admin(Pid, ?config(superadmin, Config)),
 
     Msg = {adminregisterrequest, "Username"},
-    Admins = [{admin, Admin, false}, {admin, "Username", false}, {admin, SuperAdmin, true}],
+    Admins = [
+        {admin, Admin, false},
+        {admin, "Username", false},
+        {admin, SuperAdmin, true}
+    ],
 
     ws_client_handler:send(Pid, 'ADMINREGISTERREQUEST', Msg),
     verify_password_changed_message(Admins, "", Pid).
@@ -419,7 +501,10 @@ update_admin_while_logged_in_as_super_admin_return_all_admins_test(Config) ->
 
     Msg = {adminupdaterequest, RegularUsername, "OtherPassword", true, false},
     Response = {adminlistresponse, 'SUCCES',
-        [{admin, "Admin", true},{admin, "SuperAdmin", true}], undefined},
+        [
+            {admin, "Admin", true},
+            {admin, "SuperAdmin", true}
+        ], undefined},
 
     ws_client_handler:send(Pid, 'ADMINUPDATEREQUEST', Msg),
     verify_received_messages([Pid], [Response]).
@@ -443,7 +528,10 @@ reset_password_admin_return_with_generated_password_and_other_admins_test(Config
     login_as_admin(Pid, {Username, Password, IsSuperAdmin}),
 
     Msg = {adminupdaterequest, RegularUsername, undefined, false, true},
-    Admins = [{admin, RegularUsername, false}, {admin, Username, true}],
+    Admins = [
+        {admin, RegularUsername, false},
+        {admin, Username, true}
+    ],
 
     ws_client_handler:send(Pid, 'ADMINUPDATEREQUEST', Msg),
     verify_password_changed_message(Admins, RegularPassword, Pid).
@@ -455,7 +543,10 @@ reset_password_change_status_admin_return_with_generated_password_no_changed_sta
     login_as_admin(Pid, {Username, Password, IsSuperAdmin}),
 
     Msg = {adminupdaterequest, RegularUsername, undefined, true, true},
-    Admins = [{admin, RegularUsername, false}, {admin, Username, true}],
+    Admins = [
+        {admin, RegularUsername, false},
+        {admin, Username, true}
+    ],
 
     ws_client_handler:send(Pid, 'ADMINUPDATEREQUEST', Msg),
     verify_password_changed_message(Admins, RegularPassword, Pid).
@@ -467,7 +558,10 @@ reset_password_admin_with_password_return_all_admins_with_generated_password_tes
     login_as_admin(Pid, {Username, Password, IsSuperAdmin}),
 
     Msg = {adminupdaterequest, RegularUsername, "Password1234", false, true},
-    Admins = [{admin, RegularUsername, false}, {admin, Username, true}],
+    Admins = [
+        {admin, RegularUsername, false},
+        {admin, Username, true}
+    ],
 
     ws_client_handler:send(Pid, 'ADMINUPDATEREQUEST', Msg),
     verify_password_changed_message(Admins, RegularPassword, Pid).
@@ -491,7 +585,10 @@ update_only_superadmin_to_superadmin_other_password_return_all_admins_test(Confi
 
     Msg = {adminupdaterequest, Username, "OtherPassword", IsSuperAdmin, false},
     Response = {adminlistresponse, 'SUCCES',
-        [{admin, RegularUsername, false},{admin, Username, true}], undefined},
+        [
+            {admin, RegularUsername, false},
+            {admin, Username, true}
+        ], undefined},
 
     ws_client_handler:send(Pid, 'ADMINUPDATEREQUEST', Msg),
     verify_received_messages([Pid], [Response]).
@@ -513,7 +610,10 @@ request_all_admins_while_logged_in_as_super_admin_return_all_admins_test(Config)
 
     Msg = {adminlistrequest},
     Response = {adminlistresponse, 'SUCCES',
-        [{admin, RegularUsername, false}, {admin, Username, true}], undefined},
+        [
+            {admin, RegularUsername, false},
+            {admin, Username, true}
+        ], undefined},
 
     ws_client_handler:send(Pid, 'ADMINLISTREQUEST', Msg),
     verify_received_messages([Pid], [Response]).
@@ -560,7 +660,10 @@ update_regular_admin_to_super_admin_with_password_undefined_password_remains_unc
 
     Msg = {adminupdaterequest, RegularUsername, undefined, true, false},
     Response = {adminlistresponse, 'SUCCES',
-        [{admin, RegularUsername, true},{admin, Username, true}], undefined},
+        [
+            {admin, RegularUsername, true},
+            {admin, Username, true}
+        ], undefined},
 
     ws_client_handler:send(Pid, 'ADMINUPDATEREQUEST', Msg),
     verify_received_messages([Pid], [Response]),
@@ -574,7 +677,10 @@ update_regular_admin_to_super_admin_with_password_empty_password_remains_unchang
 
     Msg = {adminupdaterequest, RegularUsername, "", true, false},
     Response = {adminlistresponse, 'SUCCES',
-        [{admin, RegularUsername, true},{admin, Username, true}], undefined},
+        [
+            {admin, RegularUsername, true},
+            {admin, Username, true}
+        ], undefined},
 
     ws_client_handler:send(Pid, 'ADMINUPDATEREQUEST', Msg),
     verify_received_messages([Pid], [Response]),
@@ -670,12 +776,27 @@ login_as_admin(Pid, {Username, Password, IsSuperAdmin}) ->
 -spec register_node(tuple(), integer(), list()) -> any().
 register_node({IP, Port, PublicKey, Edges}, GraphUpdateNr, ThreadsListening) ->
     {NodeId, SecretHash} = node_service:node_register(IP, Port, PublicKey),
-    GraphUpdate = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, GraphUpdateNr + 1, false, [{node, NodeId, IP, Port, PublicKey, []}], []}))]},
-    GraphDelete = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, GraphUpdateNr + 2, false, [], [{node, NodeId, "", 0, <<>>, []}]}))]},
-    GraphAddition = {graphupdateresponse, [iolist_to_binary(hrp_pb:encode(
-        {graphupdate, GraphUpdateNr + 3, false, [{node, NodeId, IP, Port, PublicKey, Edges}], []}))]},
+    GraphUpdate = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, GraphUpdateNr + 1, false, [{node, NodeId, IP, Port, PublicKey, []}], []}
+            ))
+        ]
+    },
+    GraphDelete = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, GraphUpdateNr + 2, false, [], [{node, NodeId, "", 0, <<>>, []}]}
+            ))
+        ]
+    },
+    GraphAddition = {graphupdateresponse,
+        [
+            iolist_to_binary(hrp_pb:encode(
+                {graphupdate, GraphUpdateNr + 3, false, [{node, NodeId, IP, Port, PublicKey, Edges}], []}
+            ))
+        ]
+    },
 
     verify_received_messages(ThreadsListening, [GraphUpdate]),
     case length(Edges) > 0 of
