@@ -96,6 +96,7 @@ $(function () {
                     break;
                 case Wrapper.Type.ADMINLISTRESPONSE:
                     var adminListResponse = AdminListResponse.decode(wrapper.data);
+                    check_if_new_password(adminListResponse.newPassword);
                     switch (adminListResponse.status) {
                         case AdminListResponse.Status.SUCCES:
                             var tableContent = '';
@@ -181,6 +182,12 @@ $(function () {
         var options = {interaction: {hover: true}};
 
         network = new vis.Network(container, data, options);
+    }
+
+    function check_if_new_password(password) {
+        if(password) {
+            window.prompt("your new password:", password);
+        }
     }
 
     $("#finder").on('submit', function (event) {
