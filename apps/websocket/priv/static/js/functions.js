@@ -249,6 +249,9 @@ $(function () {
     });
 
     $("#add-administrator-button").on('click', function (event) {
+        var username = $("add-username").value;
+        console.log(username);
+        if ($username != "")
         $("#settings-dashboard").hide();
         $("#user-management-box").hide();
         $("#add-administrator-box").show();
