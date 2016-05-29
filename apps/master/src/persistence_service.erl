@@ -157,23 +157,37 @@ insert_admin(Username) when is_list(Username) ->
         {atomic, ok} ->
             ok;
         _ ->
-
             error(couldnotbeinserted)
     end.
 
 -spec update_admin(list(), list(), boolean(), boolean()) -> any().
-update_admin(Username, _Password, _SuperAdmin, true) when is_list(Username) ->
+update_admin(Username, _Password, _SuperAdmin, true)
+    when
+        is_list(Username)
+    ->
     {_, _, SuperAdmin} = select_admin(Username),
     update_admin(Username, generate_password(), SuperAdmin);
-update_admin(Username, undefined , SuperAdmin, false) when is_list(Username), is_boolean(SuperAdmin) ->
+update_admin(Username, undefined , SuperAdmin, false)
+    when
+        is_list(Username), is_boolean(SuperAdmin)
+    ->
     update_admin_with_known_password(Username, SuperAdmin);
-update_admin(Username, "" , SuperAdmin, false) when is_list(Username), is_boolean(SuperAdmin) ->
+update_admin(Username, "" , SuperAdmin, false)
+    when
+        is_list(Username), is_boolean(SuperAdmin)
+    ->
     update_admin_with_known_password(Username, SuperAdmin);
-update_admin(Username, Password, SuperAdmin, false) when is_list(Username), is_list(Password), is_boolean(SuperAdmin) ->
+update_admin(Username, Password, SuperAdmin, false)
+    when
+        is_list(Username), is_list(Password), is_boolean(SuperAdmin)
+    ->
     update_admin(Username, Password, SuperAdmin).
 
 -spec update_admin(list(), list(), atom()) -> any().
-update_admin(Username, Password, SuperAdmin) when is_list(Username), is_list(Password), is_atom(SuperAdmin) ->
+update_admin(Username, Password, SuperAdmin)
+    when
+        is_list(Username), is_list(Password), is_atom(SuperAdmin)
+    ->
     verify_super_admin_remains_after_update(Username, SuperAdmin),
     verify_valid_admin_password(Password),
 
@@ -191,18 +205,27 @@ update_admin(Username, Password, SuperAdmin) when is_list(Username), is_list(Pas
     end.
 
 -spec update_admin_with_known_password(list(), atom()) -> any().
-update_admin_with_known_password(Username, SuperAdmin) when is_list(Username), is_atom(SuperAdmin) ->
+update_admin_with_known_password(Username, SuperAdmin)
+    when
+        is_list(Username), is_atom(SuperAdmin)
+    ->
     {_, Password, _} = select_admin(Username),
     update_admin(Username, Password, SuperAdmin).
 
 
 -spec delete_admin(list()) -> atom().
-delete_admin(Username) when is_list(Username) ->
+delete_admin(Username)
+    when
+        is_list(Username)
+    ->
     verify_super_admin_remains_after_delete(Username),
     mnesia:dirty_delete({admin, Username}).
 
 -spec select_clients_by_hash(list()) -> list().
-select_clients_by_hash(SecretHash) when (undefined == SecretHash orelse is_list(SecretHash)) ->
+select_clients_by_hash(SecretHash)
+    when
+        (undefined == SecretHash orelse is_list(SecretHash))
+    ->
     Result = mnesia:dirty_match_object({client, '_', SecretHash, '_', '_', '_'}),
     [{Username, Hash, PublicKey, Password, DedicatedNodes} ||
         {_, Username, Hash, PublicKey, Password, DedicatedNodes} <- Result].
@@ -256,7 +279,8 @@ verify_super_admin_remains_after_delete(Username) ->
 verify_super_admin_remains_after_update(Username, NewSuperAdmin) ->
     try
         {Username, _, SuperAdmin} = select_admin(Username),
-        true = ((1 < length(select_all_super_admins()) orelse (SuperAdmin == false orelse NewSuperAdmin == true)))
+        true = ((1 < length(select_all_super_admins()) orelse
+            (SuperAdmin == false orelse NewSuperAdmin == true)))
     catch
         _:{badmatch, false} ->
             error(noremainingsuperadmin);
