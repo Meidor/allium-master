@@ -120,19 +120,26 @@ handle_decoded_message('NODEUPDATEREQUEST', Data) ->
         = hrp_pb:decode_nodeupdaterequest(Data),
     try
         node_service:node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
-    of _ ->
+    of NodeId ->
         get_wrapped_message(
             'NODEUPDATERESPONSE',
             hrp_pb:encode(
-                {nodeupdateresponse, 'SUCCES'}
+                {nodeupdateresponse, 'SUCCES', NodeId}
             )
-        )
+        );
+        NewNodeId ->
+            get_wrapped_message(
+                'NODEUPDATERESPONSE',
+                hrp_pb:encode(
+                    {nodeupdateresponse, 'SUCCES', NewNodeId}
+                )
+            )
     catch _:Error ->
         lager:error("Error in node update request: ~p", [Error]),
         get_wrapped_message(
             'NODEUPDATERESPONSE',
             hrp_pb:encode(
-                {nodeupdateresponse, 'FAILED'}
+                {nodeupdateresponse, 'FAILED', undefined}
             )
         )
     end;
