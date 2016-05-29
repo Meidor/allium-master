@@ -84,13 +84,14 @@ register_node(IP, Port, PublicKey) ->
 -spec update_node(list(), list(), list(), integer(), binary()) -> any().
 update_node(NodeId, SecretHash, IP, Port, PublicKey) ->
     Request = {nodeupdaterequest, NodeId, SecretHash, IP, Port, PublicKey},
+    ReturnedNodeId = IP ++ ":" ++ integer_to_list(Port),
 
-    {nodeupdateresponse, 'SUCCES'} = hrp_pb:decode_nodeupdateresponse(
+    {nodeupdateresponse, 'SUCCES', ReturnedNodeId} = hrp_pb:decode_nodeupdateresponse(
         test_helpers_int:get_data_encrypted_response(
             Request, 'NODEUPDATEREQUEST', 'NODEUPDATERESPONSE'
         )
     ),
-    {NodeId, SecretHash, IP, Port, PublicKey}.
+    {ReturnedNodeId, SecretHash, IP, Port, PublicKey}.
 
 -spec delete_node(list(), list()) -> any().
 delete_node(NodeId, SecretHash) ->
