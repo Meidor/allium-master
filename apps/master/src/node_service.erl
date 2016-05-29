@@ -58,6 +58,7 @@ get_edges(NodeId) when is_list(NodeId) ->
     ),
     Edges.
 
+-spec set_edges(list(), list()) -> tuple().
 set_edges(NodeId, Edges) when is_list(NodeId) ->
     redis:set(
         "node_edges_" ++ NodeId,
@@ -69,13 +70,8 @@ set_edges(NodeId, Edges) when is_list(NodeId) ->
 -spec node_update(list(), list(), list(), integer(), binary()) -> any().
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     when
-        is_list(NodeId),
-        is_list(SecretHash),
-        is_list(IPaddress),
-        is_integer(Port),
-        Port > 0,
-        Port < 65536,
-        is_binary(PublicKey)
+    is_list(NodeId), is_list(SecretHash), is_list(IPaddress), is_integer(Port),
+    Port > 0, Port < 65536, is_binary(PublicKey)
     ->
     verify_ip(IPaddress),
     node_verify(NodeId, SecretHash),
@@ -92,5 +88,6 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
             NewNodeId
     end.
 
+-spec node_exists(list()) -> any().
 node_exists(NodeId) when is_list(NodeId) ->
     false = undefined == node_graph_manager:get_node_secret_hash(NodeId).
