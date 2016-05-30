@@ -44,7 +44,8 @@ benchmark_graph_updates_none(Count) ->
         )
     ),
     Time = benchmark_message(Message, Count),
-    lager:info("Fetched 0 graph updates ~p times in ~p ms on average per request.~n", [Count, Time / Count]).
+    lager:info("Fetched 0 graph updates ~p times in ~p ms on average per request.~n",
+        [Count, Time / Count]).
 
 -spec benchmark_graph_updates_small(integer()) -> atom().
 benchmark_graph_updates_small(Count) ->
@@ -55,7 +56,8 @@ benchmark_graph_updates_small(Count) ->
         )
     ),
     Time = benchmark_message(Message, Count),
-    lager:info("Fetched 10 graph updates ~p times in ~p ms on average per request.~n", [Count, Time / Count]).
+    lager:info("Fetched 10 graph updates ~p times in ~p ms on average per request.~n",
+        [Count, Time / Count]).
 
 -spec benchmark_graph_updates_large(integer()) -> atom().
 benchmark_graph_updates_large(Count) ->
@@ -66,7 +68,8 @@ benchmark_graph_updates_large(Count) ->
         )
     ),
     Time = benchmark_message(Message, Count),
-    lager:info("Fetched 100 graph updates ~p times in ~p ms on average per request.~n", [Count, Time / Count]).
+    lager:info("Fetched 100 graph updates ~p times in ~p ms on average per request.~n",
+        [Count, Time / Count]).
 
 -spec benchmark_graph_updates_all(integer()) -> atom().
 benchmark_graph_updates_all(Count) ->
@@ -77,7 +80,8 @@ benchmark_graph_updates_all(Count) ->
         )
     ),
     Time = benchmark_message(Message, Count),
-    lager:info("Fetched ~p graph updates ~p times in ~p ms on average per request.~n", [Count * 10, Count, Time / Count]).
+    lager:info("Fetched ~p graph updates ~p times in ~p ms on average per request.~n",
+        [Count * 10, Count, Time / Count]).
 
 -spec benchmark_client_register(integer()) -> atom().
 benchmark_client_register(Count) ->
@@ -85,7 +89,8 @@ benchmark_client_register(Count) ->
         get_wrapped_message(
             'CLIENTREGISTERREQUEST',
             hrp_pb:encode(
-                {clientregisterrequest, "user" ++ integer_to_list(erlang:unique_integer()), "test123"}
+                {clientregisterrequest, "user" ++ integer_to_list(erlang:unique_integer()),
+                    "test123"}
             )
         )
     end,
@@ -110,7 +115,8 @@ benchmark_client_register_and_login(Count) ->
         )
     end,
     Time = benchmark_message(Message, Count),
-    lager:info("Registered and logged in ~p users in ~p ms on average per request.~n", [Count, Time / Count]).
+    lager:info("Registered and logged in ~p users in ~p ms on average per request.~n",
+        [Count, Time / Count]).
 
 -spec benchmark_client_list(integer()) -> atom().
 benchmark_client_list(Count) ->
@@ -121,7 +127,8 @@ benchmark_client_list(Count) ->
         )
     ),
     Time = benchmark_message(Message, Count),
-    lager:info("Fetched ~p clients ~p times in ~p ms on average per request.~n", [Count, Count, Time / Count]).
+    lager:info("Fetched ~p clients ~p times in ~p ms on average per request.~n",
+        [Count, Count, Time / Count]).
 
 -spec benchmark_message(list() | fun(), integer()) -> number().
 benchmark_message(Message, Count) ->
@@ -147,7 +154,8 @@ send_message(_, 0) ->
 send_message(MessageFun, Count) when is_function(MessageFun) ->
     Self = self(),
     spawn(fun() ->
-        {ok, Socket} = gen_tcp:connect("127.0.0.1", 1337, [{packet, 0}, {active, false}, {reuseaddr, true}, {nodelay, true}]),
+        {ok, Socket} = gen_tcp:connect("127.0.0.1", 1337,
+            [{packet, 0}, {active, false}, {reuseaddr, true}, {nodelay, true}]),
         lists:map(
             fun(Message) ->
                 gen_tcp:send(Socket, Message),
@@ -161,7 +169,8 @@ send_message(MessageFun, Count) when is_function(MessageFun) ->
 send_message(Message, Count) ->
     Self = self(),
     spawn(fun() ->
-        {ok, Socket} = gen_tcp:connect("127.0.0.1", 1337, [{packet, 0}, {active, false}, {reuseaddr, true}]),
+        {ok, Socket} = gen_tcp:connect("127.0.0.1", 1337,
+            [{packet, 0}, {active, false}, {reuseaddr, true}]),
         gen_tcp:send(Socket, Message),
         gen_tcp:recv(Socket, 0),
         gen_tcp:close(Socket),
