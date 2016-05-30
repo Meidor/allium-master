@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+    <base href="static/">
+    <title>Network | DataSet</title>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/vis.js"></script>
+    <script type="text/javascript" src="js/long.js"></script>
+    <script type="text/javascript" src="js/bytebuffer.js"></script>
+    <script type="text/javascript" src="js/protobuf.js"></script>
+
+    <link href="css/main.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="js/functions_map.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA7iJIbyZTVFjPECrdEE9d92aShVOXCEyI&callback=initMap" async defer></script>
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+    <div id="dashboard">
+        <h3>Find Node</h3>
+        <p>
+            <form onsubmit="network.selectNodes(document.getElementById('node').value); return false;">
+                <input type="text" id="node" placeholder="ZOEK HIER JE NODE" />
+                <input type="submit" name="ZOEK" />
+            </form>
+        </p>
+		- - - - - - - - - - - - -
+		<h3>Alter weight</h3>
+		<p>
+			Selected edge: 
+			<span id = "edgeDataFrom"></span> <span id = "edgeDataTo"></span>
+			<form onsubmit="network.selectNodes(document.getElementById('node').value); return false;">
+				<input type="number" id="weight" value="22" />
+				<input type="submit" name="Wijzig" />
+			</form>
+		</p>
+	</div>
+	
+</body>
+</html>

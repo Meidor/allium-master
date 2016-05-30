@@ -41,18 +41,23 @@ all() -> [
 
 init_per_suite(Config) ->
     application:load(master),
+    application:load(websocket),
+    application:ensure_all_started(websocket),
+    test_helpers_int:init_sharded_eredis(),
+    persistence_service:init(),
 
-    ValidNodeId = "12345",
+    ValidNodeId = "192.122.1.1:80",
     ValidNodeSecretHash = "secrethash12345",
-    ValidNodeIP = "255.255.255.255",
+    ValidNodeIP = "192.122.1.1",
     ValidNodePort = 80,
     ValidNodePublicKey = <<"generatedpublickey">>,
+    OtherNodeId = "255.255.0.1:50",
     OtherIP = "255.255.0.1",
     OtherPort = 50,
     OtherPublicKey = <<"otherpublickey">>,
     [
         {node, {ValidNodeId, ValidNodeSecretHash, ValidNodeIP, ValidNodePort, ValidNodePublicKey}},
-        {othernode, {ValidNodeId, ValidNodeSecretHash, OtherIP, OtherPort, OtherPublicKey}}
+        {othernode, {OtherNodeId, ValidNodeSecretHash, OtherIP, OtherPort, OtherPublicKey}}
     ] ++ Config.
 
 init_per_testcase(_, Config) ->
@@ -61,13 +66,14 @@ init_per_testcase(_, Config) ->
 
 end_per_suite(Config) ->
     application:unload(master),
+    application:unload(websocket),
     Config.
 
 update_a_non_existing_node_return_error_test(Config) ->
     {NodeId, SecretHash, IP, Port, PublicKey} = ?config(node, Config),
     Request = {nodeupdaterequest, NodeId, SecretHash, IP, Port, PublicKey},
 
-    {nodeupdateresponse, 'FAILED'} = hrp_pb:decode_nodeupdateresponse(
+    {nodeupdateresponse, 'FAILED', undefined} = hrp_pb:decode_nodeupdateresponse(
         test_helpers_int:get_data_encrypted_response(Request, 'NODEUPDATEREQUEST', 'NODEUPDATERESPONSE')).
 
 delete_a_non_existing_node_return_error_test(Config) ->
@@ -101,8 +107,13 @@ register_a_node_return_success_message_test(Config) ->
     true = test_helpers_int:valid_secret_hash(SecretHash),
     true = is_binary(redis:get("heartbeat_node_" ++ NodeId)).
 
-register_already_registered_node_return_error_test(_Config) ->
-    {skip, "An already registered node can still register at this time"}.
+register_already_registered_node_return_error_test(Config) ->
+    {_, _, IP, Port, PublicKey} = ?config(node, Config),
+    Request = {noderegisterrequest, IP, Port, PublicKey},
+    test_helpers_int:register_node(IP, Port, PublicKey),
+
+    {noderegisterresponse, 'ALREADY_EXISTS', undefined, undefined} = hrp_pb:decode_noderegisterresponse(
+        test_helpers_int:get_data_encrypted_response(Request, 'NODEREGISTERREQUEST', 'NODEREGISTERRESPONSE')).
 
 get_graph_updates_return_update_with_registered_node_test(Config) ->
     {_, _, IP, Port, PublicKey} = ?config(node, Config),
@@ -119,22 +130,20 @@ get_graph_updates_return_update_with_registered_node_test(Config) ->
 
 update_a_node_return_success_message_test(Config) ->
     {_, _, IP, Port, PublicKey} = ?config(node, Config),
-    {_, _, NewIP, NewPort, NewPublicKey} = ?config(othernode, Config),
+    {NewNodeId, _, NewIP, NewPort, NewPublicKey} = ?config(othernode, Config),
     {NodeId, SecretHash, IP, Port, PublicKey} = test_helpers_int:register_node(IP, Port, PublicKey),
-    {NodeId, SecretHash, NewIP, NewPort, NewPublicKey} = test_helpers_int:update_node(
-        NodeId, SecretHash,NewIP, NewPort, NewPublicKey),
     Request = {nodeupdaterequest, NodeId, SecretHash, NewIP, NewPort, NewPublicKey},
 
-    {nodeupdateresponse, 'SUCCES'} = hrp_pb:decode_nodeupdateresponse(
+    {nodeupdateresponse, 'SUCCES', NewNodeId} = hrp_pb:decode_nodeupdateresponse(
         test_helpers_int:get_data_encrypted_response(Request, 'NODEUPDATEREQUEST', 'NODEUPDATERESPONSE')).
 
 get_graph_updates_after_inserting_updating_and_deleting_node_return_updates_test(Config) ->
     {_, _, IP, Port, PublicKey} = ?config(node, Config),
-    {_, _, NewIP, NewPort, NewPublicKey} = ?config(othernode, Config),
+    {NewNodeId, _, NewIP, NewPort, NewPublicKey} = ?config(othernode, Config),
     {NodeId, SecretHash, IP, Port, PublicKey} = test_helpers_int:register_node(IP, Port, PublicKey),
-    {NodeId, SecretHash, NewIP, NewPort, NewPublicKey} =
+    {NewNodeId, SecretHash, NewIP, NewPort, NewPublicKey} =
         test_helpers_int:update_node(NodeId, SecretHash, NewIP, NewPort, NewPublicKey),
-    test_helpers_int:delete_node(NodeId, SecretHash),
+    test_helpers_int:delete_node(NewNodeId, SecretHash),
     Request = {graphupdaterequest, 0},
 
     {graphupdateresponse, GraphUpdates} = hrp_pb:decode_graphupdateresponse(
@@ -144,25 +153,25 @@ get_graph_updates_after_inserting_updating_and_deleting_node_return_updates_test
         {graphupdate, 1, true, [], []},
         {graphupdate, 2, false, [{node, NodeId, IP, Port, PublicKey, []}], []},
         {graphupdate, 3, false, [], [{node, NodeId, [] , 0, <<>>, []}]},
-        {graphupdate, 4, false, [{node, NodeId, NewIP, NewPort, NewPublicKey, []}], []},
-        {graphupdate, 5, false, [], [{node, NodeId, [] , 0, <<>>, []}]}
+        {graphupdate, 4, false, [{node, NewNodeId, NewIP, NewPort, NewPublicKey, []}], []},
+        {graphupdate, 5, false, [], [{node, NewNodeId, [] , 0, <<>>, []}]}
     ] = DecodedGraphUpdates.
 
 get_graph_updates_from_version_3_after_inserting_updating_and_deleting_node_return_updates_test(Config) ->
     {_, _, IP, Port, PublicKey} = ?config(node, Config),
-    {_, _, NewIP, NewPort, NewPublicKey} = ?config(othernode, Config),
+    {NewNodeId, _, NewIP, NewPort, NewPublicKey} = ?config(othernode, Config),
     {NodeId, SecretHash, IP, Port, PublicKey} = test_helpers_int:register_node(IP, Port, PublicKey),
-    {NodeId, SecretHash, NewIP, NewPort, NewPublicKey} =
+    {NewNodeId, SecretHash, NewIP, NewPort, NewPublicKey} =
         test_helpers_int:update_node(NodeId, SecretHash, NewIP, NewPort, NewPublicKey),
-    test_helpers_int:delete_node(NodeId, SecretHash),
+    test_helpers_int:delete_node(NewNodeId, SecretHash),
     Request = {graphupdaterequest, 3},
 
     {graphupdateresponse, GraphUpdates} = hrp_pb:decode_graphupdateresponse(
         test_helpers_int:get_data_encrypted_response(Request,'GRAPHUPDATEREQUEST', 'GRAPHUPDATERESPONSE')),
     DecodedGraphUpdates = [hrp_pb:decode_graphupdate(GraphUpdate) || GraphUpdate <- GraphUpdates],
     [
-        {graphupdate, 4, false, [{node, NodeId, NewIP, NewPort, NewPublicKey, []}], []},
-        {graphupdate, 5, false, [], [{node, NodeId, [] , 0, <<>>, []}]}
+        {graphupdate, 4, false, [{node, NewNodeId, NewIP, NewPort, NewPublicKey, []}], []},
+        {graphupdate, 5, false, [], [{node, NewNodeId, [] , 0, <<>>, []}]}
     ] = DecodedGraphUpdates.
 
 delete_node_return_succes_message_test(Config) ->
@@ -175,11 +184,11 @@ delete_node_return_succes_message_test(Config) ->
 
 rebuild_graph_return_graph_with_graphupdate_three_as_full_graph_test(Config) ->
     {_, _, IP, Port, PublicKey} = ?config(node, Config),
-    {_, _, NewIP, NewPort, NewPublicKey} = ?config(othernode, Config),
+    {NewNodeId, _, NewIP, NewPort, NewPublicKey} = ?config(othernode, Config),
     {NodeId, SecretHash, IP, Port, PublicKey} = test_helpers_int:register_node(IP, Port, PublicKey),
-    {NodeId, SecretHash, NewIP, NewPort, NewPublicKey} =
+    {NewNodeId, SecretHash, NewIP, NewPort, NewPublicKey} =
         test_helpers_int:update_node(NodeId, SecretHash, NewIP, NewPort, NewPublicKey),
-    test_helpers_int:delete_node(NodeId, SecretHash),
+    test_helpers_int:delete_node(NewNodeId, SecretHash),
 
     graph_monitor_sup:start_link(),
     timer:sleep(31000),
@@ -190,8 +199,8 @@ rebuild_graph_return_graph_with_graphupdate_three_as_full_graph_test(Config) ->
     DecodedGraphUpdates = [hrp_pb:decode_graphupdate(GraphUpdate) || GraphUpdate <- GraphUpdates],
     [
         {graphupdate, 3, true, [], []},
-        {graphupdate, 4, false, [{node, NodeId, NewIP, NewPort, NewPublicKey, []}], []},
-        {graphupdate, 5, false,[], [{node, NodeId, [], 0, <<>>, []}]}
+        {graphupdate, 4, false, [{node, NewNodeId, NewIP, NewPort, NewPublicKey, []}], []},
+        {graphupdate, 5, false,[], [{node, NewNodeId, [], 0, <<>>, []}]}
     ] = DecodedGraphUpdates.
 
 node_is_removed_after_not_sending_heartbeat_test(Config) ->

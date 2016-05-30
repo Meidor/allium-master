@@ -11,7 +11,7 @@
     add_node/3,
     remove_node/1,
     get_node_secret_hash/1,
-    update_node/4,
+    update_node/5,
     get_random_dedicated_nodes/1
     ]).
 
@@ -144,43 +144,33 @@ protobufs_to_tuple(Data) ->
 
 -spec add_node(list(), integer(), binary()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
-    NodeId = get_unique_node_id(),
+    NodeId = lists:flatten(io_lib:format("~s:~p", [IPaddress, Port])),
+    verify_node_does_not_exist(NodeId),
     Hash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
     redis:set("node_hash_" ++ NodeId, Hash),
     redis:set_add("active_nodes", NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
-    redis:set(
-        "version_" ++ integer_to_list(Version),
-        hrp_pb:encode(
-            {graphupdate, Version, false, [{node, NodeId, IPaddress, Port, PublicKey, []}], []}
-        )
-    ),
+
+    GraphUpdate = get_graph_update_addition(Version, NodeId, IPaddress, Port, PublicKey, []),
+    set_graph_version(Version, GraphUpdate),
+    set_edges(NodeId, []),
+    UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
+    publish(node_update, UpdateMessage),
     {NodeId, Hash}.
-
--spec get_unique_node_id() -> list().
-get_unique_node_id() ->
-    NodeId = base64:encode_to_string(crypto:strong_rand_bytes(20)),
-    case redis:get("node_hash_" ++ NodeId) of
-        undefined ->
-            NodeId;
-        _ ->
-            get_unique_node_id()
-    end.
-
 
 -spec remove_node(list()) -> atom().
 remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
+    redis:set_remove("active_nodes", NodeId),
+    remove_edges(NodeId),
     Version = get_max_version() + 1,
     set_max_version(Version),
-    redis:set_remove("active_nodes", NodeId),
-    redis:set(
-        "version_" ++ integer_to_list(Version),
-        hrp_pb:encode(
-            {graphupdate, Version, false, [], [{node, NodeId, "", 0, "", []}]}
-        )
-    ),
+
+    GraphUpdate = get_graph_update_deletion(Version, NodeId),
+    set_graph_version(Version, GraphUpdate),
+    UpdateMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphUpdate),
+    publish(node_update, UpdateMessage),
     ok.
 
 -spec set_max_version(integer()) -> any().
@@ -196,30 +186,76 @@ get_node_secret_hash(NodeId) ->
             undefined
     end.
 
--spec update_node(list(), list(), integer(), binary()) -> atom().
-update_node(NodeId, IPaddress, Port, PublicKey) ->
+-spec update_node(list(), list(), integer(), binary(), list()) -> atom().
+update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     DeleteVersion = get_max_version() + 1,
     AddVersion = DeleteVersion + 1,
     set_max_version(AddVersion),
-    redis:set(
-        "version_" ++ integer_to_list(DeleteVersion),
-        hrp_pb:encode(
-            {graphupdate, DeleteVersion, false, [], [
-                {node, NodeId, "", 0, "", []}
-            ]}
-        )
-    ),
-    redis:set(
-        "version_" ++ integer_to_list(AddVersion),
-        hrp_pb:encode(
-            {graphupdate, AddVersion, false, [
-                {node, NodeId, IPaddress, Port, PublicKey, []}
-            ], []}
-        )
-    ),
+
+    GraphDelete = get_graph_update_deletion(DeleteVersion, NodeId),
+    set_graph_version(DeleteVersion, GraphDelete),
+    DeleteMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphDelete),
+    publish(node_update, DeleteMessage),
+
+    GraphAdd = get_graph_update_addition(AddVersion, NodeId, IPaddress, Port, PublicKey, Edges),
+    set_edges(NodeId, Edges),
+    set_graph_version(AddVersion, GraphAdd),
+    AddMessage = get_wrapped_graphupdate_message('GRAPHUPDATERESPONSE', GraphAdd),
+    publish(node_update, AddMessage),
     ok.
+
+-spec publish(any(), any()) -> any().
+publish(Event, Data) ->
+    gproc:send({p, l, {ws_handler, Event}}, {ws_handler, Event, Data}).
+
+-spec get_wrapped_graphupdate_message(list(), list()) -> list().
+get_wrapped_graphupdate_message(Type, Msg) ->
+    EncodedMessage = hrp_pb:encode({graphupdateresponse, [Msg]}),
+    hrp_pb:encode([{wrapper, Type, EncodedMessage}]).
 
 -spec get_random_dedicated_nodes(integer()) -> list().
 get_random_dedicated_nodes(NumberOfDedicatedNodes) ->
     [binary_to_list(NodeId) ||
         NodeId  <- redis:set_randmember("active_nodes", NumberOfDedicatedNodes)].
+
+-spec verify_node_does_not_exist(list()) -> any().
+verify_node_does_not_exist(NodeId) ->
+    case redis:get("node_hash_" ++ NodeId) of
+        undefined -> ok;
+        _Else -> error(alreadyexists)
+    end.
+
+-spec get_graph_update_deletion(integer(), list()) -> tuple().
+get_graph_update_deletion(Version, NodeId) ->
+    hrp_pb:encode(
+        {graphupdate, Version, false, [], [
+            {node, NodeId, "", 0, "", []}
+        ]}
+    ).
+
+-spec get_graph_update_addition(integer(), list(), list(), integer(), binary(), list()) -> any().
+get_graph_update_addition(Version, NodeId, IPaddress, Port, PublicKey, Edges) ->
+    hrp_pb:encode(
+        {graphupdate, Version, false, [
+            {node, NodeId, IPaddress, Port, PublicKey, Edges}
+        ], []}
+    ).
+
+-spec set_graph_version(integer(), list()) -> tuple().
+set_graph_version(Version, Update) ->
+    redis:set(
+        "version_" ++ integer_to_list(Version),
+        Update
+    ).
+
+-spec set_edges(list(), list()) -> tuple().
+set_edges(NodeId, Edges) ->
+    redis:set(
+        "node_edges_" ++ NodeId, hrp_pb:encode(Edges)
+    ).
+
+-spec remove_edges(list()) -> tuple().
+remove_edges(NodeId) ->
+    redis:remove(
+        "node_edges_" ++ NodeId
+    ).

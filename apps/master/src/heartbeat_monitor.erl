@@ -37,25 +37,24 @@ receive_heartbeat_client(Username, SecretHash) when is_list(Username), is_list(S
 
 -spec remove_inactive_nodes(integer()) -> list().
 remove_inactive_nodes(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbeats) ->
-    ExperidNodeIds = get_identifiers_expired_heartbeats("heartbeat_node_", TimeBetweenHeartbeats),
-    lists:foreach(
+    apply_to_expired_heartbeats(
+        "heartbeat_node_",
+        TimeBetweenHeartbeats,
         fun(Node) ->
             node_service:node_unregister(Node),
             remove_node(Node)
-        end,
-        ExperidNodeIds),
-    ExperidNodeIds.
+        end
+    ).
 
 -spec remove_inactive_clients(integer()) -> list().
 remove_inactive_clients(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbeats) ->
-    ExperidClientUsernames =
-        get_identifiers_expired_heartbeats("heartbeat_client_", TimeBetweenHeartbeats),
-    lists:foreach(
+    apply_to_expired_heartbeats(
+        "heartbeat_client_",
+        TimeBetweenHeartbeats,
         fun(Client) ->
             client_service:client_logout(Client)
-        end,
-        ExperidClientUsernames),
-    ExperidClientUsernames.
+        end
+    ).
 
 -spec add_node(list()) -> atom().
 add_node(NodeId) when is_list(NodeId) ->
@@ -78,10 +77,18 @@ get_current_time() ->
     {Mega, Secs, _} = erlang:timestamp(),
     Mega * 1000000 + Secs.
 
--spec get_identifiers_expired_heartbeats(list(), integer()) -> list().
-get_identifiers_expired_heartbeats(Label, TimeBetweenHeartbeats) ->
-    AllKeys = [binary_to_list(Key) || Key <- redis:get_matching_keys(Label)],
-    AllValues = [binary_to_integer(Value) || Value <- redis:get_list(AllKeys)],
-    LengthOfLabel = length("onion_") + length(Label),
-    [string:substr(Key, LengthOfLabel + 1) || {Key, Value} <- lists:zip(AllKeys, AllValues),
-        Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)].
+-spec apply_to_expired_heartbeats(list(), integer(), fun()) -> list().
+apply_to_expired_heartbeats(Label, TimeBetweenHeartbeats, Fun) ->
+    redis:apply_to_matching_keys(
+        Label,
+        fun(Keys) ->
+            AllValues = [binary_to_integer(Value) || Value <- redis:get_list(Keys)],
+            LengthOfLabel = length("onion_") + length(Label),
+            lists:foreach(
+                Fun,
+                [string:substr(binary_to_list(Key), LengthOfLabel + 1) ||
+                    {Key, Value} <- lists:zip(Keys, AllValues),
+                    Value < (?MODULE:get_current_time() - TimeBetweenHeartbeats)]
+            )
+        end
+    ).

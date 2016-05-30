@@ -11,7 +11,10 @@
                 eredis,
                 crypto,
                 lager,
-                mnesia
+                websocket,
+                mnesia,
+                sharded_eredis,
+                poolboy
             ]},
         {env,
             [
