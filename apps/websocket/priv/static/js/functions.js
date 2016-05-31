@@ -273,7 +273,11 @@ $(function () {
             },
             nodes: {
                 shape: 'circle',
-                color: 'white'
+                borderWidth: '2',
+                color: {
+                    border: '#546A74',
+                    background: 'gainsboro'
+                }
             },
             layout: {
                 hierarchical: {
