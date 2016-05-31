@@ -521,7 +521,7 @@ $(function () {
         $("#user-management-box").hide();
         $("#dashboard").show();
         $("#network").show();
-        showGraphDelayNotice("!! It can take some time to load the whole graph, depending on the amount of nodes in it !!");
+        showGraphDelayNotice("Loading the graph may take some time depending on the size of the graph. ");
         $("#settings-user-management").show();
     });
 
