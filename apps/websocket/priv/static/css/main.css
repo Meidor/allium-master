@@ -341,3 +341,7 @@ label {
     width:20px;
     height:20px;
 }
+
+#modal-message {
+    text-align: center;
+}

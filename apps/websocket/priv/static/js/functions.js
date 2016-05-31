@@ -128,7 +128,7 @@ $(function () {
                                             '<input type="button" class="edit-admin padding-button" data-superadmin="' + admin.superadmin + '" data-username="' + admin.username +
                                             '" value="Edit"/>' +
                                             '<input type="button" class="delete-admin padding-button" data-username="' + admin.username +
-                                            '" value="Delete"/>' +     '<p><a id="modalConfirmation" href="#ex1" rel="modal:open" hidden>Open Modal</a></p>' +
+                                            '" value="Delete"/>' +     '<p><a id="modalConfirmation" href="#modal-message" rel="modal:open" hidden>Open Modal</a></p>' +
                                         '</td>' +
                                     '</tr>';
                             });
