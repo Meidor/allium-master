@@ -24,10 +24,11 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
             error(clientnotverified)
     end.
 
--spec client_check_password(list(), list()) -> any().
-client_check_password(Username, Password) when is_list(Username), is_list(Password) ->
+-spec client_check_password_and_return_dedicated_nodes(list(), list()) -> any().
+client_check_password_and_return_dedicated_nodes(Username, Password) when is_list(Username), is_list(Password) ->
     try
-        {_, _, _, Password, _} = persistence_service:select_client(Username)
+        {_, _, _, Password, DedicatedNodes} = persistence_service:select_client(Username),
+        DedicatedNodes
     catch
         _:_ ->
             error(clientcredentialsnotvalid)
@@ -47,10 +48,9 @@ client_login(Username, Password, PublicKey)
     when
         is_list(Username), is_list(Password), is_binary(PublicKey)
     ->
-    client_check_password(Username, Password),
-    AmountOfDedicatedNodes = ?AMOUNTOFDEDICATEDNODES,
+    CurrentNodes = client_check_password_and_return_dedicated_nodes(Username, Password),
+    DedicatedNodes = assign_dedicated_nodes(CurrentNodes),
     SecretHash = base64:encode_to_string(crypto:strong_rand_bytes(50)),
-    DedicatedNodes = node_graph_manager:get_random_dedicated_nodes(AmountOfDedicatedNodes),
     persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
     {SecretHash, DedicatedNodes}.
 
@@ -79,3 +79,15 @@ verify_super_admin(Username)
     when
     is_list(Username) ->
     {Username, _, true} = persistence_service:select_admin(Username).
+
+-spec assign_dedicated_nodes(list()) -> list().
+assign_dedicated_nodes(CurrentNodes) ->
+    AmountOfDedicatedNodes = ?AMOUNTOFDEDICATEDNODES,
+    try
+        [] = CurrentNodes,
+        node_graph_manager:get_random_dedicated_nodes(AmountOfDedicatedNodes)
+    catch
+        _:_ ->
+            CurrentNodes
+    end.
+

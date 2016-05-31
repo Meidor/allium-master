@@ -18,6 +18,7 @@
     client_logout_return_ok_test/1,
     non_existing_client_logout_return_ok_test/1,
     client_login_return_secret_hash_and_dedicated_nodes_test/1,
+    client_login_while_already_logged_in_return_existing_dedicated_nodes_test/1,
     client_login_with_wrong_password_return_client_not_verified_test/1,
     admin_login_return_true_test/1,
     admin_login_return_false_test/1,
@@ -36,6 +37,7 @@ all() -> [
     client_logout_return_ok_test,
     non_existing_client_logout_return_ok_test,
     client_login_return_secret_hash_and_dedicated_nodes_test,
+    client_login_while_already_logged_in_return_existing_dedicated_nodes_test,
     client_login_with_wrong_password_return_client_not_verified_test,
     admin_login_return_true_test,
     admin_login_return_false_test,
@@ -135,6 +137,20 @@ client_login_return_secret_hash_and_dedicated_nodes_test(_Config) ->
     true = test_helpers:check_function_called(persistence_service, update_client,
         [ValidUsername, SecretHash, ValidPublicKey, Nodes]),
     true = test_helpers:check_function_called(node_graph_manager, get_random_dedicated_nodes, [AmountOfDedicatedNodes]).
+
+client_login_while_already_logged_in_return_existing_dedicated_nodes_test(_Config) ->
+    ValidUsername = "Username",
+    ValidPassword = "Password123",
+    ValidPublicKey = <<"PublicKey@123">>,
+    DedicatedNodes = ["node1","node2","node3","node4","node5"],
+    AmountOfDedicatedNodes = 5,
+    meck:expect(persistence_service, update_client, fun(_Username, _SecretHash, _publicKey, _DedicatedNodes) -> ok end),
+    meck:expect(persistence_service, select_client, fun(_Username) ->
+        {ValidUsername, undefined, ValidPublicKey, ValidPassword, DedicatedNodes} end),
+    {SecretHash, Nodes} = auth_service:client_login(ValidUsername, ValidPassword, ValidPublicKey),
+    true = test_helpers:check_function_called(persistence_service, update_client,
+        [ValidUsername, SecretHash, ValidPublicKey, Nodes]),
+    false = test_helpers:check_function_called(node_graph_manager, get_random_dedicated_nodes, [AmountOfDedicatedNodes]).
 
 admin_login_return_true_test(_Config) ->
     ValidUsername = "Username",
