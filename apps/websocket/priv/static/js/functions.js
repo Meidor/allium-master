@@ -120,11 +120,18 @@ $(function () {
                         case AdminListResponse.Status.SUCCES:
                             var tableContent = '';
                             adminListResponse.admins.forEach(function (admin) {
+                            var superAdmin = "";
+                            if(admin.superadmin) {
+                                superAdmin = "Yes";
+                            }
+                            else {
+                                superAdmin = "No";
+                            }
                                 tableContent +=
-                                    '<tr>' +
-                                        '<td class=""><strong>' + admin.username + '</strong></td>' +
-                                        '<td class="superAdminStatus"  >' + admin.superadmin + '</td>' +
-                                        '<td>' +
+                                    '<tr class="tr">' +
+                                        '<td class="td-username"><strong>' + admin.username + '</strong></td>' +
+                                        '<td class="td">' + superAdmin + '</td>' +
+                                        '<td class="td">' +
                                             '<input type="button" class="edit-admin padding-button" data-superadmin="' + admin.superadmin + '" data-username="' + admin.username +
                                             '" value="Edit"/>' +
                                             '<input type="button" class="delete-admin padding-button" data-username="' + admin.username +
@@ -496,6 +503,7 @@ $(function () {
 
     $("#settings-user-management").on('click', function (event) {
         $("#dashboard").hide();
+        $("#network").hide();
         $("#settings-user-management").hide();
         $("#settings-dashboard").show();
         $("#user-management-box").show();
@@ -507,6 +515,8 @@ $(function () {
         $("#settings-dashboard").hide();
         $("#user-management-box").hide();
         $("#dashboard").show();
+        $("#network").show();
+        showGraphDelayNotice("!! It can take some time to load the whole graph, depending on the amount of nodes in it !!");
         $("#settings-user-management").show();
     });
 
@@ -622,8 +632,12 @@ $(function () {
         }
     }
 
-    function showPassword(message) {
-        $("#show-password").html(message).show();
+    function showGraphDelayNotice(message) {
+        $("#graph-delay-notice").html(message).show().delay(10000).fadeOut();
+    }
+
+    function showPasswordNotice(message) {
+        $("#show-password-notice").html(message).show();
     }
 
     $("#find-node").on('keyup', function(event) {
