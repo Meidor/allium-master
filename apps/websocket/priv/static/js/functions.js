@@ -128,7 +128,7 @@ $(function () {
                                             '<input type="button" class="edit-admin padding-button" data-superadmin="' + admin.superadmin + '" data-username="' + admin.username +
                                             '" value="Edit"/>' +
                                             '<input type="button" class="delete-admin padding-button" data-username="' + admin.username +
-                                            '" value="Delete"/>' +
+                                            '" value="Delete"/>' +     '<p><a id="garbo" href="#ex1" rel="modal:open" hidden>Open Modal</a></p>' +
                                         '</td>' +
                                     '</tr>';
                             });
@@ -549,13 +549,8 @@ $(function () {
 
     $(document).on('click', '.delete-admin', function (event) {
         var username = $(this).data('username');
-        if (show_confirm_dialogue("Are you sure you want to delete admin" + username + "?")) {
-            var message = new AdminDeleteRequest();
-            message.username = username;
-
-            socketSend("ADMINDELETEREQUEST", message.encode());
-            deletedAdmin = username;
-        }
+        document.getElementById('garbo').click();
+        document.getElementById('usernameToDelete').innerHTML = username;
     });
 
     $("#edit-administrator-button").on('click', function (event) {
@@ -613,10 +608,6 @@ $(function () {
         }
     });
 
-    function show_confirm_dialogue() {
-        document.getElementById('garbo').click();
-    }
-
     function showNotice(message, success) {
         if (success) {
             $("#success-notice").html(message).show().delay(5000).fadeOut();
@@ -667,6 +658,20 @@ $(function () {
             $('#edge-to2').val(),
             'weight2'
         )
+    });
+
+    $("#delete-admin-accepted").on('click', function(event) {
+        username = document.getElementById('usernameToDelete').innerHTML;
+        $.modal.close();
+        var message = new AdminDeleteRequest();
+        message.username = username;
+
+        socketSend("ADMINDELETEREQUEST", message.encode());
+        deletedAdmin = username;
+    });
+
+    $("#delete-admin-rejected").on('click', function(event) {
+        $.modal.close();
     });
 
     $("#add-edge").on('click', function(event) {

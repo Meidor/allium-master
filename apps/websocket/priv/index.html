@@ -18,8 +18,6 @@
 </head>
 
 <body>
-    <!-- Link to open the modal -->
-    <p><a id="garbo" href="#ex1" rel="modal:open" hidden>Open Modal</a></p>
     <div id="network"></div>
     <div class="main" id="main">
         <h2>OnionMessenger</h2>
@@ -207,7 +205,13 @@
     <img src="img/dashboard.png" id="settings-dashboard" class="settings" alt="settings">
 
     <div id="ex1" style="display:none;">
-        <p>Thanks for clicking.  That felt good.  <a href="#" rel="modal:close">Close</a> or press ESC</p>
+        <p>Would you like to delete the admin </p> <span id="usernameToDelete"></span>
+
+        <input type="submit" id = "delete-admin-accepted" value="Delete" />
+        <input type="submit" id = "delete-admin-rejected" value="Keep"/>
+
+
+        <!--</form>-->
     </div>
 
     <span id="success-notice">
