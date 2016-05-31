@@ -549,7 +549,7 @@ $(function () {
 
     $(document).on('click', '.delete-admin', function (event) {
         var username = $(this).data('username');
-        if (confirm("Are you sure you want to delete admin" + username + "?")) {
+        if (show_confirm_dialogue("Are you sure you want to delete admin" + username + "?")) {
             var message = new AdminDeleteRequest();
             message.username = username;
 
@@ -612,6 +612,10 @@ $(function () {
             showNotice("Passwords do not match", false);
         }
     });
+
+    function show_confirm_dialogue() {
+        document.getElementById('garbo').click();
+    }
 
     function showNotice(message, success) {
         if (success) {
