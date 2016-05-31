@@ -273,7 +273,7 @@ $(function () {
             },
             nodes: {
                 shape: 'circle',
-                borderWidth: '2',
+                borderWidth: 2,
                 color: {
                     border: '#546A74',
                     background: 'gainsboro'
@@ -564,7 +564,7 @@ $(function () {
 
     $(document).on('click', '.delete-admin', function (event) {
         var username = $(this).data('username');
-        document.getElementById('modalConfirmation').click();
+        $("#modalConfirmation").click();
         document.getElementById('usernameToDelete').innerHTML = username;
     });
 
