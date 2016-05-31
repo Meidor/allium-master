@@ -52,9 +52,17 @@ html, body {
     width: 80px;
 }
 
+.padding-button:hover {
+    cursor: pointer;
+}
+
 .padding-reset-password-button {
     padding: 5px;
     width: 120px;
+}
+
+.padding-reset-password-button:hover {
+    cursor: pointer;
 }
 
 .padding-input {
@@ -171,6 +179,10 @@ center{
     position: absolute;
 }
 
+.settings:hover {
+    cursor: pointer;
+}
+
 #user-management {
     display: none;
 }
@@ -192,6 +204,10 @@ center{
     padding: 5px;
     width: 150px;
     float:right;
+}
+
+#add-administrator-button:hover {
+    cursor: pointer;
 }
 
 #table {
@@ -268,6 +284,7 @@ center{
       box-shadow: 5px 5px 5px grey;
       padding: 30px;
       transform: translate(-50%, 0%);
+      background: white;
 }
 
 #table-box {
