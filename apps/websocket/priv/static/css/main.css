@@ -388,3 +388,11 @@ center{
     width:20px;
     height:20px;
 }
+
+#modal-message {
+    text-align: center;
+    display: none;
+    top: 20%;
+    left: 40%;
+    position: absolute;
+}
