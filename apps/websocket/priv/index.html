@@ -150,12 +150,12 @@
         <h1>Administrators</h1>
         <hr>
         <div id="table-box">
-            <table>
+            <table id="table">
                 <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>SuperAdmin</th>
-                        <th></th>
+                    <tr class="tr">
+                        <th id="th">Username</th>
+                        <th id="th-super-admin">SuperAdmin</th>
+                        <th id="th-buttons"></th>
                     </tr>
                 </thead>
                 <tbody id="tbody">
@@ -168,7 +168,7 @@
         <h1>Add administrator</h1>
         <hr>
         <div class="add-content-wrapper content-wrapper">
-            <label for="add-username">Username</label>
+            <label class="label" for="add-username">Username</label>
             <input class="padding-input" type="text" minlength="2" id="add-username"/>
         </div>
 
@@ -182,11 +182,11 @@
         <h1 id="edit-username-title">Edit {Username}</h1>
         <hr>
         <div class="edit-content-wrapper content-wrapper">
-            <label for="edit-password">New password</label>
+            <label class="label" for="edit-password">New password</label>
             <input class="padding-input" type="password" id="edit-password"/><br />
-            <label for="edit-password2">Re-enter new password</label>
+            <label class="label" for="edit-password2">Re-enter new password</label>
             <input class="padding-input" type="password" id="edit-password2"/><br />
-            <label for="edit-superadmin">Super Admin</label>
+            <label class="label" for="edit-superadmin">Super Admin</label>
             <input type="checkbox" id="edit-superadmin"> If an administrator gets the right to be a super admin, he/she will have the authorisation to add new administrators to the system and edit their user information.<br />
         </div>
 
@@ -194,7 +194,7 @@
             <input type="hidden" id="edit-username" />
             <input type="button" id="back-button-edit" class="padding-button" value="Back" />
             <input type="submit" id="save-edit-admin-button" class="padding-button" value="Save" />
-            <input type="submit" id="reset-password-button" class ="padding-button" value="Reset password" />
+            <input type="submit" id="reset-password-button" class ="padding-reset-password-button" value="Reset password" />
         </div>
     </div>
 
@@ -207,7 +207,10 @@
     <span id="error-notice">
         &nbsp;
     </span>
-    <span id="show-password">
+    <span id="show-password-notice">
+        &nbsp;
+    </span>
+    <span id="graph-delay-notice">
         &nbsp;
     </span>
 </body>
