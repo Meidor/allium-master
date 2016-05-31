@@ -122,7 +122,7 @@ $(function () {
                             adminListResponse.admins.forEach(function (admin) {
                             var superAdmin = "";
                             if(admin.superadmin) {
-                                superAdmin = "Yes";
+                                superAdmin = "<b>Yes</b>";
                             }
                             else {
                                 superAdmin = "No";
@@ -272,12 +272,13 @@ $(function () {
                 arrowStrikethrough: true
             },
             nodes: {
-                shape: 'circle'
+                shape: 'circle',
+                color: 'white'
             },
             layout: {
                 hierarchical: {
                     enabled: true,
-                    nodeSpacing: 150,
+                    nodeSpacing: 200,
                     sortMethod: 'hubsize'
                 }
             }
