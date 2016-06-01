@@ -2,6 +2,7 @@
 
 -include_lib("common_test/include/ct.hrl").
 
+%% API
 -export([
     get_data_encrypted_response/3,
     encode_message_to_binary/1,

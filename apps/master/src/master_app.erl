@@ -2,6 +2,7 @@
 
 -behaviour(application).
 
+%% API
 -export([
     start/2,
     start/1,

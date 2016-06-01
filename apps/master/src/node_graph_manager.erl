@@ -1,5 +1,6 @@
 -module(node_graph_manager).
 
+%% API
 -export([get_graph_updates/1,
     rebuild_graph/0,
     build_graph/1,

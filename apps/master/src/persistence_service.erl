@@ -1,5 +1,6 @@
 -module(persistence_service).
 
+%% API
 -export([
     init/0,
     insert_client/2,
