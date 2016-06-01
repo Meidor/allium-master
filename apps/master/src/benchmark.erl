@@ -5,10 +5,14 @@
     benchmark/0, benchmark/1
 ]).
 
+%% @doc
+%% Starts a benchmark with a standard amount of 1000 requests to test.
 -spec benchmark() -> atom().
 benchmark() ->
     benchmark(1000).
 
+%% @doc
+%% Starts a benchmark, testing how long it takes to register nodes, users and how long it takes to fetch graph updates.
 -spec benchmark(integer()) -> atom().
 benchmark(Count) ->
     test_helpers_int:empty_database(),

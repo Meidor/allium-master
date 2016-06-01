@@ -27,6 +27,8 @@ websocket_init(_TransportName, Req, _Opts) ->
     subscribe(node_update),
     {ok, Req, undefined_state, hibernate}.
 
+%% @doc
+%% handles all communication to the websocket 
 -spec websocket_handle(tuple(), any(), any()) -> tuple().
 websocket_handle({text, Msg}, Req, State) ->
     {reply, {text, Msg}, Req, State};
@@ -36,6 +38,10 @@ websocket_handle({binary, Msg}, Req, State) ->
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
 
+
+%% @doc
+%% handles all binary requests from the administrator application.
+%% it decodes the request and passes the right values to the right functions.
 -spec handle_request(atom(), binary(), any(), any()) -> any().
 handle_request('ADMINLOGINREQUEST', Data, Req, State) ->
     {adminloginrequest, Username, Password} = hrp_pb:decode_adminloginrequest(Data),
@@ -112,10 +118,14 @@ websocket_info({?MODULE, _, Msg}, Req, State) ->
     lager:info("Received message from pub/sub sending it through the websocket."),
     {reply, {binary, Msg}, Req, State, hibernate}.
 
+%% @doc 
+%% used to terminate the websocket after use.
 -spec websocket_terminate(any(), any(), any()) -> atom().
 websocket_terminate(_Reason, _Req, _State) ->
     ok.
 
+%% @doc
+%% "wraps" a message and a type into a MessageWrapper.
 -spec get_wrapped_message(list(), list()) -> list().
 get_wrapped_message(Type, Msg) ->
     hrp_pb:encode([{wrapper, Type, Msg}]).
