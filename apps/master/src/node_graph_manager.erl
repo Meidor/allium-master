@@ -1,5 +1,6 @@
 %%%===================================================================
-%% @doc graph public API
+%% @doc
+%% graph public API
 %% @end
 %%%===================================================================
 -module(node_graph_manager).
@@ -63,6 +64,8 @@ get_graph_updates_for_versions(Versions) ->
 get_graph_updates_for_version(Version) ->
     redis:get("version_" ++ integer_to_list(Version)).
 
+%% @doc
+%% Updatates the graph with all saved graphupdates updates and updates the versioning.
 -spec rebuild_graph() -> atom().
 rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
@@ -72,6 +75,8 @@ rebuild_graph() ->
     update_min_version(NewMinVersion),
     ok.
 
+%% @doc
+%% Fetches graphupdates and then updates the current graph per graphupdate.
 -spec build_graph(integer()) -> tuple().
 build_graph(RequestedMinVersion) ->
     NewMinVersion = min(max(get_min_version(), RequestedMinVersion), get_max_version()),
@@ -95,6 +100,8 @@ get_current_full_graph() ->
         )
     ).
 
+%% @doc
+%% Alters the current graph to include a single graphupdate.
 -spec merge_update_with_graph(tuple(), tuple()) -> tuple().
 merge_update_with_graph(Update, Graph) ->
     {_, _, _, ResultingAdditions, _} = Graph,
@@ -142,6 +149,8 @@ protobuf_list_to_tuple_list(List) ->
 protobufs_to_tuple(Data) ->
     hrp_pb:decode_graphupdate(Data).
 
+%% @doc
+%% Adds a node to the graph using redis and publishes the added node to the management application.
 -spec add_node(list(), integer(), binary()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
     NodeId = lists:flatten(io_lib:format("~s:~p", [IPaddress, Port])),
@@ -159,6 +168,8 @@ add_node(IPaddress, Port, PublicKey) ->
     publish(node_update, UpdateMessage),
     {NodeId, Hash}.
 
+%% @doc
+%% Removes a node from the graph using redis and creates response.
 -spec remove_node(list()) -> atom().
 remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
@@ -177,6 +188,8 @@ remove_node(NodeId) ->
 set_max_version(Version) ->
     redis:set("max_version", Version).
 
+%% @doc
+%% Retrieves the secret hash of a node from redis.
 -spec get_node_secret_hash(list()) -> list().
 get_node_secret_hash(NodeId) ->
     try
@@ -186,6 +199,8 @@ get_node_secret_hash(NodeId) ->
             undefined
     end.
 
+%% @doc
+%% Updates a node in the graph (an update is a deletion and an addition in redis) and creates the appropriate message.
 -spec update_node(list(), list(), integer(), binary(), list()) -> atom().
 update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     DeleteVersion = get_max_version() + 1,
@@ -213,6 +228,8 @@ get_wrapped_graphupdate_message(Type, Msg) ->
     EncodedMessage = hrp_pb:encode({graphupdateresponse, [Msg]}),
     hrp_pb:encode([{wrapper, Type, EncodedMessage}]).
 
+%% @doc
+%% Fetches random nodes from redis to use as dedicated nodes for a client.
 -spec get_random_dedicated_nodes(integer()) -> list().
 get_random_dedicated_nodes(NumberOfDedicatedNodes) ->
     [binary_to_list(NodeId) ||

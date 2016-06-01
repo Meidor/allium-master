@@ -23,6 +23,8 @@
 
 -define(prefix, "onion_").
 
+%% @doc
+%% Starts redis.
 -spec init() -> any().
 init() ->
     sharded_eredis:start().
@@ -32,10 +34,14 @@ get(Key) ->
     {ok, Value} = sharded_eredis:q(["GET", ?prefix ++ Key]),
     Value.
 
+%% @doc
+%% returns all keys matching the provided key.
 -spec get_matching_keys(list()) -> list().
 get_matching_keys(Key) ->
     accumulate_command_on_all_nodes(["KEYS", ?prefix ++ Key ++ "*"]).
 
+%% @doc
+%% Gets a list of nodes based on a list of keys or retuns an empty list if no keys are passed.
 -spec get_list(list()) -> list().
 get_list([])->
     [];
@@ -43,6 +49,8 @@ get_list(ListOfKeys) ->
     {ok, ListOfValues} = sharded_eredis:q(["MGET" | ListOfKeys]),
     ListOfValues.
 
+%% @doc
+%% Used for testing purposes.
 -spec get_list_failsafe(list()) -> list().
 get_list_failsafe(ListOfKeys) ->
     lists:map(
@@ -50,31 +58,45 @@ get_list_failsafe(ListOfKeys) ->
         ListOfKeys
     ).
 
+%% @doc
+%% Sets a key-value pair in redis.
 -spec set(list(), list()) -> tuple().
 set(Key, Value) ->
     sharded_eredis:q(["SET", ?prefix ++ Key, Value]).
 
+%% @doc
+%% Removes a key-value pair from redis.
 -spec remove(list()) -> tuple().
 remove(Key) ->
     sharded_eredis:q(["DEL", ?prefix ++ Key]).
 
+%% @doc
+%% Returns an amount of random nodes.
 -spec set_randmember(list(), integer()) -> list().
 set_randmember(Set, Amount) ->
     {ok, Keys} = sharded_eredis:q(["SRANDMEMBER", ?prefix ++ Set,  Amount]),
     Keys.
 
+%% @doc
+%% Adds the value to a set.
 -spec set_add(list(), list()) -> tuple().
 set_add(Set, Value) ->
     sharded_eredis:q(["SADD", ?prefix ++ Set, Value]).
 
+%% @doc
+%% Removes a value from a specified set.
 -spec set_remove(list(), list()) -> tuple().
 set_remove(Set, Value) ->
     sharded_eredis:q(["SREM", ?prefix ++ Set, Value]).
 
+%% @doc
+%% Performs a function for all keys matching a filter.
 -spec apply_to_matching_keys(list(), fun()) -> atom().
 apply_to_matching_keys(Filter, Fun) ->
     apply_to_execute_command_on_all_nodes(["KEYS", ?prefix ++ Filter ++ "*"], Fun).
 
+%% @doc
+%% Applies a function to each node.???          todo Raoul vragen.
 -spec apply_to_execute_command_on_all_nodes(list(), fun()) -> atom().
 apply_to_execute_command_on_all_nodes(Command, Fun) ->
     {ok, NodeList} = application:get_env(sharded_eredis, ring),
