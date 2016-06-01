@@ -1,5 +1,6 @@
 %%%===================================================================
-%% @doc master public API
+%% @doc
+%% master public API
 %% @end
 %%%===================================================================
 -module(node_service).
@@ -10,6 +11,9 @@
     node_exists/1
 ]).
 
+%% @doc
+%% Allows for the registration of nodes. The passed information is checked, then passed on to the node_graph_manager.
+%% Also starts the heartbeat monitor for the node.
 -spec node_register(list(), integer(), binary()) -> tuple().
 node_register(IPaddress, Port, PublicKey)
     when
@@ -28,6 +32,8 @@ verify_ip(IPaddress) ->
         error -> error(Response)
     end.
 
+%% @doc
+%% Removes nodes. First checks the passed information, then removes the node. Used by the heartbeat monitor.
 -spec node_unregister(list()) -> any().
 node_unregister(NodeId)
     when
@@ -35,6 +41,8 @@ node_unregister(NodeId)
     ->
     node_graph_manager:remove_node(NodeId).
 
+%% @doc
+%% Removes nodes. First checks the passed information, then removes the node and the accompanying heartbeat.
 -spec node_unregister(list(), list()) -> any().
 node_unregister(NodeId, SecretHash)
     when
@@ -44,6 +52,8 @@ node_unregister(NodeId, SecretHash)
     node_graph_manager:remove_node(NodeId),
     heartbeat_monitor:remove_node(NodeId).
 
+%% @doc
+%% Checks whether the secret hash matches the known secret hash for the NodeId.
 -spec node_verify(list(), list()) -> list().
 node_verify(NodeId, SecretHash)
     when
@@ -67,6 +77,9 @@ set_edges(NodeId, Edges) when is_list(NodeId) ->
         )
     ).
 
+%% @doc
+%% Updates a node in the graph. First checks the passed data, then checks whether the ipaddress or port is changed.
+%% If that is the case, remove the node and add a new one with the new nodeId, otherwise, update the node.
 -spec node_update(list(), list(), list(), integer(), binary()) -> any().
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     when
@@ -88,6 +101,8 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
             NewNodeId
     end.
 
+%% @doc
+%% Checks whether a node exists in the current graph.
 -spec node_exists(list()) -> any().
 node_exists(NodeId) when is_list(NodeId) ->
     false = undefined == node_graph_manager:get_node_secret_hash(NodeId).
