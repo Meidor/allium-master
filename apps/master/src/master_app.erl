@@ -1,22 +1,12 @@
-%%%===================================================================
-%% @doc master public API
-%% @end
-%%%===================================================================
-
 -module(master_app).
 
 -behaviour(application).
 
-%% Application callbacks
 -export([
     start/2,
     start/1,
     stop/1,
     handle_message/1]).
-
-%%====================================================================
-%% API
-%%====================================================================
 
 %% @doc
 %% Start the master application. Makes it listen on port 1337 for requests.
@@ -38,10 +28,6 @@ start(_StartType, _StartArgs) ->
 -spec stop(any()) -> atom().
 stop(_State) ->
     ok.
-
-%%====================================================================
-%% Internal functions
-%%====================================================================
 
 %% @doc
 %% Starts a process listening on port 1337.
