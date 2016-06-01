@@ -96,7 +96,7 @@ apply_to_matching_keys(Filter, Fun) ->
     apply_to_execute_command_on_all_nodes(["KEYS", ?prefix ++ Filter ++ "*"], Fun).
 
 %% @doc
-%% Applies a function to each node.???          todo Raoul vragen.
+%% Voert een commando uit op alle redisnodes.
 -spec apply_to_execute_command_on_all_nodes(list(), fun()) -> atom().
 apply_to_execute_command_on_all_nodes(Command, Fun) ->
     {ok, NodeList} = application:get_env(sharded_eredis, ring),
