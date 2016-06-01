@@ -1,8 +1,3 @@
-%%%===================================================================
-%% @doc
-%% master public API
-%% @end
-%%%===================================================================
 -module(node_service).
 -export([node_register/3,
     node_unregister/1, node_unregister/2,
