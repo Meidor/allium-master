@@ -10,14 +10,16 @@
 %% Application callbacks
 -export([
     start/2,
-    stop/1,
     start/1,
+    stop/1,
     handle_message/1]).
 
 %%====================================================================
 %% API
 %%====================================================================
 
+%% @doc
+%% Start the master application. Makes it listen on port 1337 for requests.
 -spec start(any(), any()) -> any().
 start(_StartType, _StartArgs) ->
     lager:start(),
@@ -31,6 +33,8 @@ start(_StartType, _StartArgs) ->
     timer:sleep(14400000),
     Link.
 
+%% @doc
+%% Stops the master application.
 -spec stop(any()) -> atom().
 stop(_State) ->
     ok.
@@ -39,6 +43,8 @@ stop(_State) ->
 %% Internal functions
 %%====================================================================
 
+%% @doc
+%% Starts a process listening on port 1337.
 -spec start(integer()) -> any().
 start(Port) ->
     spawn(fun() -> server(Port) end).
@@ -55,6 +61,8 @@ listen(Socket) ->
     ok = gen_tcp:controlling_process(Active_socket, Handler),
     listen(Socket).
 
+%% @doc
+%% Takes requests, checks the type of the requests and sends it to the appropriate function to handle the request.
 -spec handle_messages(any()) -> any().
 handle_messages(Socket) ->
     receive
