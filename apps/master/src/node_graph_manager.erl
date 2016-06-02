@@ -61,7 +61,7 @@ get_graph_updates_for_version(Version) ->
     redis:get("version_" ++ integer_to_list(Version)).
 
 %% @doc
-%% Updatates the graph with all saved graphupdates updates and updates the versioning.
+%% Updatates the graph with all saved graphupdates and updates the versioning.
 -spec rebuild_graph() -> atom().
 rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
@@ -72,7 +72,7 @@ rebuild_graph() ->
     ok.
 
 %% @doc
-%% Fetches graphupdates and then updates the current graph per graphupdate.
+%% Fetches graphupdates and then updates the current graph one graphupdate at a time.
 -spec build_graph(integer()) -> tuple().
 build_graph(RequestedMinVersion) ->
     NewMinVersion = min(max(get_min_version(), RequestedMinVersion), get_max_version()),
@@ -97,7 +97,7 @@ get_current_full_graph() ->
     ).
 
 %% @doc
-%% Alters the current graph to include a single graphupdate.
+%% Updates the current graph to reflect the changes brought by a single graphupdate.
 -spec merge_update_with_graph(tuple(), tuple()) -> tuple().
 merge_update_with_graph(Update, Graph) ->
     {_, _, _, ResultingAdditions, _} = Graph,
@@ -165,7 +165,8 @@ add_node(IPaddress, Port, PublicKey) ->
     {NodeId, Hash}.
 
 %% @doc
-%% Removes a node from the graph using redis and creates response.
+%% Removes a node from the graph using redis, publishes the removed node to the management application
+%% and creates a proper response.
 -spec remove_node(list()) -> atom().
 remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
@@ -196,7 +197,8 @@ get_node_secret_hash(NodeId) ->
     end.
 
 %% @doc
-%% Updates a node in the graph (an update is a deletion and an addition in redis) and creates the appropriate message.
+%% Updates a node in the graph (an update is a deletion and an addition in redis),
+%% publishes the updated node to the management application and creates the appropriate message.
 -spec update_node(list(), list(), integer(), binary(), list()) -> atom().
 update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     DeleteVersion = get_max_version() + 1,

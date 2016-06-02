@@ -13,7 +13,7 @@
     get_current_time/0]).
 
 %% @doc
-%% Handles the receiving of a heartbeat from a node.
+%% Handles receiving a heartbeat from a node. First verifies the node, then resets the heartbeat for that node.
 -spec receive_heartbeat_node(list(), list()) -> any().
 receive_heartbeat_node(NodeId, SecretHash) when is_list(NodeId), is_list(SecretHash) ->
     try
@@ -26,7 +26,7 @@ receive_heartbeat_node(NodeId, SecretHash) when is_list(NodeId), is_list(SecretH
     end.
 
 %% @doc
-%% Handles the receiving of a heartbeat from a client.
+%% Handles receiving a heartbeat from a client. First verifies the client, then resets the heartbeat for that client.
 -spec receive_heartbeat_client(list(), list()) -> any().
 receive_heartbeat_client(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
     try
@@ -39,7 +39,7 @@ receive_heartbeat_client(Username, SecretHash) when is_list(Username), is_list(S
     end.
 
 %% @doc
-%% Checks for all the nodes that timed out and removes them from the graph.
+%% Checks for all the nodes that timed out and removes them from the graph and from the heartbeat_monitor.
 -spec remove_inactive_nodes(integer()) -> list().
 remove_inactive_nodes(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbeats) ->
     apply_to_expired_heartbeats(
@@ -52,7 +52,7 @@ remove_inactive_nodes(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbea
     ).
 
 %% @doc
-%% Checks for all the clients that timed out and removes them.
+%% Checks for all the clients that timed out. then logs those clients out.
 -spec remove_inactive_clients(integer()) -> list().
 remove_inactive_clients(TimeBetweenHeartbeats) when is_integer(TimeBetweenHeartbeats) ->
     apply_to_expired_heartbeats(

@@ -1,7 +1,8 @@
 -module(redis).
 
 %% API
--export([get/1,
+-export([
+    get/1,
     set/2,
     remove/1,
     get_matching_keys/1,
@@ -23,13 +24,15 @@
 init() ->
     sharded_eredis:start().
 
+%% @doc
+%% Returns the node matching the provided key.
 -spec get(list()) -> binary().
 get(Key) ->
     {ok, Value} = sharded_eredis:q(["GET", ?prefix ++ Key]),
     Value.
 
 %% @doc
-%% returns all keys matching the provided key.
+%% returns all values matching the provided key.
 -spec get_matching_keys(list()) -> list().
 get_matching_keys(Key) ->
     accumulate_command_on_all_nodes(["KEYS", ?prefix ++ Key ++ "*"]).
