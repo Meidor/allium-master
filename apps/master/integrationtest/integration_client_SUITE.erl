@@ -193,9 +193,7 @@ register_new_client_and_log_in_while_three_nodes_exist_return_all_nodes_as_dedic
     3 = length(lists:filter(fun(NodeId) -> lists:member(NodeId, DedicatedNodes) end, NodeIds)).
 
 register_new_client_and_log_in_while_ten_nodes_exist_return_five_nodes_as_dedicated_nodes_test(Config) ->
-    Username = "anotherusername",
-    Password = "Password1234",
-    PublicKey = <<"anotherpublickey">>,
+    {Username, Password, PublicKey, _, _} = ?config(client, Config),
     NodeIPsAndKeys = ?config(nodes, Config),
     NodeIds = [test_helpers_int:register_node_return_id(IP, Key) || {IP, Key} <- NodeIPsAndKeys],
     test_helpers_int:register_client(Username, Password),
