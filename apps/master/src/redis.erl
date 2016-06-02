@@ -81,7 +81,7 @@ set_add(Set, Value) ->
     sharded_eredis:q(["SADD", ?prefix ++ Set, Value]).
 
 %% @doc
-%% Removes a value from a specified set.
+%% Removes the specified value from the specified set.
 -spec set_remove(list(), list()) -> tuple().
 set_remove(Set, Value) ->
     sharded_eredis:q(["SREM", ?prefix ++ Set, Value]).
@@ -93,7 +93,7 @@ apply_to_matching_keys(Filter, Fun) ->
     apply_to_execute_command_on_all_nodes(["KEYS", ?prefix ++ Filter ++ "*"], Fun).
 
 %% @doc
-%% Voert een commando uit op alle redisnodes.
+%% Executes a command on all redisnodes.
 -spec apply_to_execute_command_on_all_nodes(list(), fun()) -> atom().
 apply_to_execute_command_on_all_nodes(Command, Fun) ->
     {ok, NodeList} = application:get_env(sharded_eredis, ring),
