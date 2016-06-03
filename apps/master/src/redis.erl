@@ -19,7 +19,7 @@
 -define(prefix, "onion_").
 
 %% @doc
-%% Starts redis.
+%% Starts eredis.
 -spec init() -> any().
 init() ->
     sharded_eredis:start().

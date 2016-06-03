@@ -61,7 +61,7 @@ get_graph_updates_for_version(Version) ->
     redis:get("version_" ++ integer_to_list(Version)).
 
 %% @doc
-%% Updatates the graph with all saved graphupdates and updates the versioning.
+%% Updates the graph with all saved graphupdates and updates the versioning.
 -spec rebuild_graph() -> atom().
 rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
