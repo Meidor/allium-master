@@ -9,9 +9,9 @@
     stop/1,
     handle_message/1]).
 
+-spec start(any(), any()) -> any().
 %% @doc
 %% Start the master application. Makes it listen on port 1337 for requests.
--spec start(any(), any()) -> any().
 start(_StartType, _StartArgs) ->
     lager:start(),
     Link = master_sup:start_link(),
@@ -24,15 +24,17 @@ start(_StartType, _StartArgs) ->
     timer:sleep(14400000),
     Link.
 
+-spec stop(any()) -> atom().
 %% @doc
 %% Stops the master application.
--spec stop(any()) -> atom().
 stop(_State) ->
     ok.
 
-%% @doc
-%% Starts a process listening on port 1337.
 -spec start(integer()) -> any().
+%% @doc
+%% Starts a process listening the port.
+%% param
+%% Port: the port the process will be listening on.
 start(Port) ->
     spawn(fun() -> server(Port) end).
 
@@ -48,9 +50,12 @@ listen(Socket) ->
     ok = gen_tcp:controlling_process(Active_socket, Handler),
     listen(Socket).
 
-%% @doc
-%% Takes requests, checks the type of the requests and sends it to the appropriate function to handle the request.
 -spec handle_messages(any()) -> any().
+%% @doc
+%% Takes requests, checks the type of the requests and sends it to the appropriate function to handle the request,
+%% also sends the response.
+%% param
+%% Socket: The socket the application is listening at.
 handle_messages(Socket) ->
     receive
         {tcp, error, closed} ->

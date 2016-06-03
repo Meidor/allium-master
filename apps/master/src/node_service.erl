@@ -1,5 +1,6 @@
 -module(node_service).
 
+%% API
 -export([node_register/3,
     node_unregister/1, node_unregister/2,
     node_verify/2,

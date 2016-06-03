@@ -60,9 +60,9 @@ get_graph_updates_for_versions(Versions) ->
 get_graph_updates_for_version(Version) ->
     redis:get("version_" ++ integer_to_list(Version)).
 
-%% @doc
-%% Updates the graph with all saved graphupdates and updates the versioning.
 -spec rebuild_graph() -> atom().
+%% @doc
+%% Takes half the current graphupdates and puts them together to form one single big graphupdate.
 rebuild_graph() ->
     NewMinVersion = get_new_min_version(),
     Graph = build_graph(NewMinVersion),
@@ -71,9 +71,12 @@ rebuild_graph() ->
     update_min_version(NewMinVersion),
     ok.
 
-%% @doc
-%% Fetches graphupdates and then updates the current graph one graphupdate at a time.
 -spec build_graph(integer()) -> tuple().
+%% @doc
+%% Fetches graphupdates up to the requested new min version
+%% and then updates the current graph one graphupdate at a time.
+%% param
+%% RequestedMinVersion: The version up to which the graph should be built.
 build_graph(RequestedMinVersion) ->
     NewMinVersion = min(max(get_min_version(), RequestedMinVersion), get_max_version()),
     GraphUpdates = lists:takewhile(
@@ -96,9 +99,12 @@ get_current_full_graph() ->
         )
     ).
 
+-spec merge_update_with_graph(tuple(), tuple()) -> tuple().
 %% @doc
 %% Updates the current graph to reflect the changes brought by a single graphupdate.
--spec merge_update_with_graph(tuple(), tuple()) -> tuple().
+%% param
+%% Update: a single graph update.
+%% Graph: the current graph.
 merge_update_with_graph(Update, Graph) ->
     {_, _, _, ResultingAdditions, _} = Graph,
     {_, _, _, Additions, Deletes} = Update,
@@ -145,10 +151,15 @@ protobuf_list_to_tuple_list(List) ->
 protobufs_to_tuple(Data) ->
     hrp_pb:decode_graphupdate(Data).
 
-%% @doc
-%% Adds a node to the graph using redis and publishes the added node to the management application.
-%% Error: alreadyexists, occurs when the NodeId already exists.
 -spec add_node(list(), integer(), binary()) -> tuple().
+%% @doc
+%% Adds a node to the graph using redis, Ups the graph version by one, saves the hash of the node,
+%% saves the edges of the node and publishes the added node to the management application.
+%% Error: alreadyexists, occurs when the NodeId already exists in redis.
+%% param
+%% NodeId: Id of the node.
+%% Port: port of the node.
+%% PublicKey: public key of the node.
 add_node(IPaddress, Port, PublicKey) ->
     NodeId = lists:flatten(io_lib:format("~s:~p", [IPaddress, Port])),
     verify_node_does_not_exist(NodeId),
@@ -165,10 +176,12 @@ add_node(IPaddress, Port, PublicKey) ->
     publish(node_update, UpdateMessage),
     {NodeId, Hash}.
 
-%% @doc
-%% Removes a node from the graph using redis, publishes the removed node to the management application
-%% and creates a proper response.
 -spec remove_node(list()) -> atom().
+%% @doc
+%% Removes a node from the graph using redis, ups the graph version by one, removes the edges of the node,
+%% publishes the removed node to the management application and creates a proper response.
+%% param
+%% NodeId: Id of the node.
 remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
     redis:set_remove("active_nodes", NodeId),
@@ -186,9 +199,11 @@ remove_node(NodeId) ->
 set_max_version(Version) ->
     redis:set("max_version", Version).
 
+-spec get_node_secret_hash(list()) -> list().
 %% @doc
 %% Retrieves the secret hash of a node from redis.
--spec get_node_secret_hash(list()) -> list().
+%% param
+%% NodeId: Id of the node.
 get_node_secret_hash(NodeId) ->
     try
         binary_to_list(redis:get("node_hash_" ++ NodeId))
@@ -197,10 +212,16 @@ get_node_secret_hash(NodeId) ->
             undefined
     end.
 
-%% @doc
-%% Updates a node in the graph (an update is a deletion and an addition in redis),
-%% publishes the updated node to the management application and creates the appropriate message.
 -spec update_node(list(), list(), integer(), binary(), list()) -> atom().
+%% @doc
+%% Updates a node in the graph (an update is a deletion and an addition in redis), ups the version by one,
+%% saves the edges, publishes the updated node to the management application and creates the appropriate message.
+%% param
+%% NodeId: Id of the node.
+%% IPaddress: IP address of the node.
+%% Port: Port of the node.
+%% PublicKey: Public key of the node.
+%% Edges: Nodes connected to this node.
 update_node(NodeId, IPaddress, Port, PublicKey, Edges) ->
     DeleteVersion = get_max_version() + 1,
     AddVersion = DeleteVersion + 1,
@@ -227,9 +248,11 @@ get_wrapped_graphupdate_message(Type, Msg) ->
     EncodedMessage = hrp_pb:encode({graphupdateresponse, [Msg]}),
     hrp_pb:encode([{wrapper, Type, EncodedMessage}]).
 
-%% @doc
-%% Fetches random nodes from redis to use as dedicated nodes for a client.
 -spec get_random_dedicated_nodes(integer()) -> list().
+%% @doc
+%% Fetches a number of dedicated nodes from redis to use as dedicated nodes for a client.
+%% param
+%% NumberOfDedicatedNodes: the amount of dedicated nodes to fetch.
 get_random_dedicated_nodes(NumberOfDedicatedNodes) ->
     [binary_to_list(NodeId) ||
         NodeId  <- redis:set_randmember("active_nodes", NumberOfDedicatedNodes)].
