@@ -18,58 +18,74 @@
 
 -define(prefix, "onion_").
 
+-spec init() -> any().
 %% @doc
 %% Starts eredis.
--spec init() -> any().
 init() ->
     sharded_eredis:start().
 
+-spec get(list()) -> binary().
 %% @doc
 %% Returns the node matching the provided key.
--spec get(list()) -> binary().
+%% params
+%% Key: key of the key-value pair that you are trying to get.
 get(Key) ->
     {ok, Value} = sharded_eredis:q(["GET", ?prefix ++ Key]),
     Value.
 
+-spec get_matching_keys(list()) -> list().
 %% @doc
 %% returns all values matching the provided key.
--spec get_matching_keys(list()) -> list().
+%% params
+%% Key: key of the key_value pairs that you are trying to get.
 get_matching_keys(Key) ->
     accumulate_command_on_all_nodes(["KEYS", ?prefix ++ Key ++ "*"]).
 
+-spec get_list(list()) -> list().
 %% @doc
 %% Gets a list of nodes based on a list of keys or retuns an empty list if no keys are passed.
--spec get_list(list()) -> list().
+%% params
+%% ListOfKeys: list of keys that you want to have a selection of nodes from.
 get_list([])->
     [];
 get_list(ListOfKeys) ->
     {ok, ListOfValues} = sharded_eredis:q(["MGET" | ListOfKeys]),
     ListOfValues.
 
+-spec get_list_failsafe(list()) -> list().
 %% @doc
 %% Used for testing purposes.
--spec get_list_failsafe(list()) -> list().
+%% params
+%% ListOfKeys: list of keys for getting values.
 get_list_failsafe(ListOfKeys) ->
     lists:map(
         fun(Key) -> {ok, Value} = sharded_eredis:q(["GET", Key]), Value end,
         ListOfKeys
     ).
 
+-spec set(list(), list()) -> tuple().
 %% @doc
 %% Sets a key-value pair in redis.
--spec set(list(), list()) -> tuple().
+%% params
+%% Key: key of the value that you are trying to set.
+%% Value: value that you are trying to set.
 set(Key, Value) ->
     sharded_eredis:q(["SET", ?prefix ++ Key, Value]).
 
+-spec remove(list()) -> tuple().
 %% @doc
 %% Removes a key-value pair from redis.
--spec remove(list()) -> tuple().
+%% params
+%% Key: key of the key-value pair that needs to be removed
 remove(Key) ->
     sharded_eredis:q(["DEL", ?prefix ++ Key]).
 
+-spec set_randmember(list(), integer()) -> list().
 %% @doc
 %% Returns an amount of random nodes.
--spec set_randmember(list(), integer()) -> list().
+%% params
+%% Set: set to return nodes from.
+%% Amount: the amount of nodes to return.
 set_randmember(Set, Amount) ->
     {ok, Keys} = sharded_eredis:q(["SRANDMEMBER", ?prefix ++ Set,  Amount]),
     Keys.
@@ -77,24 +93,38 @@ set_randmember(Set, Amount) ->
 %% @doc
 %% Adds the value to a set.
 -spec set_add(list(), list()) -> tuple().
+%% @doc
+%% Adds the value to a set.
+%% params
+%% Set: set to add nodes to.
+%% Value: value to add to the set.
 set_add(Set, Value) ->
     sharded_eredis:q(["SADD", ?prefix ++ Set, Value]).
 
+-spec set_remove(list(), list()) -> tuple().
 %% @doc
 %% Removes the specified value from the specified set.
--spec set_remove(list(), list()) -> tuple().
+%% params
+%% Set: set to remove node from
+%% Value: value to remove from set
 set_remove(Set, Value) ->
     sharded_eredis:q(["SREM", ?prefix ++ Set, Value]).
 
+-spec apply_to_matching_keys(list(), fun()) -> atom().
 %% @doc
 %% Performs a function for all keys matching a filter.
--spec apply_to_matching_keys(list(), fun()) -> atom().
+%% params
+%% Filter: to select wanted nodes
+%% Fun: function to execute on the nodes
 apply_to_matching_keys(Filter, Fun) ->
     apply_to_execute_command_on_all_nodes(["KEYS", ?prefix ++ Filter ++ "*"], Fun).
 
+-spec apply_to_execute_command_on_all_nodes(list(), fun()) -> atom().
 %% @doc
 %% Executes a command on all redisnodes.
--spec apply_to_execute_command_on_all_nodes(list(), fun()) -> atom().
+%% params
+%% Filter: to select wanted nodes
+%% Fun: function to execute on the nodes
 apply_to_execute_command_on_all_nodes(Command, Fun) ->
     {ok, NodeList} = application:get_env(sharded_eredis, ring),
     Nodes = [Node || {_, Node} <- NodeList],
