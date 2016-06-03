@@ -1,4 +1,6 @@
 -module(test_helpers).
+
+%% API
 -export([
     assert_fail/5,
     check_function_called/3,
