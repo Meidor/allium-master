@@ -8,11 +8,17 @@
     node_exists/1
 ]).
 
+-spec node_register(list(), integer(), binary()) -> tuple().
 %% @doc
 %% Allows for the registration of nodes. The passed information is checked, then passed on to the node_graph_manager.
 %% Also starts the heartbeat monitor for the node.
-%% Error: einval, if parse_strict address fails.
--spec node_register(list(), integer(), binary()) -> tuple().
+%% params
+%% IPadress: IP address of the node.
+%% Port: port of the node.
+%% PublicKey: public key of the node.
+%% errors
+%% einval: if parse_strict address fails.
+%% alreadyexists: when node already exist.
 node_register(IPaddress, Port, PublicKey)
     when
         is_list(IPaddress), is_integer(Port), Port > 0, Port < 65536, is_binary(PublicKey)
@@ -30,19 +36,25 @@ verify_ip(IPaddress) ->
         error -> error(Response)
     end.
 
-%% @doc
-%% Removes nodes. First checks the passed information, then removes the node. Used by the heartbeat monitor.
 -spec node_unregister(list()) -> any().
+%% @doc
+%% Removes nodes. First checks the passed information, then removes the node.
+%% params
+%% NodeId: id of the node.
 node_unregister(NodeId)
     when
         is_list(NodeId)
     ->
     node_graph_manager:remove_node(NodeId).
 
+-spec node_unregister(list(), list()) -> any().
 %% @doc
 %% Removes nodes. First checks the passed information, then removes the node and the accompanying heartbeat.
-%% Error: badmatch, if the passed combination of nodeId and SecretHash doesn't match the known combination.
--spec node_unregister(list(), list()) -> any().
+%% params
+%% NodeId: id of the node.
+%% SecretHash: secret hash of the node.
+%% errors
+%% badmatch: if the passed combination of nodeId and SecretHash doesn't match the known combination.
 node_unregister(NodeId, SecretHash)
     when
         is_list(NodeId), is_list(SecretHash)
@@ -51,9 +63,14 @@ node_unregister(NodeId, SecretHash)
     node_graph_manager:remove_node(NodeId),
     heartbeat_monitor:remove_node(NodeId).
 
+-spec node_verify(list(), list()) -> list().
 %% @doc
 %% Checks whether the secret hash matches the known secret hash for the NodeId.
--spec node_verify(list(), list()) -> list().
+%% params
+%% NodeId: id of the node.
+%% SecretHash: secret hash of the node.
+%% errors
+%% undefined: when there can not be generated a secret hash for the node.
 node_verify(NodeId, SecretHash)
     when
         is_list(NodeId), is_list(SecretHash)
@@ -76,12 +93,19 @@ set_edges(NodeId, Edges) when is_list(NodeId) ->
         )
     ).
 
+-spec node_update(list(), list(), list(), integer(), binary()) -> any().
 %% @doc
 %% Updates a node in the graph. First checks the passed data, then checks whether the ipaddress or port is changed.
 %% If that is the case, remove the node and add a new one with the new nodeId, otherwise, update the node.
-%% Error: einval, if parse_strict address fails.
-%% Error: badmatch, if the passed combination of nodeId and SecretHash doesn't match the known combination.
--spec node_update(list(), list(), list(), integer(), binary()) -> any().
+%% params
+%% NodeId: id of the node.
+%% SecretHash: secret hash of the node.
+%% IPadress: IP address of the node.
+%% Port: port of the node.
+%% PublicKey: public key of the node.
+%% errors
+%% einval: if parse_strict address fails.
+%% badmatch: if the passed combination of nodeId and SecretHash doesn't match the known combination.
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     when
         is_list(NodeId), is_list(SecretHash), is_list(IPaddress), is_integer(Port),
@@ -102,9 +126,12 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
             NewNodeId
     end.
 
+-spec node_exists(list()) -> any().
 %% @doc
 %% Checks whether a node exists in the current graph.
-%% Error: badmatch, if the passed node doesn't exist.
--spec node_exists(list()) -> any().
+%% params
+%% NodeId: id of the node.
+%% errors
+%% badmatch: if the passed node doesn't exist.
 node_exists(NodeId) when is_list(NodeId) ->
     false = undefined == node_graph_manager:get_node_secret_hash(NodeId).
