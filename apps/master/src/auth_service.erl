@@ -11,15 +11,26 @@
 
 -define(AMOUNTOFDEDICATEDNODES, 5).
 
+-spec client_register(list(), list()) -> any().
 %% @doc
 %% Allows for the registration of clients. The passed information is checked, then passed on to the auth_service.
--spec client_register(list(), list()) -> any().
+%% params
+%% Username: username of the client.
+%% Password: password of the client. 
+%% errors
+%% usernametaken: when username is taken.
+%% couldnotbeinserted: when there is an error inside mnesia.
 client_register(Username, Password) when is_list(Username), is_list(Password) ->
     persistence_service:insert_client(Username, Password).
 
+-spec client_verify(list(), list()) -> any().
 %% @doc
 %% Checks whether secret hash matches the known secret hash for the username.
--spec client_verify(list(), list()) -> any().
+%% params
+%% Username: username of the client.
+%% SecretHash: secretHash of the client. 
+%% errors
+%% clientnotverified: when client is not verified.
 client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
     try
         {_, SecretHash, _, _, _} = persistence_service:select_client(Username)
@@ -28,9 +39,6 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
             error(clientnotverified)
     end.
 
-%% @doc
-%% Checks whether the password matches the known password for the username.
-%% If this is the case, the method will return the dedicated nodes that are connected to the client.
 -spec client_check_password_and_return_dedicated_nodes(list(), list()) -> any().
 client_check_password_and_return_dedicated_nodes(Username, Password) when is_list(Username), is_list(Password) ->
     try
@@ -41,10 +49,15 @@ client_check_password_and_return_dedicated_nodes(Username, Password) when is_lis
             error(clientcredentialsnotvalid)
     end.
 
-%% @doc
-%% Tries to update the secret hash for the username.
-%% If client has been updated he will be logged out.
 -spec client_logout(list()) -> any().
+%% @doc
+%% Sets the secret hash of the user to undefined.
+%% If client has been updated he will be logged out.
+%% params
+%% Username: username of the client.
+%% errors
+%% couldnotbeupdated: when client could not be updated.
+%% couldnotbeloggedout: when client could net be logged in (when client could not be updated.)
 client_logout(Username) when is_list(Username) ->
     try
         persistence_service:update_client_hash(Username, undefined)
@@ -53,12 +66,19 @@ client_logout(Username) when is_list(Username) ->
             error(couldnotbeloggedout)
     end.
 
+-spec client_login(list(), list(), binary())-> any().
 %% @doc
 %% Allows for the login of clients. The passed information is checked in a couple of ways.
 %% A couple of random nodes will be assigned to the client, after that, a secret hash will be generated.
 %% These variables will be added to the clients user credentials and when this is done the secret hash and
 %% dedicated nodes will be returned.
--spec client_login(list(), list(), binary())-> any().
+%% params
+%% Username: username of the client.
+%% Password: password of the client.
+%% PublicKey: publickey of the cient.
+%% errors
+%% couldnotbeupdated: when client could not be updated.
+%% clientcredentialsnotvalid: when the info of the client could not be matched to a registered client.
 client_login(Username, Password, PublicKey)
     when
         is_list(Username), is_list(Password), is_binary(PublicKey)
@@ -69,10 +89,15 @@ client_login(Username, Password, PublicKey)
     persistence_service:update_client(Username, SecretHash, PublicKey, DedicatedNodes),
     {SecretHash, DedicatedNodes}.
 
+-spec admin_login(list(), list())-> true | false.
 %% @doc
 %% Checks whether the password matches the known password for the username.
 %% If the admin exists in the system his super admin status will be returned.
--spec admin_login(list(), list())-> true | false.
+%% params
+%% Username: username of the client.
+%% Password: password of the client.
+%% errors
+%% admincredentialsnotvalid: when the info of the admin could not be matched to a registered.
 admin_login(Username, Password)
     when
     is_list(Username), is_list(Password) ->
@@ -92,9 +117,11 @@ admin_check_password_and_return_super_admin(Username, Password)
             error(admincredentialsnotvalid)
     end.
 
+-spec verify_super_admin(list()) -> any().
 %% @doc
 %% Checks whether the admin is a super admin.
--spec verify_super_admin(list()) -> any().
+%% params
+%% Username: username of the client.
 verify_super_admin(Username)
     when
     is_list(Username) ->
