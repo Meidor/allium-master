@@ -94,8 +94,8 @@ client_login(Username, Password, PublicKey)
 %% Checks whether the password matches the known password for the username.
 %% If the admin exists in the system his super admin status will be returned.
 %% params
-%% Username: username of the client.
-%% Password: password of the client.
+%% Username: username of the admin.
+%% Password: password of the admin.
 %% errors
 %% admincredentialsnotvalid: when the info of the admin could not be matched to a registered.
 admin_login(Username, Password)
@@ -121,7 +121,7 @@ admin_check_password_and_return_super_admin(Username, Password)
 %% @doc
 %% Checks whether the admin is a super admin.
 %% params
-%% Username: username of the client.
+%% Username: username of the admin.
 verify_super_admin(Username)
     when
     is_list(Username) ->
