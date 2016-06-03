@@ -1,6 +1,3 @@
-%% Feel free to use, reuse and abuse the code in this file.
-
-%% @private
 -module(websocket_app).
 -behaviour(application).
 
@@ -10,8 +7,6 @@
     stop/1
 ]).
 
-%% @doc
-%% For starting the cowboy websocket.
 start(_Type, _Args) ->
   Dispatch = cowboy_router:compile([
     {'_', [
@@ -42,7 +37,5 @@ start(_Type, _Args) ->
     [{env, [{dispatch, Dispatch}]}]),
   websocket_sup:start_link().
 
-%% @doc
-%% For stopping the cowboy websocket.
 stop(_State) ->
   ok.
