@@ -2,6 +2,8 @@
 -behaviour(cowboy_websocket_handler).
 
 -export([init/3]).
+
+%% API
 -export([
     websocket_init/3,
     websocket_handle/3,
