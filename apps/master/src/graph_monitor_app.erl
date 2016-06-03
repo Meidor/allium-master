@@ -4,7 +4,6 @@
 
 -define(INTERVAL, element(2, application:get_env(master, graph_rebuild_interval))).
 
-%% API
 -export([
     start_link/0,
     init/1,
