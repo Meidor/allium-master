@@ -59,8 +59,7 @@ client_logout(Username) when is_list(Username) ->
 
 -spec client_login(list(), list(), binary()) -> any().
 %% @doc
-%% Allows for the login of clients. The passed information is checked,
-%% which will return a response that will be passed on to the master_app_erl.
+%% Allows for the login of clients. The passed information is checked, which will return a response.
 %% Also starts the heartbeat monitor for the client.
 %% params
 %% Username: username of the client.
