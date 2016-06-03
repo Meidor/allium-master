@@ -1,6 +1,3 @@
-%% Feel free to use, reuse and abuse the code in this file.
-
-%% @private
 -module(websocket_sup).
 -behaviour(supervisor).
 
@@ -13,8 +10,6 @@
 -spec start_link() -> {ok, pid()}.
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
-
-%% supervisor.
 
 init([]) ->
     Procs = [],
