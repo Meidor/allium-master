@@ -5,11 +5,13 @@
 -behaviour(application).
 
 %% API.
--export([start/2]).
--export([stop/1]).
+-export([
+    start/2,
+    stop/1
+]).
 
 %% @doc
-%% for starting the cowboy websocket.
+%% For starting the cowboy websocket.
 start(_Type, _Args) ->
   Dispatch = cowboy_router:compile([
     {'_', [
@@ -41,6 +43,6 @@ start(_Type, _Args) ->
   websocket_sup:start_link().
 
 %% @doc
-%% for stopping the cowboy websocket.
+%% For stopping the cowboy websocket.
 stop(_State) ->
   ok.
