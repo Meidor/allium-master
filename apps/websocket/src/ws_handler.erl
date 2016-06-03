@@ -24,14 +24,23 @@ init({tcp, http}, _Req, _Opts) ->
     {upgrade, protocol, cowboy_websocket}.
 
 -spec websocket_init(any(), any(), any()) -> tuple().
+%% @doc
+%% Initializes websocket.
+%% params
+%% Req: contains all data from the request.
 websocket_init(_TransportName, Req, _Opts) ->
     lager:info("New websocket connection intitialised."),
     subscribe(node_update),
     {ok, Req, undefined_state, hibernate}.
 
-%% @doc
-%% Handles all communication to the websocket 
+
 -spec websocket_handle(tuple(), any(), any()) -> tuple().
+%% @doc
+%% Handles all communication to the websocket.
+%% params
+%% Msg: message that has been passthrough the websocket connection.
+%% Req: contains all data from the request.
+%% State: state of the websocket connection.
 websocket_handle({text, Msg}, Req, State) ->
     {reply, {text, Msg}, Req, State};
 websocket_handle({binary, Msg}, Req, State) ->
@@ -40,11 +49,14 @@ websocket_handle({binary, Msg}, Req, State) ->
 websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
 
-
+-spec handle_request(atom(), binary(), any(), any()) -> any().
 %% @doc
 %% Handles all binary requests from the administrator application.
 %% It decodes the request and passes the right values to the right functions.
--spec handle_request(atom(), binary(), any(), any()) -> any().
+%% params
+%% Msg: message that has been passthrough the websocket connection.
+%% Req: contains all data from the request.
+%% State: state of the websocket connection.
 handle_request('ADMINLOGINREQUEST', Data, Req, State) ->
     {adminloginrequest, Username, Password} = hrp_pb:decode_adminloginrequest(Data),
     try auth_service:admin_login(Username, Password) of
@@ -120,15 +132,18 @@ websocket_info({?MODULE, _, Msg}, Req, State) ->
     lager:info("Received message from pub/sub sending it through the websocket."),
     {reply, {binary, Msg}, Req, State, hibernate}.
 
-%% @doc 
-%% Used to terminate the websocket after use.
 -spec websocket_terminate(any(), any(), any()) -> atom().
+%% @doc
+%% Used to terminate the websocket after use.
 websocket_terminate(_Reason, _Req, _State) ->
     ok.
 
-%% @doc
-%% "wraps" a message and a type into a MessageWrapper.
 -spec get_wrapped_message(list(), list()) -> list().
+%% @doc
+%% wraps a message and a type into a Wrapper.
+%% params
+%% Type: type of message that will be wrapped in the wrapper.
+%% Msg: message that has been passthrough the websocket connection.
 get_wrapped_message(Type, Msg) ->
     hrp_pb:encode([{wrapper, Type, Msg}]).
 
