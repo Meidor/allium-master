@@ -14,6 +14,7 @@
 
 %% @doc
 %% Handles receiving a heartbeat from a node. First verifies the node, then resets the heartbeat for that node.
+%% Error: nodenotverified, when the NodeId and the Secrethash combination do not match the known values.
 -spec receive_heartbeat_node(list(), list()) -> any().
 receive_heartbeat_node(NodeId, SecretHash) when is_list(NodeId), is_list(SecretHash) ->
     try
@@ -27,6 +28,7 @@ receive_heartbeat_node(NodeId, SecretHash) when is_list(NodeId), is_list(SecretH
 
 %% @doc
 %% Handles receiving a heartbeat from a client. First verifies the client, then resets the heartbeat for that client.
+%% Error: clientnotverified, when the combination of username and secrethash don't match the known values.
 -spec receive_heartbeat_client(list(), list()) -> any().
 receive_heartbeat_client(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
     try

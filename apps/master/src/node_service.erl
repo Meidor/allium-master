@@ -1,6 +1,5 @@
 -module(node_service).
 
-%% API
 -export([node_register/3,
     node_unregister/1, node_unregister/2,
     node_verify/2,
@@ -11,6 +10,7 @@
 %% @doc
 %% Allows for the registration of nodes. The passed information is checked, then passed on to the node_graph_manager.
 %% Also starts the heartbeat monitor for the node.
+%% Error: einval, if parse_strict address fails.
 -spec node_register(list(), integer(), binary()) -> tuple().
 node_register(IPaddress, Port, PublicKey)
     when
@@ -40,6 +40,7 @@ node_unregister(NodeId)
 
 %% @doc
 %% Removes nodes. First checks the passed information, then removes the node and the accompanying heartbeat.
+%% Error: badmatch, if the passed combination of nodeId and SecretHash doesn't match the known combination.
 -spec node_unregister(list(), list()) -> any().
 node_unregister(NodeId, SecretHash)
     when
@@ -77,6 +78,8 @@ set_edges(NodeId, Edges) when is_list(NodeId) ->
 %% @doc
 %% Updates a node in the graph. First checks the passed data, then checks whether the ipaddress or port is changed.
 %% If that is the case, remove the node and add a new one with the new nodeId, otherwise, update the node.
+%% Error: einval, if parse_strict address fails.
+%% Error: badmatch, if the passed combination of nodeId and SecretHash doesn't match the known combination.
 -spec node_update(list(), list(), list(), integer(), binary()) -> any().
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     when
@@ -100,6 +103,7 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
 
 %% @doc
 %% Checks whether a node exists in the current graph.
+%% Error: badmatch, if the passed node doesn't exist.
 -spec node_exists(list()) -> any().
 node_exists(NodeId) when is_list(NodeId) ->
     false = undefined == node_graph_manager:get_node_secret_hash(NodeId).

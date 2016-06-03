@@ -13,6 +13,8 @@ benchmark() ->
 
 %% @doc
 %% Starts a benchmark, testing how long it takes to register nodes, users and how long it takes to fetch graph updates.
+%% params:
+%% Count: the amount of entities in the benchmark.
 -spec benchmark(integer()) -> atom().
 benchmark(Count) ->
     test_helpers_int:empty_database(),

@@ -147,6 +147,7 @@ protobufs_to_tuple(Data) ->
 
 %% @doc
 %% Adds a node to the graph using redis and publishes the added node to the management application.
+%% Error: alreadyexists, occurs when the NodeId already exists.
 -spec add_node(list(), integer(), binary()) -> tuple().
 add_node(IPaddress, Port, PublicKey) ->
     NodeId = lists:flatten(io_lib:format("~s:~p", [IPaddress, Port])),
