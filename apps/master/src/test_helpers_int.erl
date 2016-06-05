@@ -61,7 +61,6 @@ send_heartbeat(Message, RequestType) ->
 %% sends a register node request to the master_app.
 %% this is used to help test functionality that requires a registered node.
 %% this one returns the node Id so that you can use it in your test.
-%% also see register_node(IP, Port, PublicKey).
 -spec register_node_return_id(list(), binary()) -> list().
 register_node_return_id(IP, PublicKey) ->
     {NodeId, _, _, _, _} = register_node(IP, 80, PublicKey),

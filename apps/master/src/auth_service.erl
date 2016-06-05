@@ -68,8 +68,9 @@ client_logout(Username) when is_list(Username) ->
 
 -spec client_login(list(), list(), binary())-> any().
 %% @doc
-%% Allows for the login of clients. The passed information is checked in a couple of ways.
-%% A couple of random nodes will be assigned to the client, after that, a secret hash will be generated.
+%% Allows for the login of clients.
+%% A couple of random nodes will be assigned to the client.
+%% A secret hash will be generated.
 %% These variables will be added to the clients user credentials and when this is done the secret hash and
 %% dedicated nodes will be returned.
 %% params
