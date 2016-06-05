@@ -23,13 +23,10 @@
 %% This module is used to help the integration tests.
 %% A lot of tests require certain situations and these function are here to get to those situations.
 
--spec get_data_encrypted_response(binary(), atom(), atom()) -> tuple().
+
 %% @doc
 %% Used to get responses from master_app.
-%% param
-%% Message: Message to decrypt.
-%% RequestType: type of request to decrypt.
-%% ResponseType: type of response for this message.
+-spec get_data_encrypted_response(binary(), atom(), atom()) -> tuple().
 get_data_encrypted_response(Message, RequestType, ResponseType) ->
     {[{wrapper, RetrievedResponseType, Data} | _], _} = hrp_pb:delimited_decode_wrapper(
         iolist_to_binary(
@@ -43,11 +40,9 @@ get_data_encrypted_response(Message, RequestType, ResponseType) ->
     RetrievedResponseType = ResponseType,
     Data.
 
--spec encode_message_to_binary(tuple()) -> binary().
 %% @doc
 %% Used to encode messages.
-%% param
-%% Message: Message to encode to binary.
+-spec encode_message_to_binary(tuple()) -> binary().
 encode_message_to_binary(Message) ->
     iolist_to_binary(
         hrp_pb:encode(
@@ -55,36 +50,27 @@ encode_message_to_binary(Message) ->
         )
     ).
 
--spec send_heartbeat(binary(), atom()) -> any().
 %% @doc
 %% Sends a heartbeat to the master_app.
-%% This is used to help test functionality that requires a send heartbeat.
-%% param
-%% Message: Heartbeat message.
-%% RequestType: Type of the request.
+%% This is used to help test functionality that requires a senT heartbeat.
+-spec send_heartbeat(binary(), atom()) -> any().
 send_heartbeat(Message, RequestType) ->
     master_app:handle_message(hrp_pb:encode([{wrapper, RequestType, Message}])).
 
--spec register_node_return_id(list(), binary()) -> list().
 %% @doc
 %% sends a register node request to the master_app.
 %% this is used to help test functionality that requires a registered node.
 %% this one returns the node Id so that you can use it in your test.
-%% param
-%% IP: IPaddress of the node.
-%% PublicKey: public key of the node.
+%% also see register_node(IP, Port, PublicKey).
+-spec register_node_return_id(list(), binary()) -> list().
 register_node_return_id(IP, PublicKey) ->
     {NodeId, _, _, _, _} = register_node(IP, 80, PublicKey),
     NodeId.
 
--spec register_node(list(), integer(), binary()) -> any().
 %% @doc
 %% Sends a node register request to the master_app.
 %% This is used to help test functionality that requires a loged in client.
-%% param
-%% IP: IPaddress of the node.
-%% Port: port of the node.
-%% PublicKey: Public key of the node.
+-spec register_node(list(), integer(), binary()) -> any().
 register_node(IP, Port, PublicKey) ->
     Request = {noderegisterrequest, IP, Port, PublicKey},
 
@@ -95,13 +81,10 @@ register_node(IP, Port, PublicKey) ->
     ),
     {NodeId, SecretHash, IP, Port, PublicKey}.
 
--spec register_client(list(), list()) -> tuple().
 %% @doc
 %% Sends a client register request to the master_app.
 %% This is used to help test functionality that requires a registered in client.
-%% param
-%% Username: Username of the client.
-%% Password: Password of the client.
+-spec register_client(list(), list()) -> tuple().
 register_client(Username, Password) ->
     Request = {clientregisterrequest, Username, Password},
     {clientregisterresponse, 'SUCCES'} = hrp_pb:decode_clientregisterresponse(
@@ -110,14 +93,10 @@ register_client(Username, Password) ->
         )
     ).
 
--spec login_client(list(), list(), binary()) -> tuple().
 %% @doc
 %% Sends a client login request to the master_app.
 %% This is used to help test functionality that requires a loged in client.
-%% param
-%% Username: Username of the client.
-%% Password: Password of the client.
-%% PublicKey: Public key of the client.
+-spec login_client(list(), list(), binary()) -> tuple().
 login_client(Username, Password, PublicKey) ->
     Request = {clientloginrequest, Username, Password, PublicKey},
     {clientloginresponse,
@@ -128,16 +107,10 @@ login_client(Username, Password, PublicKey) ->
         ),
     {Username, Password, PublicKey, SecretHash, DedicatedNodes}.
 
--spec update_node(list(), list(), list(), integer(), binary()) -> any().
 %% @doc
 %% Sends a update node request to the master_app.
 %% This is used to help test functionality that requires a updated node.
-%% param
-%% NodeId: Id of the node.
-%% SecretHash: Secret hash of the node.
-%% IP: IP address of the node.
-%% Port: Port of the node.
-%% PublicKey: Public key of the node.
+-spec update_node(list(), list(), list(), integer(), binary()) -> any().
 update_node(NodeId, SecretHash, IP, Port, PublicKey) ->
     Request = {nodeupdaterequest, NodeId, SecretHash, IP, Port, PublicKey},
     ReturnedNodeId = IP ++ ":" ++ integer_to_list(Port),
@@ -149,13 +122,10 @@ update_node(NodeId, SecretHash, IP, Port, PublicKey) ->
     ),
     {ReturnedNodeId, SecretHash, IP, Port, PublicKey}.
 
--spec delete_node(list(), list()) -> any().
 %% @doc
 %% Sends a delete node request to the master_app.
 %% This is used to help test functionality that requires the deletion of a node.
-%% param
-%% NodeId: Id of the node to delete.
-%% SecretHash: Secret hash of the node.
+-spec delete_node(list(), list()) -> any().
 delete_node(NodeId, SecretHash) ->
     Request = {nodedeleterequest, NodeId, SecretHash},
     {nodedeleteresponse, 'SUCCES'} = hrp_pb:decode_nodedeleteresponse(
@@ -164,35 +134,27 @@ delete_node(NodeId, SecretHash) ->
         )
     ).
 
--spec valid_secret_hash(list()) -> any().
 %% @doc
 %% Checks if the SecretHash meets the requirements.
-%% error
-%% badmatch: thrown when the secret hash is incorrect.
-%% param
-%% SecretHash: Secret hash to check for validity.
+-spec valid_secret_hash(list()) -> any().
 valid_secret_hash(SecretHash) ->
     true = is_list(SecretHash) and (length(SecretHash) == 68).
 
--spec valid_id(list()) -> any().
 %% @doc
 %% Checks if the Id meets the requirements.
-%% error
-%% badmatch: thrown when the id is incorrect.
-%% param
-%% Id: Id to check for validity.
+-spec valid_id(list()) -> any().
 valid_id(Id) ->
     true = is_list(Id).
 
--spec empty_database() -> any().
 %% @doc
 %% Used to reset the redis database, not the mnesia database.
+-spec empty_database() -> any().
 empty_database() ->
     redis:apply_to_execute_command_on_all_nodes(["FLUSHALL"], fun(_) -> ok end).
 
--spec get_connection() -> pid().
 %% @doc
 %% Used to get a connection to redis.
+-spec get_connection() -> pid().
 get_connection() ->
     case whereis(redis) of
         undefined ->
@@ -203,9 +165,9 @@ get_connection() ->
             Pid
     end.
 
--spec init_sharded_eredis() -> any().
 %% @doc
 %% Used to initialize sharded eredis.
+-spec init_sharded_eredis() -> any().
 init_sharded_eredis() ->
     application:set_env(sharded_eredis, pools,
         [
