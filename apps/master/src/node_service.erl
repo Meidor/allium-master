@@ -14,11 +14,11 @@
 %% Also starts the heartbeat monitor for the node.
 %% params
 %% IPadress: IP address of the node.
-%% Port: port of the node.
-%% PublicKey: public key of the node.
+%% Port: Port of the node.
+%% PublicKey: Public key of the node.
 %% errors
-%% einval: if parse_strict address fails.
-%% alreadyexists: when node already exist.
+%% einval: If parse_strict address fails.
+%% alreadyexists: When node already exist.
 node_register(IPaddress, Port, PublicKey)
     when
         is_list(IPaddress), is_integer(Port), Port > 0, Port < 65536, is_binary(PublicKey)
@@ -40,7 +40,7 @@ verify_ip(IPaddress) ->
 %% @doc
 %% Removes nodes. First checks the passed information, then removes the node.
 %% params
-%% NodeId: id of the node.
+%% NodeId: Id of the node.
 node_unregister(NodeId)
     when
         is_list(NodeId)
@@ -51,10 +51,10 @@ node_unregister(NodeId)
 %% @doc
 %% Removes nodes. First checks the passed information, then removes the node and the accompanying heartbeat.
 %% params
-%% NodeId: id of the node.
-%% SecretHash: secret hash of the node.
+%% NodeId: Id of the node.
+%% SecretHash: Secret hash of the node.
 %% errors
-%% badmatch: if the passed combination of nodeId and SecretHash doesn't match the known combination.
+%% badmatch: If the passed combination of nodeId and SecretHash doesn't match the known combination.
 node_unregister(NodeId, SecretHash)
     when
         is_list(NodeId), is_list(SecretHash)
@@ -67,10 +67,10 @@ node_unregister(NodeId, SecretHash)
 %% @doc
 %% Checks whether the secret hash matches the known secret hash for the NodeId.
 %% params
-%% NodeId: id of the node.
-%% SecretHash: secret hash of the node.
+%% NodeId: Id of the node.
+%% SecretHash: Secret hash of the node.
 %% errors
-%% undefined: when there can not be generated a secret hash for the node.
+%% undefined: When there can not be generated a secret hash for the node.
 node_verify(NodeId, SecretHash)
     when
         is_list(NodeId), is_list(SecretHash)
@@ -98,14 +98,14 @@ set_edges(NodeId, Edges) when is_list(NodeId) ->
 %% Updates a node in the graph. First checks the passed data, then checks whether the ipaddress or port is changed.
 %% If that is the case, remove the node and add a new one with the new nodeId, otherwise, update the node.
 %% params
-%% NodeId: id of the node.
-%% SecretHash: secret hash of the node.
+%% NodeId: Id of the node.
+%% SecretHash: Secret hash of the node.
 %% IPadress: IP address of the node.
-%% Port: port of the node.
-%% PublicKey: public key of the node.
+%% Port: Port of the node.
+%% PublicKey: Public key of the node.
 %% errors
-%% einval: if parse_strict address fails.
-%% badmatch: if the passed combination of nodeId and SecretHash doesn't match the known combination.
+%% einval: If parse_strict address fails.
+%% badmatch: If the passed combination of nodeId and SecretHash doesn't match the known combination.
 node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
     when
         is_list(NodeId), is_list(SecretHash), is_list(IPaddress), is_integer(Port),
@@ -130,8 +130,8 @@ node_update(NodeId, SecretHash, IPaddress, Port, PublicKey)
 %% @doc
 %% Checks whether a node exists in the current graph.
 %% params
-%% NodeId: id of the node.
+%% NodeId: Id of the node.
 %% errors
-%% badmatch: if the passed node doesn't exist.
+%% badmatch: If the passed node doesn't exist.
 node_exists(NodeId) when is_list(NodeId) ->
     false = undefined == node_graph_manager:get_node_secret_hash(NodeId).

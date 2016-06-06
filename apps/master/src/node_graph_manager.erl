@@ -103,8 +103,8 @@ get_current_full_graph() ->
 %% @doc
 %% Updates the current graph to reflect the changes brought by a single graphupdate.
 %% params
-%% Update: a single graph update.
-%% Graph: the current graph.
+%% Update: A single graph update.
+%% Graph: The current graph.
 merge_update_with_graph(Update, Graph) ->
     {_, _, _, ResultingAdditions, _} = Graph,
     {_, _, _, Additions, Deletes} = Update,
@@ -155,11 +155,12 @@ protobufs_to_tuple(Data) ->
 %% @doc
 %% Adds a node to the graph using redis, Ups the graph version by one, saves the hash of the node,
 %% saves the edges of the node and publishes the added node to the management application.
-%% Error: alreadyexists, occurs when the NodeId already exists in redis.
 %% params
 %% NodeId: Id of the node.
-%% Port: port of the node.
-%% PublicKey: public key of the node.
+%% Port: Port of the node.
+%% PublicKey: Public key of the node.
+%% errors
+%% alreadyexists: When the NodeId already exists in redis.
 add_node(IPaddress, Port, PublicKey) ->
     NodeId = lists:flatten(io_lib:format("~s:~p", [IPaddress, Port])),
     verify_node_does_not_exist(NodeId),
@@ -252,7 +253,7 @@ get_wrapped_graphupdate_message(Type, Msg) ->
 %% @doc
 %% Fetches a number of dedicated nodes from redis to use as dedicated nodes for a client.
 %% params
-%% NumberOfDedicatedNodes: the amount of dedicated nodes to fetch.
+%% NumberOfDedicatedNodes: The amount of dedicated nodes to fetch.
 get_random_dedicated_nodes(NumberOfDedicatedNodes) ->
     [binary_to_list(NodeId) ||
         NodeId  <- redis:set_randmember("active_nodes", NumberOfDedicatedNodes)].

@@ -28,7 +28,7 @@ init() ->
 %% @doc
 %% Returns the node matching the provided key.
 %% params
-%% Key: key of the key-value pair that you are trying to get.
+%% Key: Key of the key-value pair that you are trying to get.
 get(Key) ->
     {ok, Value} = sharded_eredis:q(["GET", ?prefix ++ Key]),
     Value.
@@ -37,7 +37,7 @@ get(Key) ->
 %% @doc
 %% returns all values matching the provided key.
 %% params
-%% Key: key of the key_value pairs that you are trying to get.
+%% Key: Key of the key_value pairs that you are trying to get.
 get_matching_keys(Key) ->
     accumulate_command_on_all_nodes(["KEYS", ?prefix ++ Key ++ "*"]).
 
@@ -45,7 +45,7 @@ get_matching_keys(Key) ->
 %% @doc
 %% Gets a list of nodes based on a list of keys or retuns an empty list if no keys are passed.
 %% params
-%% ListOfKeys: list of keys that you want to have a selection of nodes from.
+%% ListOfKeys: List of keys that you want to have a selection of nodes from.
 get_list([])->
     [];
 get_list(ListOfKeys) ->
@@ -56,7 +56,7 @@ get_list(ListOfKeys) ->
 %% @doc
 %% Used for testing purposes.
 %% params
-%% ListOfKeys: list of keys for getting values.
+%% ListOfKeys: List of keys for getting values.
 get_list_failsafe(ListOfKeys) ->
     lists:map(
         fun(Key) -> {ok, Value} = sharded_eredis:q(["GET", Key]), Value end,
@@ -67,8 +67,8 @@ get_list_failsafe(ListOfKeys) ->
 %% @doc
 %% Sets a key-value pair in redis.
 %% params
-%% Key: key of the value that you are trying to set.
-%% Value: value that you are trying to set.
+%% Key: Key of the value that you are trying to set.
+%% Value: Value that you are trying to set.
 set(Key, Value) ->
     sharded_eredis:q(["SET", ?prefix ++ Key, Value]).
 
@@ -76,7 +76,7 @@ set(Key, Value) ->
 %% @doc
 %% Removes a key-value pair from redis.
 %% params
-%% Key: key of the key-value pair that needs to be removed
+%% Key: Key of the key-value pair that needs to be removed
 remove(Key) ->
     sharded_eredis:q(["DEL", ?prefix ++ Key]).
 
@@ -84,8 +84,8 @@ remove(Key) ->
 %% @doc
 %% Returns an amount of random nodes.
 %% params
-%% Set: set to return nodes from.
-%% Amount: the amount of nodes to return.
+%% Set: Set to return nodes from.
+%% Amount: The amount of nodes to return.
 set_randmember(Set, Amount) ->
     {ok, Keys} = sharded_eredis:q(["SRANDMEMBER", ?prefix ++ Set,  Amount]),
     Keys.
@@ -96,8 +96,8 @@ set_randmember(Set, Amount) ->
 %% @doc
 %% Adds the value to a set.
 %% params
-%% Set: set to add nodes to.
-%% Value: value to add to the set.
+%% Set: Set to add nodes to.
+%% Value: Value to add to the set.
 set_add(Set, Value) ->
     sharded_eredis:q(["SADD", ?prefix ++ Set, Value]).
 
@@ -105,8 +105,8 @@ set_add(Set, Value) ->
 %% @doc
 %% Removes the specified value from the specified set.
 %% params
-%% Set: set to remove node from
-%% Value: value to remove from set
+%% Set: Set to remove node from
+%% Value: Value to remove from set
 set_remove(Set, Value) ->
     sharded_eredis:q(["SREM", ?prefix ++ Set, Value]).
 
@@ -114,8 +114,8 @@ set_remove(Set, Value) ->
 %% @doc
 %% Performs a function for all keys matching a filter.
 %% params
-%% Filter: to select wanted nodes
-%% Fun: function to execute on the nodes
+%% Filter: To select wanted nodes
+%% Fun: Function to execute on the nodes
 apply_to_matching_keys(Filter, Fun) ->
     apply_to_execute_command_on_all_nodes(["KEYS", ?prefix ++ Filter ++ "*"], Fun).
 
@@ -123,8 +123,8 @@ apply_to_matching_keys(Filter, Fun) ->
 %% @doc
 %% Executes a command on all redisnodes.
 %% params
-%% Filter: to select wanted nodes
-%% Fun: function to execute on the nodes
+%% Filter: To select wanted nodes
+%% Fun: Function to execute on the nodes
 apply_to_execute_command_on_all_nodes(Command, Fun) ->
     {ok, NodeList} = application:get_env(sharded_eredis, ring),
     Nodes = [Node || {_, Node} <- NodeList],
