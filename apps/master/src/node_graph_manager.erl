@@ -75,7 +75,7 @@ rebuild_graph() ->
 %% @doc
 %% Fetches graphupdates up to the requested new min version
 %% and then updates the current graph one graphupdate at a time.
-%% param
+%% params
 %% RequestedMinVersion: The version up to which the graph should be built.
 build_graph(RequestedMinVersion) ->
     NewMinVersion = min(max(get_min_version(), RequestedMinVersion), get_max_version()),
@@ -102,7 +102,7 @@ get_current_full_graph() ->
 -spec merge_update_with_graph(tuple(), tuple()) -> tuple().
 %% @doc
 %% Updates the current graph to reflect the changes brought by a single graphupdate.
-%% param
+%% params
 %% Update: a single graph update.
 %% Graph: the current graph.
 merge_update_with_graph(Update, Graph) ->
@@ -156,7 +156,7 @@ protobufs_to_tuple(Data) ->
 %% Adds a node to the graph using redis, Ups the graph version by one, saves the hash of the node,
 %% saves the edges of the node and publishes the added node to the management application.
 %% Error: alreadyexists, occurs when the NodeId already exists in redis.
-%% param
+%% params
 %% NodeId: Id of the node.
 %% Port: port of the node.
 %% PublicKey: public key of the node.
@@ -180,7 +180,7 @@ add_node(IPaddress, Port, PublicKey) ->
 %% @doc
 %% Removes a node from the graph using redis, ups the graph version by one, removes the edges of the node,
 %% publishes the removed node to the management application and creates a proper response.
-%% param
+%% params
 %% NodeId: Id of the node.
 remove_node(NodeId) ->
     redis:remove("node_hash_" ++ NodeId),
@@ -202,7 +202,7 @@ set_max_version(Version) ->
 -spec get_node_secret_hash(list()) -> list().
 %% @doc
 %% Retrieves the secret hash of a node from redis.
-%% param
+%% params
 %% NodeId: Id of the node.
 get_node_secret_hash(NodeId) ->
     try
@@ -216,7 +216,7 @@ get_node_secret_hash(NodeId) ->
 %% @doc
 %% Updates a node in the graph (an update is a deletion and an addition in redis), ups the version by one,
 %% saves the edges, publishes the updated node to the management application and creates the appropriate message.
-%% param
+%% params
 %% NodeId: Id of the node.
 %% IPaddress: IP address of the node.
 %% Port: Port of the node.
@@ -251,7 +251,7 @@ get_wrapped_graphupdate_message(Type, Msg) ->
 -spec get_random_dedicated_nodes(integer()) -> list().
 %% @doc
 %% Fetches a number of dedicated nodes from redis to use as dedicated nodes for a client.
-%% param
+%% params
 %% NumberOfDedicatedNodes: the amount of dedicated nodes to fetch.
 get_random_dedicated_nodes(NumberOfDedicatedNodes) ->
     [binary_to_list(NodeId) ||

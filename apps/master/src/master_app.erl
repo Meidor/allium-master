@@ -33,7 +33,7 @@ stop(_State) ->
 -spec start(integer()) -> any().
 %% @doc
 %% Starts a process listening the port.
-%% param
+%% params
 %% Port: the port the process will be listening on.
 start(Port) ->
     spawn(fun() -> server(Port) end).
@@ -54,7 +54,7 @@ listen(Socket) ->
 %% @doc
 %% Takes requests, checks the type of the requests and sends it to the appropriate function to handle the request,
 %% also sends the response.
-%% param
+%% params
 %% Socket: The socket the application is listening at.
 handle_messages(Socket) ->
     receive
