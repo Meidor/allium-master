@@ -49,9 +49,9 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
 %% Allows for the log out of clients. First checks the passed information, logs out client and
 %% then removes the accompanying heartbeat.
 %% params
-%% Username: username of the client.
+%% Username: Username of the client.
 %% errors
-%% couldnotbeloggedout: when clients secrethash could not be set to undefined.
+%% couldnotbeloggedout: When clients secrethash could not be set to undefined.
 client_logout(Username) when is_list(Username) ->
     auth_service:client_logout(Username),
     heartbeat_monitor:remove_client(Username),
