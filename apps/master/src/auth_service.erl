@@ -25,7 +25,8 @@ client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) 
     end.
 
 -spec client_check_password_and_return_dedicated_nodes(list(), list()) -> any().
-client_check_password_and_return_dedicated_nodes(Username, Password) when is_list(Username), is_list(Password) ->
+client_check_password_and_return_dedicated_nodes(Username, Password)
+    when is_list(Username), is_list(Password) ->
     try
         {_, _, _, Password, DedicatedNodes} = persistence_service:select_client(Username),
         DedicatedNodes
