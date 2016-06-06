@@ -2,6 +2,8 @@
 -behaviour(cowboy_websocket_handler).
 
 -export([init/3]).
+
+%% API
 -export([
     websocket_init/3,
     websocket_handle/3,
@@ -22,12 +24,23 @@ init({tcp, http}, _Req, _Opts) ->
     {upgrade, protocol, cowboy_websocket}.
 
 -spec websocket_init(any(), any(), any()) -> tuple().
+%% @doc
+%% Initializes websocket.
+%% params
+%% Req: Contains all data from the request.
 websocket_init(_TransportName, Req, _Opts) ->
     lager:info("New websocket connection intitialised."),
     subscribe(node_update),
     {ok, Req, undefined_state, hibernate}.
 
+
 -spec websocket_handle(tuple(), any(), any()) -> tuple().
+%% @doc
+%% Handles all communication to the websocket.
+%% params
+%% Msg: Message that has been passthrough the websocket connection.
+%% Req: Contains all data from the request.
+%% State: State of the websocket connection.
 websocket_handle({text, Msg}, Req, State) ->
     {reply, {text, Msg}, Req, State};
 websocket_handle({binary, Msg}, Req, State) ->
@@ -37,6 +50,13 @@ websocket_handle(_Data, Req, State) ->
     {ok, Req, State}.
 
 -spec handle_request(atom(), binary(), any(), any()) -> any().
+%% @doc
+%% Handles all binary requests from the administrator application.
+%% It decodes the request and passes the right values to the right functions.
+%% params
+%% Msg: Message that has been passthrough the websocket connection.
+%% Req: Contains all data from the request.
+%% State: State of the websocket connection.
 handle_request('ADMINLOGINREQUEST', Data, Req, State) ->
     {adminloginrequest, Username, Password} = hrp_pb:decode_adminloginrequest(Data),
     try auth_service:admin_login(Username, Password) of
@@ -113,10 +133,17 @@ websocket_info({?MODULE, _, Msg}, Req, State) ->
     {reply, {binary, Msg}, Req, State, hibernate}.
 
 -spec websocket_terminate(any(), any(), any()) -> atom().
+%% @doc
+%% Used to terminate the websocket after use.
 websocket_terminate(_Reason, _Req, _State) ->
     ok.
 
 -spec get_wrapped_message(list(), list()) -> list().
+%% @doc
+%% Wraps a message and a type into a Wrapper.
+%% params
+%% Type: Type of message that will be wrapped in the wrapper.
+%% Msg: Message that has been passthrough the websocket connection.
 get_wrapped_message(Type, Msg) ->
     hrp_pb:encode([{wrapper, Type, Msg}]).
 
