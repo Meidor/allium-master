@@ -14,8 +14,8 @@
 %% Allows for the registration of clients. The passed information is checked if valid username,
 %% then passed on to the auth_service.
 %% params
-%% Username: username of the client.
-%% Password: password of the client.
+%% Username: Username of the client.
+%% Password: Password of the client.
 %% errors
 %% username_invalid: when the given username does not match constraints.
 client_register(Username, Password) when is_list(Username), is_list(Password) ->
@@ -37,8 +37,8 @@ verify_username(Username)
 %% @doc
 %% Checks whether the secret hash matches the known secret hash for the Username.
 %% params
-%% Username: username of the client.
-%% SecretHash: secret hash of the client.
+%% Username: Username of the client.
+%% SecretHash: Secret hash of the client.
 %% errors
 %% clientnotverified: when there is no client that matches the given username.
 client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
