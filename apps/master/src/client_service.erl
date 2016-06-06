@@ -62,12 +62,12 @@ client_logout(Username) when is_list(Username) ->
 %% Allows for the login of clients. The passed information is checked, which will return a response.
 %% Also starts the heartbeat monitor for the client.
 %% params
-%% Username: username of the client.
-%% Password: password of the client.
-%% PublicKey: public key of the client.
+%% Username: Username of the client.
+%% Password: Password of the client.
+%% PublicKey: Public key of the client.
 %% errors
-%% clientcredentialsnotvalid: when wrong password is entered.
-%% couldnotbeupdated: when Mnesia can not update the client.
+%% clientcredentialsnotvalid: When wrong password is entered.
+%% couldnotbeupdated: When Mnesia can not update the client.
 client_login(Username, Password, PublicKey)
     when
         is_list(Username), is_list(Password), is_binary(PublicKey)
@@ -80,11 +80,11 @@ client_login(Username, Password, PublicKey)
 %% @doc
 %% Allows for the log out of clients. First checks the passed information, then removes the accompanying heartbeat.
 %% params
-%% Username: username of the client.
-%% SecretHash: secret hash of client.
+%% Username: Username of the client.
+%% SecretHash: Secret hash of client.
 %% errors
-%% clientnotverified: when there is no client that matches the given username.
-%% couldnotbeloggedout: when clients secrethash could not be set to undefined.
+%% clientnotverified: When there is no client that matches the given username.
+%% couldnotbeloggedout: When clients secrethash could not be set to undefined.
 client_logout(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
     client_verify(Username, SecretHash),
     client_logout(Username).

@@ -55,12 +55,12 @@ init() ->
 %% @doc
 %% Given a username and password of a client, the method checks if username already exist.
 %% If this is not the case, the client will be added to the database.
+%% params
+%% Username: Username of the client.
+%% Password: Password of the client.
 %% error
-%% usernametaken: thrown when the client username is already taken.
-%% couldnotbeinserted: thrown when the client could not be inserted for another reason than usernametaken.
-%% param
-%% Username: username of the client.
-%% Password: password of the client.
+%% usernametaken: Thrown when the client username is already taken.
+%% couldnotbeinserted: Thrown when the client could not be inserted for another reason than usernametaken.
 insert_client(Username, Password) when is_list(Username), is_list(Password) ->
     try
         undefined = select_client(Username)
@@ -84,13 +84,13 @@ insert_client(Username, Password) when is_list(Username), is_list(Password) ->
 %% @doc
 %% Given the user credentials of a client, the method checks if this client is already in the system.
 %% When this is true, it will update the user credentials of this particular client.
-%% error
-%% couldnotbeupdated: thrown when the client could not be updated.
-%% param
+%% params
 %% Username: Username of the client.
 %% SecretHash: Secret Hash of the client.
 %% PublicKey: Public key of the client.
 %% DedicatedNodes: Dedicated nodes associated with the client.
+%% error
+%% couldnotbeupdated: Thrown when the client could not be updated.
 update_client(Username, SecretHash, PublicKey, DedicatedNodes) when is_list(Username)
     andalso (undefined == SecretHash orelse is_list(SecretHash))
     andalso (undefined == PublicKey orelse is_binary(PublicKey))
@@ -111,13 +111,13 @@ update_client(Username, SecretHash, PublicKey, DedicatedNodes) when is_list(User
 
 -spec update_client_hash(list(), any()) -> atom().
 %% @doc
-%% it will check if this client is in the system,
+%% It will check if this client is in the system,
 %% when this is true, it will update the secret hash of this particular client.
-%% error
-%% couldnotbeupdated: thrown when the client could not be updated.
-%% param
+%% params
 %% Username: Username of the client.
 %% SecretHash: New secret hash for the client.
+%% error
+%% couldnotbeupdated: Thrown when the client could not be updated.
 update_client_hash(Username, SecretHash) when
     is_list(Username)
     andalso (undefined == SecretHash orelse is_list(SecretHash)) ->
@@ -137,7 +137,7 @@ update_client_hash(Username, SecretHash) when
 %% @doc
 %% Given the username of a client, this method checks if there's a client in the system that matches the username.
 %% If so it will return that client's credentials. Else it is undefined.
-%% param
+%% params
 %% Username: Username of the client.
 select_client(Username) when is_list(Username) ->
     case mnesia:dirty_read({client, Username}) of
@@ -151,7 +151,7 @@ select_client(Username) when is_list(Username) ->
 %% @doc
 %% Given the username of an admin, this method checks if there's an admin in the system that matches the username.
 %% If so it will return the admin's credentials. Else it is undefined.
-%% param
+%% params
 %% Username: Username of the admin.
 select_admin(Username) when is_list(Username) ->
     case mnesia:dirty_read({admin, Username}) of
@@ -192,11 +192,11 @@ select_all_super_admins() ->
 %% Given a username, the method checks if the admin already exist in the system.
 %% If this is not the case the admin will be added to the system.
 %% A random password will be generated for this admin which can be changed later.
+%% params
+%% Username: Username of the admin to insert.
 %% error
 %% usernametaken: Thrown when a username is already present in amnesia.
 %% couldnotbeinserted: Thrown when the admin could not be inserted for another reason than usernametaken.
-%% param
-%% Username: Username of the admin to insert.
 insert_admin(Username) when is_list(Username) ->
     try
         undefined = select_admin(Username)
@@ -220,14 +220,14 @@ insert_admin(Username) when is_list(Username) ->
 -spec update_admin(list(), list(), boolean(), boolean()) -> any().
 %% @doc
 %% Depending on the given parameters the method will decide which version of the update_admin method it will call upon.
-%% If the password is reset, it will only generate a new password,
-%% if the password is empty or undefined, it will keep the password as it is,
-%% superadmin status is changed as it is provided if the password wasn't reset.
-%% param
+%% If the password is reset, it will only generate a new password.
+%% If the password is empty or undefined, it will keep the password as it is.
+%% Superadmin status is changed as it is provided if the password wasn't reset.
+%% params
 %% Username: Username of the admin to update.
-%% Password: new password of the admin.
+%% Password: New password of the admin.
 %% Superadmin: Determines whether the admin is a superadmin.
-%% _: Determines whether the password should be reset.
+%% true | false: Determines whether the password should be reset.
 update_admin(Username, _Password, _SuperAdmin, true)
     when
         is_list(Username)
@@ -257,15 +257,15 @@ update_admin(Username, Password, SuperAdmin, false)
 %% It will then check whether a superadmin still remains after performing the update,
 %% if this is not the case, an error is thrown.
 %% When this is also true, it will update the user credentials of this admin depending on what parameters are given.
-%% error
-%% couldnotbeupdated: thrown when an admin could not be updated.
-%% invalidpassword: thrown when an illegal password has been passed.
-%% noremainingsuperadmin: thrown when the client could not be updated.
-%% nonexistingadmin: thrown when the passed admin does not exist.
-%% param
+%% params
 %% Username: Username of the admin.
 %% Password: Password of the admin.
 %% Superadmin: Determines whether the admin is a superadmin.
+%% error
+%% couldnotbeupdated: Thrown when an admin could not be updated.
+%% invalidpassword: Thrown when an illegal password has been passed.
+%% noremainingsuperadmin: Thrown when the client could not be updated.
+%% nonexistingadmin: Thrown when the passed admin does not exist.
 update_admin(Username, Password, SuperAdmin)
     when
         is_list(Username), is_list(Password), is_atom(SuperAdmin)
@@ -298,12 +298,12 @@ update_admin_with_known_password(Username, SuperAdmin)
 %% @doc
 %% Removes admin from system. First checks if there will be at least one super admin left after
 %% this particular admin will be deleted, then removes the admin.
-%% if no super admins remain after the deletion, an error is thrown.
-%% error
-%% noremainingsuperadmin: thrown when the client could not be updated.
-%% nonexistingadmin: thrown when the passed admin does not exist.
-%% param
+%% If no super admins remain after the deletion, an error is thrown.
+%% params
 %% Username: Username of the admin to delete.
+%% error
+%% noremainingsuperadmin: Thrown when the client could not be updated.
+%% nonexistingadmin: Thrown when the passed admin does not exist.
 delete_admin(Username)
     when
         is_list(Username)
@@ -315,7 +315,7 @@ delete_admin(Username)
 %% @doc
 %% Given the secret hash of a client, this method checks if there's a client in the system that matches the secret hash.
 %% If so, it will return the client's credentials. Else it will return an empty list.
-%% param
+%% params
 %% SecretHash: Hash to select clients by.
 select_clients_by_hash(SecretHash)
     when
@@ -336,7 +336,7 @@ select_all_clients() ->
 -spec delete_client(list()) -> atom().
 %% @doc
 %% Removes client from database.
-%% param
+%% params
 %% Username: Username of the client to delete.
 delete_client(Username) when is_list(Username) ->
     mnesia:dirty_delete({client, Username}).

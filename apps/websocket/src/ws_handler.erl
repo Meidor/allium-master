@@ -27,7 +27,7 @@ init({tcp, http}, _Req, _Opts) ->
 %% @doc
 %% Initializes websocket.
 %% params
-%% Req: contains all data from the request.
+%% Req: Contains all data from the request.
 websocket_init(_TransportName, Req, _Opts) ->
     lager:info("New websocket connection intitialised."),
     subscribe(node_update),
@@ -38,9 +38,9 @@ websocket_init(_TransportName, Req, _Opts) ->
 %% @doc
 %% Handles all communication to the websocket.
 %% params
-%% Msg: message that has been passthrough the websocket connection.
-%% Req: contains all data from the request.
-%% State: state of the websocket connection.
+%% Msg: Message that has been passthrough the websocket connection.
+%% Req: Contains all data from the request.
+%% State: State of the websocket connection.
 websocket_handle({text, Msg}, Req, State) ->
     {reply, {text, Msg}, Req, State};
 websocket_handle({binary, Msg}, Req, State) ->
@@ -54,9 +54,9 @@ websocket_handle(_Data, Req, State) ->
 %% Handles all binary requests from the administrator application.
 %% It decodes the request and passes the right values to the right functions.
 %% params
-%% Msg: message that has been passthrough the websocket connection.
-%% Req: contains all data from the request.
-%% State: state of the websocket connection.
+%% Msg: Message that has been passthrough the websocket connection.
+%% Req: Contains all data from the request.
+%% State: State of the websocket connection.
 handle_request('ADMINLOGINREQUEST', Data, Req, State) ->
     {adminloginrequest, Username, Password} = hrp_pb:decode_adminloginrequest(Data),
     try auth_service:admin_login(Username, Password) of
@@ -140,10 +140,10 @@ websocket_terminate(_Reason, _Req, _State) ->
 
 -spec get_wrapped_message(list(), list()) -> list().
 %% @doc
-%% wraps a message and a type into a Wrapper.
+%% Wraps a message and a type into a Wrapper.
 %% params
-%% Type: type of message that will be wrapped in the wrapper.
-%% Msg: message that has been passthrough the websocket connection.
+%% Type: Type of message that will be wrapped in the wrapper.
+%% Msg: Message that has been passthrough the websocket connection.
 get_wrapped_message(Type, Msg) ->
     hrp_pb:encode([{wrapper, Type, Msg}]).
 
