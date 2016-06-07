@@ -179,7 +179,8 @@ add_node(IPaddress, Port, PublicKey) ->
 
 -spec remove_node(list()) -> atom().
 %% @doc
-%% Removes a node from the graph using redis, ups the graph version by one, removes the edges of the node,
+%% Removes a node from the graph using redis, ups the graph version by one,
+%% removes the edges of the node,
 %% publishes the removed node to the management application and creates a proper response.
 %% params
 %% NodeId: Id of the node.
