@@ -13,10 +13,11 @@
 
 -spec client_register(list(), list()) -> any().
 %% @doc
-%% Allows for the registration of clients. The passed information is checked, then passed on to the auth_service.
+%% Allows for the registration of clients. The passed information is checked,
+%% then passed on to the auth_service.
 %% params
 %% Username: Username of the client.
-%% Password: Password of the client. 
+%% Password: Password of the client.
 %% errors
 %% usernametaken: When username is taken.
 %% couldnotbeinserted: When there is an error inside mnesia.
@@ -28,7 +29,7 @@ client_register(Username, Password) when is_list(Username), is_list(Password) ->
 %% Checks whether secret hash matches the known secret hash for the username.
 %% params
 %% Username: Username of the client.
-%% SecretHash: SecretHash of the client. 
+%% SecretHash: SecretHash of the client.
 %% errors
 %% clientnotverified: When client is not verified.
 client_verify(Username, SecretHash) when is_list(Username), is_list(SecretHash) ->
@@ -72,8 +73,8 @@ client_logout(Username) when is_list(Username) ->
 %% Allows for the login of clients.
 %% A couple of random nodes will be assigned to the client.
 %% A secret hash will be generated.
-%% These variables will be added to the clients user credentials and when this is done the secret hash and
-%% Dedicated nodes will be returned.
+%% These variables will be added to the clients user credentials and when this is done
+%% the secret hash and dedicated nodes will be returned.
 %% params
 %% Username: Username of the client.
 %% Password: Password of the client.

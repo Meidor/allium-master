@@ -78,7 +78,8 @@ client_login(Username, Password, PublicKey)
 
 -spec client_logout(list(), list()) -> any().
 %% @doc
-%% Allows for the log out of clients. First checks the passed information, then removes the accompanying heartbeat.
+%% Allows for the log out of clients. First checks the passed information,
+%% then removes the accompanying heartbeat.
 %% params
 %% Username: Username of the client.
 %% SecretHash: Secret hash of client.

@@ -27,7 +27,8 @@
 
 -spec init() -> any().
 %% @doc
-%% Mnesia starts, creates schemes for admins and clients, inserts a default super admin if no super admin is present.
+%% Mnesia starts, creates schemes for admins and clients,
+%% inserts a default super admin if no super admin is present.
 init() ->
     mnesia:stop(),
     mnesia:create_schema([node()]),
@@ -60,7 +61,8 @@ init() ->
 %% Password: Password of the client.
 %% error
 %% usernametaken: Thrown when the client username is already taken.
-%% couldnotbeinserted: Thrown when the client could not be inserted for another reason than usernametaken.
+%% couldnotbeinserted: Thrown when the client could not be inserted
+%% for another reason than usernametaken.
 insert_client(Username, Password) when is_list(Username), is_list(Password) ->
     try
         undefined = select_client(Username)
@@ -82,7 +84,8 @@ insert_client(Username, Password) when is_list(Username), is_list(Password) ->
 
 -spec update_client(list(), list(), binary(), list()) -> atom().
 %% @doc
-%% Given the user credentials of a client, the method checks if this client is already in the system.
+%% Given the user credentials of a client,
+%% the method checks if this client is already in the system.
 %% When this is true, it will update the user credentials of this particular client.
 %% params
 %% Username: Username of the client.
@@ -135,7 +138,8 @@ update_client_hash(Username, SecretHash) when
 
 -spec select_client(list()) -> any().
 %% @doc
-%% Given the username of a client, this method checks if there's a client in the system that matches the username.
+%% Given the username of a client,
+%% this method checks if there's a client in the system that matches the username.
 %% If so it will return that client's credentials. Else it is undefined.
 %% params
 %% Username: Username of the client.
@@ -149,7 +153,8 @@ select_client(Username) when is_list(Username) ->
 
 -spec select_admin(list()) -> any().
 %% @doc
-%% Given the username of an admin, this method checks if there's an admin in the system that matches the username.
+%% Given the username of an admin,
+%% this method checks if there's an admin in the system that matches the username.
 %% If so it will return the admin's credentials. Else it is undefined.
 %% params
 %% Username: Username of the admin.
@@ -171,7 +176,8 @@ select_all_admins() ->
 
 -spec select_all_admins_including_passwords() -> list().
 %% @doc
-%% When invoked, this method will return all admins that are in the system, including their password
+%% When invoked, this method will return all admins that are in the system,
+%% including their password
 %% and their superadmin status.
 select_all_admins_including_passwords() ->
     {_, Result} = get_all_records_from_table(admin),
@@ -180,7 +186,8 @@ select_all_admins_including_passwords() ->
 
 -spec select_all_super_admins() -> list().
 %% @doc
-%% When invoked, this method will return all super admins that are in the system with their passwords
+%% When invoked, this method will return all super admins
+%% that are in the system with their passwords
 %% and their superadmin status.
 select_all_super_admins() ->
     Result = mnesia:dirty_match_object({admin, '_', '_', true}),
@@ -196,7 +203,8 @@ select_all_super_admins() ->
 %% Username: Username of the admin to insert.
 %% error
 %% usernametaken: Thrown when a username is already present in amnesia.
-%% couldnotbeinserted: Thrown when the admin could not be inserted for another reason than usernametaken.
+%% couldnotbeinserted: Thrown when the admin could not be inserted
+%% for another reason than usernametaken.
 insert_admin(Username) when is_list(Username) ->
     try
         undefined = select_admin(Username)
@@ -219,7 +227,8 @@ insert_admin(Username) when is_list(Username) ->
 
 -spec update_admin(list(), list(), boolean(), boolean()) -> any().
 %% @doc
-%% Depending on the given parameters the method will decide which version of the update_admin method it will call upon.
+%% Depending on the given parameters
+%% the method will decide which version of the update_admin method it will call upon.
 %% If the password is reset, it will only generate a new password.
 %% If the password is empty or undefined, it will keep the password as it is.
 %% Superadmin status is changed as it is provided if the password wasn't reset.
@@ -256,7 +265,8 @@ update_admin(Username, Password, SuperAdmin, false)
 %% and if the credentials match an admin that's already in the system.
 %% It will then check whether a superadmin still remains after performing the update,
 %% if this is not the case, an error is thrown.
-%% When this is also true, it will update the user credentials of this admin depending on what parameters are given.
+%% When this is also true, it will update the user credentials of this admin
+%% depending on what parameters are given.
 %% params
 %% Username: Username of the admin.
 %% Password: Password of the admin.
@@ -313,7 +323,8 @@ delete_admin(Username)
 
 -spec select_clients_by_hash(list()) -> list().
 %% @doc
-%% Given the secret hash of a client, this method checks if there's a client in the system that matches the secret hash.
+%% Given the secret hash of a client,
+%% this method checks if there's a client in the system that matches the secret hash.
 %% If so, it will return the client's credentials. Else it will return an empty list.
 %% params
 %% SecretHash: Hash to select clients by.

@@ -10,7 +10,8 @@
 
 -spec node_register(list(), integer(), binary()) -> tuple().
 %% @doc
-%% Allows for the registration of nodes. The passed information is checked, then passed on to the node_graph_manager.
+%% Allows for the registration of nodes. The passed information is checked,
+%% then passed on to the node_graph_manager.
 %% Also starts the heartbeat monitor for the node.
 %% params
 %% IPadress: IP address of the node.
@@ -49,7 +50,8 @@ node_unregister(NodeId)
 
 -spec node_unregister(list(), list()) -> any().
 %% @doc
-%% Removes nodes. First checks the passed information, then removes the node and the accompanying heartbeat.
+%% Removes nodes. First checks the passed information,
+%% then removes the node and the accompanying heartbeat.
 %% params
 %% NodeId: Id of the node.
 %% SecretHash: Secret hash of the node.
@@ -95,8 +97,10 @@ set_edges(NodeId, Edges) when is_list(NodeId) ->
 
 -spec node_update(list(), list(), list(), integer(), binary()) -> any().
 %% @doc
-%% Updates a node in the graph. First checks the passed data, then checks whether the ipaddress or port is changed.
-%% If that is the case, remove the node and add a new one with the new nodeId, otherwise, update the node.
+%% Updates a node in the graph. First checks the passed data,
+%% then checks whether the ipaddress or port is changed.
+%% If that is the case, remove the node and add a new one with the new nodeId,
+%% otherwise, update the node.
 %% params
 %% NodeId: Id of the node.
 %% SecretHash: Secret hash of the node.

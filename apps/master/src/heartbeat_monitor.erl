@@ -14,7 +14,8 @@
 
 -spec receive_heartbeat_node(list(), list()) -> any().
 %% @doc
-%% Handles receiving a heartbeat from a node. First verifies the node, then registers the time the last heartbeat
+%% Handles receiving a heartbeat from a node. First verifies the node,
+%% then registers the time the last heartbeat
 %% has been recieved for that node.
 %% params
 %% NodeId: Id of the node.
@@ -33,7 +34,8 @@ receive_heartbeat_node(NodeId, SecretHash) when is_list(NodeId), is_list(SecretH
 
 -spec receive_heartbeat_client(list(), list()) -> any().
 %% @doc
-%% Handles receiving a heartbeat from a client. First verifies the client, then registers the time the last heartbeat
+%% Handles receiving a heartbeat from a client. First verifies the client,
+%% then registers the time the last heartbeat
 %% has been recieved for that client.
 %% params
 %% Username: The username of the client.

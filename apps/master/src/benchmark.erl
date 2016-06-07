@@ -13,7 +13,8 @@ benchmark() ->
 
 -spec benchmark(integer()) -> atom().
 %% @doc
-%% Starts a benchmark, testing how long it takes to register nodes, users and how long it takes to fetch graph updates.
+%% Starts a benchmark, testing how long it takes to register nodes, users and how long
+%% it takes to fetch graph updates.
 %% These results will then be written to the console.
 %% params
 %% Count: the amount of entities in the benchmark.

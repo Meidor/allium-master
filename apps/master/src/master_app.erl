@@ -4,8 +4,7 @@
 
 %% API
 -export([
-    start/2,
-    start/1,
+    start/2, start/1,
     stop/1,
     handle_message/1]).
 
@@ -52,7 +51,8 @@ listen(Socket) ->
 
 -spec handle_messages(any()) -> any().
 %% @doc
-%% Takes requests, checks the type of the requests and sends it to the appropriate function to handle the request,
+%% Takes requests, checks the type of the requests and sends it to the appropriate function
+%% to handle the request,
 %% also sends the response.
 %% params
 %% Socket: The socket the application is listening at.
