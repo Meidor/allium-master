@@ -81,7 +81,8 @@ client_logout(Username) when is_list(Username) ->
 %% PublicKey: Publickey of the cient.
 %% errors
 %% couldnotbeupdated: When client could not be updated.
-%% clientcredentialsnotvalid: When the info of the client could not be matched to a registered client.
+%% clientcredentialsnotvalid: When the info of the client could not be matched
+%% to a registered client.
 client_login(Username, Password, PublicKey)
     when
         is_list(Username), is_list(Password), is_binary(PublicKey)
