@@ -215,8 +215,10 @@ get_node_secret_hash(NodeId) ->
 
 -spec update_node(list(), list(), integer(), binary(), list()) -> atom().
 %% @doc
-%% Updates a node in the graph (an update is a deletion and an addition in redis), ups the version by one,
-%% saves the edges, publishes the updated node to the management application and creates the appropriate message.
+%% Updates a node in the graph (an update is a deletion and an addition in redis),
+%% ups the version by one,
+%% saves the edges, publishes the updated node to the management application
+%% and creates the appropriate message.
 %% params
 %% NodeId: Id of the node.
 %% IPaddress: IP address of the node.
