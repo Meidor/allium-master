@@ -1,24 +1,16 @@
-%%%===================================================================
-%% @doc master public API
-%% @end
-%%%===================================================================
-
 -module(master_app).
 
 -behaviour(application).
 
-%% Application callbacks
+%% API
 -export([
-    start/2,
+    start/2, start/1,
     stop/1,
-    start/1,
     handle_message/1]).
 
-%%====================================================================
-%% API
-%%====================================================================
-
 -spec start(any(), any()) -> any().
+%% @doc
+%% Start the master application. Makes it listen on port 1337 for requests.
 start(_StartType, _StartArgs) ->
     lager:start(),
     Link = master_sup:start_link(),
@@ -32,14 +24,16 @@ start(_StartType, _StartArgs) ->
     Link.
 
 -spec stop(any()) -> atom().
+%% @doc
+%% Stops the master application.
 stop(_State) ->
     ok.
 
-%%====================================================================
-%% Internal functions
-%%====================================================================
-
 -spec start(integer()) -> any().
+%% @doc
+%% Starts a process listening the port.
+%% params
+%% Port: the port the process will be listening on.
 start(Port) ->
     spawn(fun() -> server(Port) end).
 
@@ -56,6 +50,12 @@ listen(Socket) ->
     listen(Socket).
 
 -spec handle_messages(any()) -> any().
+%% @doc
+%% Takes requests, checks the type of the requests and sends it to the appropriate function
+%% to handle the request,
+%% also sends the response.
+%% params
+%% Socket: The socket the application is listening at.
 handle_messages(Socket) ->
     receive
         {tcp, error, closed} ->
